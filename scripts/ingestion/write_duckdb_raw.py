@@ -45,11 +45,12 @@ def write_raw_dedup(df: pd.DataFrame, table: str, pk_cols: Sequence[str], db_pat
         raise ValueError(f"Missing PK columns in DataFrame: {missing}")
 
     df = df.copy()
-    df["load_ts"] = pd.Timestamp.utcnow(tz="UTC")
+    df["load_ts"] = pd.Timestamp.now(tz="UTC")
 
     with _connect(db_path) as con:
-        con.register("df", df.head(0))
-        con.execute(f"CREATE TABLE IF NOT EXISTS {table} AS SELECT * FROM df;")
+        # Utiliser le DF complet et créer une table vide avec les bons types
+        con.register("df", df)
+        con.execute(f"CREATE TABLE IF NOT EXISTS {table} AS SELECT * FROM df LIMIT 0;")
         con.unregister("df")
 
         con.register("df", df)
