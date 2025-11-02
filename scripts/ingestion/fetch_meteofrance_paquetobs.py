@@ -102,7 +102,7 @@ def fetch_stations(session: requests.Session) -> pd.DataFrame:
     resp = session.get(ENDPOINTS["stations"], timeout=TIMEOUT_S)
     resp.raise_for_status()
 
-    df = pd.read_csv(io.StringIO(resp.text), dtype=str, low_memory=False)
+    df = pd.read_csv(io.StringIO(resp.text), sep=";", dtype=str, low_memory=False)
 
     # Normalise les noms de colonnes 
     df.columns = [c.strip().lower() for c in df.columns]
