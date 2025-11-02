@@ -101,7 +101,13 @@ def fetch_stations(session: requests.Session) -> pd.DataFrame:
     """Récupère la liste des stations (CSV)."""
     resp = session.get(ENDPOINTS["stations"], timeout=TIMEOUT_S)
     resp.raise_for_status()
-    return pd.read_csv(io.StringIO(resp.text), dtype=str, low_memory=False)
+
+    df = pd.read_csv(io.StringIO(resp.text), dtype=str, low_memory=False)
+
+    # Normalise les noms de colonnes 
+    df.columns = [c.strip().lower() for c in df.columns]
+
+    return df
 
 
 def fetch_6m_for_station(session: requests.Session, station_id: str) -> pd.DataFrame:
@@ -142,17 +148,26 @@ def fetch_hourly_for_dept(session: requests.Session, dept: str) -> pd.DataFrame:
     else:
         df = pd.json_normalize(payload)
 
+    df.columns = [c.strip().lower() for c in df.columns]
+
     # lon/lat depuis geometry.coordinates (liste [lon, lat])
     if "geometry.coordinates" in df.columns:
         coords = df["geometry.coordinates"]
         df["lon"] = coords.apply(lambda xy: xy[0] if isinstance(xy, (list, tuple)) and len(xy) > 0 else None)
         df["lat"] = coords.apply(lambda xy: xy[1] if isinstance(xy, (list, tuple)) and len(xy) > 1 else None)
 
-    # Colonnes plus lisibles (on enlève le préfixe properties.)
+    # Colonnes plus lisibles
     df.columns = [c.replace("properties.", "") for c in df.columns]
+    df.columns = [c.strip().lower() for c in df.columns]
+
+    # ✅ Ajoute une colonne identifiante station
+    if "geo_id_insee" in df.columns:
+        df.rename(columns={"geo_id_insee": "station_code_insee"}, inplace=True)
+    else:
+        # fallback de sécurité
+        df["station_code_insee"] = None
 
     df["dept_code"] = dept_code
-
     return _cast_timestamps(df)
 
 
