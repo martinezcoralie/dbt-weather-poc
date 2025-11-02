@@ -3,7 +3,7 @@ VENV=.venv
 PY=$(VENV)/bin/python
 PIP=$(VENV)/bin/pip
 SCRIPT_FETCH=scripts/ingestion/fetch_meteofrance_paquetobs.py
-MODULE_WRITE=scripts/ingestion/write_duckdb_raw
+MODULE_WRITE=scripts.ingestion.write_duckdb_raw
 
 STATION?=01014002   # 8 chiffres, ?= utilise la valeur seulement si elle n’a pas déjà été fournie par l’utilisateur
 DEPT?=75
