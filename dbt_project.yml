@@ -17,12 +17,15 @@ clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
 
-# Configuring models
-models:
-  dbt_weather:
-    staging:
-      +materialized: view
-
-
 dbt-cloud:
     project-id: 70471823521229
+
+models:
+  dbt_weather:                   # dossier racine du projet (== nom dans dbt_project.yml)
+    +materialized: view          # défaut global
+    staging:                     # -> dossier models/staging/
+      +schema: staging
+    intermediate:                # -> dossier models/intermediate/
+      +schema: intermediate
+      meteofrance:               # -> dossier models/intermediate/meteofrance/
+        +tags: ["int","meteofrance"]
