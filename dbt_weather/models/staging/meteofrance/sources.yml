@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: stations
+        description: "Stations Météo-France"
+      - name: obs_hourly
+        description: "Observations horaires par département (Paquet)"

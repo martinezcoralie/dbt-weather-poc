@@ -1,0 +1,73 @@
+version: 2
+models:
+  - name: dim_stations
+    config:
+      contract:
+        enforced: true        
+    columns:
+      - name: station_id
+        data_type: varchar   
+        tests: [not_null, unique]
+      - name: station_name
+        data_type: varchar
+      - name: latitude
+        data_type: double
+      - name: longitude
+        data_type: double
+      - name: altitude
+        data_type: double
+
+  - name: fct_obs_hourly
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: event_id
+        data_type: varchar
+        tests: [not_null, unique]
+      - name: station_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              name: relationships
+              arguments:
+                to: ref('dim_stations')
+                field: station_id
+      - name: validity_time_utc
+        data_type: timestamptz
+        tests: [not_null]
+      - name: temperature_c
+        data_type: double
+      - name: humidity_pct
+        data_type: double
+      - name: precip_mm
+        data_type: double
+      - name: wind_speed_ms
+        data_type: double
+      - name: pressure_sea_pa
+        data_type: double
+
+  - name: agg_daily_station
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: station_id
+        data_type: varchar
+        tests:
+          - not_null
+          - relationships:
+              name: relationships
+              arguments:
+                to: ref('dim_stations')
+                field: station_id
+      - name: day_utc
+        data_type: date
+        tests: [not_null]
+      - name: avg_temp_c
+        data_type: double
+      - name: sum_precip_mm
+        data_type: double
+      - name: max_wind_ms
+        data_type: double

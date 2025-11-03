@@ -1,0 +1,107 @@
+version: 2
+
+models:
+  - name: stg_stations
+    description: "Stations Météo-France (métadonnées normalisées depuis raw.stations)."
+    columns:
+      - name: station_id
+        description: "Identifiant station (code INSEE étendu ‘ddnnnpp’)."
+        tests:
+          - not_null
+          - unique
+      - name: station_name
+        description: "Nom usuel de la station."
+      - name: latitude
+        description: "Latitude en degrés (WGS84)."
+        tests:
+          - not_null
+      - name: longitude
+        description: "Longitude en degrés (WGS84)."
+        tests:
+          - not_null
+      - name: altitude
+        description: "Altitude en mètres."
+      - name: opening_date
+        description: "Date d’ouverture (YYYY-MM-DD) si disponible."
+
+  - name: stg_obs_hourly
+    description: "Observations horaires normalisées (UTC) par station."
+    columns:
+      - name: station_id
+        description: "Identifiant station (réf. stg_stations.station_id)."
+        tests:
+          - not_null
+          - relationships:
+              name: relationships
+              arguments:
+                to: ref('stg_stations')
+                field: station_id
+
+      - name: production_time_utc
+        description: "Heure de production des données (ISO 8601, UTC)."
+        tests:
+          - not_null
+      - name: validity_time_utc
+        description: "Heure de validité de l’observation (ISO 8601, UTC)."
+        tests:
+          - not_null
+      - name: insert_time_utc
+        description: "Heure d’insertion en base (ISO 8601, UTC)."
+
+      - name: latitude
+        description: "Latitude du point d’observation en degrés."
+      - name: longitude
+        description: "Longitude du point d’observation en degrés."
+
+      # Températures (source MF en kelvins)
+      - name: temperature_k
+        description: "Température sous abri (K) (doc MF: t)."
+      - name: temperature_c
+        description: "Température sous abri (°C) = t - 273.15."
+      - name: dew_point_k
+        description: "Point de rosée (K) (doc MF: td)."
+      - name: dew_point_c
+        description: "Point de rosée (°C) = td - 273.15."
+      - name: t_max_k
+        description: "Température max heure (K) (doc MF: tx)."
+      - name: t_max_c
+        description: "Température max heure (°C) = tx - 273.15."
+      - name: t_min_k
+        description: "Température min heure (K) (doc MF: tn)."
+      - name: t_min_c
+        description: "Température min heure (°C) = tn - 273.15."
+
+      # Humidité / Vent
+      - name: humidity_pct
+        description: "Humidité relative (%) (doc MF: u)."
+      - name: wind_speed_ms
+        description: "Vent moyen 10 m (m/s) (doc MF: ff)."
+      - name: wind_dir_deg
+        description: "Direction du vent (degrés 0–360) (doc MF: dd)."
+      - name: wind_gust_ms
+        description: "Rafale max sur l’heure (m/s) (doc MF: fxy)."
+
+      # Pluie / Visibilité
+      - name: precip_mm
+        description: "Précipitations sur l’heure (mm) (doc MF: rr1)."
+      - name: visibility_m
+        description: "Visibilité horizontale (m) (doc MF: vv)."
+
+      # Pression / Nébulosité
+      - name: pressure_station_pa
+        description: "Pression au niveau station (Pa) (doc MF: pres)."
+      - name: pressure_sea_pa
+        description: "Pression réduite mer (Pa) (doc MF: pmer)."
+      - name: nebulosity_octas
+        description: "Nébulosité totale (octas, 0–8) (doc MF: n)."
+
+      # Technique / ingestion
+      - name: dept_code
+        description: "Code département (‘dd’) source du paquet horaire."
+      - name: load_ts
+        description: "Horodatage de chargement (ETL)."
+
+# exposures:
+#   - name: demo_weather_exploration
+#     type: analysis
+#     ...

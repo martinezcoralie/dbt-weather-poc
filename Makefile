@@ -20,13 +20,13 @@ lock: venv
 	$(PIP) install -r requirements.txt
 	$(PIP) freeze > requirements.lock
 
-smoke: stations sixmin hourly
+clean:
+	rm -rf $(VENV)
+
+smoke:
 	$(PY) $(SCRIPT_FETCH) --list-stations --head 5
 	$(PY) $(SCRIPT_FETCH) --station $(STATION) --head 5
 	$(PY) $(SCRIPT_FETCH) --dept $(DEPT) --head 5
-
-clean:
-	rm -rf $(VENV)
 
 write: venv
 	$(PY) -m $(MODULE_WRITE) --dept $(DEPT)
@@ -36,3 +36,6 @@ clean-db:
 
 peek: venv
 	$(PY) scripts/utils/peek_duckdb.py
+
+show-db:
+	duckdb warehouse.duckdb -c "SELECT table_schema, table_name FROM information_schema.tables ORDER BY table_schema, table_name;"
