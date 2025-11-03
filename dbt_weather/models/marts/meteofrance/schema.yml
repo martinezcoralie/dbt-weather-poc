@@ -1,0 +1,32 @@
+version: 2
+models:
+  - name: dim_stations
+    columns:
+      - name: station_id
+        tests: [not_null, unique]        
+
+  - name: fct_obs_hourly
+    columns:
+      - name: event_id
+        tests: [not_null, unique]        
+      - name: station_id
+        tests:
+          - not_null
+          - relationships:
+              name: relationships
+              arguments:
+                to: ref('dim_stations')
+                field: station_id
+
+  - name: agg_daily_station
+    columns:
+      - name: station_id
+        tests:
+          - not_null
+          - relationships:
+              name: relationships
+              arguments:
+                to: ref('dim_stations')
+                field: station_id
+      - name: day_utc
+        tests: [not_null]
