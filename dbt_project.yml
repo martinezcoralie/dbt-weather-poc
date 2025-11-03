@@ -21,11 +21,20 @@ dbt-cloud:
     project-id: 70471823521229
 
 models:
-  dbt_weather:                   # dossier racine du projet (== nom dans dbt_project.yml)
+  dbt_weather:                   # dossier racine du projet (== name dans dbt_project.yml)
     +materialized: view          # défaut global
     staging:                     # -> dossier models/staging/
       +schema: staging
+      meteofrance:               # -> dossier models/staging/meteofrance/
+        +tags: ["stg","meteofrance"]
+
     intermediate:                # -> dossier models/intermediate/
       +schema: intermediate
       meteofrance:               # -> dossier models/intermediate/meteofrance/
         +tags: ["int","meteofrance"]
+
+    marts:                       # -> dossier models/marts/
+      +schema: marts  
+      +materialized: table        # défaut pour les marts
+      meteofrance:               # -> dossier models/marts/meteofrance/
+        +tags: ["mart","meteofrance"]
