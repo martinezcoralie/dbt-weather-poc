@@ -1,17 +1,25 @@
-# Makefile minimal — dbt-weather-poc
-VENV=.venv
-PY=$(VENV)/bin/python
-PIP=$(VENV)/bin/pip
-SCRIPT_FETCH=scripts/ingestion/fetch_meteofrance_paquetobs.py
-MODULE_WRITE=scripts.ingestion.write_duckdb_raw
+# Makefile — dbt-weather-poc
+VENV := .venv
+PY   := $(VENV)/bin/python
+PIP  := $(VENV)/bin/pip
 
-STATION?=01014002   # 8 chiffres, ?= utilise la valeur seulement si elle n’a pas déjà été fournie par l’utilisateur
-DEPT?=75
+# Ingestion scripts/modules
+SCRIPT_FETCH  := scripts/ingestion/fetch_meteofrance_paquetobs.py
+MODULE_WRITE  := scripts.ingestion.write_duckdb_raw
 
-.PHONY: venv install lock smoke clean write clean-db peek
+# DB / Tools
+DBPATH  := warehouse.duckdb
+DUCKDB  := duckdb
+DBT     := dbt
 
-venv: # test -d $(VENV) → vérifie si le dossier $(VENV) existe.
-	@test -d $(VENV) || python -m venv $(VENV) 
+# Params (overridable: `make write DEPT=09`)
+STATION ?= 01014002
+DEPT    ?= 9
+
+.PHONY: venv install lock smoke clean write peek show-db reset-db rebuild
+
+venv:
+	@test -d $(VENV) || python -m venv $(VENV)
 
 install: venv
 	$(PIP) install -r requirements.txt
@@ -31,11 +39,25 @@ smoke:
 write: venv
 	$(PY) -m $(MODULE_WRITE) --dept $(DEPT)
 
-clean-db:
-	rm -f warehouse.duckdb
-
 peek: venv
 	$(PY) scripts/utils/peek_duckdb.py
 
 show-db:
-	duckdb warehouse.duckdb -c "SELECT table_schema, table_name FROM information_schema.tables ORDER BY table_schema, table_name;"
+	$(DUCKDB) $(DBPATH) -c "SELECT table_schema, table_name FROM information_schema.tables ORDER BY table_schema, table_name;"
+
+# --- Reset des schémas calculés (on garde raw/*) ---
+reset-db:
+	@echo "🧹 Cleaning warehouse (keeping raw)..."
+	@echo "DROP SCHEMA IF EXISTS staging CASCADE;" | $(DUCKDB) $(DBPATH)
+	@echo "DROP SCHEMA IF EXISTS intermediate CASCADE;" | $(DUCKDB) $(DBPATH)
+	@echo "DROP SCHEMA IF EXISTS marts CASCADE;" | $(DUCKDB) $(DBPATH)
+	@echo "✅ Warehouse reset complete."
+
+# --- Rebuild complet DBT (full-refresh) après reset ---
+rebuild:
+	@$(MAKE) reset-db
+	@echo "🏗️ Running full DBT build..."
+	@$(DBT) deps
+	@$(DBT) run --full-refresh
+	@$(DBT) test
+	@echo "✅ DBT full refresh complete."
