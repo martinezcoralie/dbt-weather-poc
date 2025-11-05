@@ -5,6 +5,21 @@ sources:
     schema: raw
     tables:
       - name: stations
-        description: "Stations Météo-France"
+        description: "Métadonnées stations (id, nom, lat, lon, altitude)"
+        columns: 
+          - name: geo_id_insee
+            tests: 
+              - not null
       - name: obs_hourly
-        description: "Observations horaires par département (Paquet)"
+        description: "Observations horaires Météo-France (24h glissantes)"
+        loaded_at_field: "CAST(validity_time AS TIMESTAMP)"
+        freshness:
+          warn_after: {count: 2, period: hour}
+          error_after: {count: 4, period: hour}
+        columns:
+          - name: geo_id_insee
+            tests:
+              - not_null
+          - name: validity_time
+            tests:
+              - not_null
