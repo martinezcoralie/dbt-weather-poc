@@ -3,30 +3,79 @@
 
 with base as (
   select
-    station_code_insee                     as station_id,
-    reference_time                         as production_time_utc,
-    validity_time                          as validity_time_utc,
-    insert_time                            as insert_time_utc,
-    lat                                    as latitude,
-    lon                                    as longitude,
-    -- météorologie (cf. doc Météo-France)
-    t      as temperature_k,               -- K :contentReference[oaicite:3]{index=3}
-    (t - 273.15) as temperature_c,         -- °C dérivé
-    td     as dew_point_k,                 -- K (si présent) :contentReference[oaicite:4]{index=4}
-    (td - 273.15) as dew_point_c,
-    tx     as t_max_k, (tx - 273.15) as t_max_c,  -- si présent :contentReference[oaicite:5]{index=5}
-    tn     as t_min_k, (tn - 273.15) as t_min_c,  -- si présent :contentReference[oaicite:6]{index=6}
-    u      as humidity_pct,                -- % :contentReference[oaicite:7]{index=7}
-    ff     as wind_speed_ms,               -- m/s :contentReference[oaicite:8]{index=8}
-    dd     as wind_dir_deg,                -- ° (0-360) :contentReference[oaicite:9]{index=9}
-    fxy    as wind_gust_ms,                -- si présent (rafale max heure) :contentReference[oaicite:10]{index=10}
-    rr1    as precip_mm,                   -- mm/h :contentReference[oaicite:11]{index=11}
-    vv     as visibility_m,                -- m :contentReference[oaicite:12]{index=12}
-    pres   as pressure_station_pa,         -- Pa :contentReference[oaicite:13]{index=13}
-    pmer   as pressure_sea_pa,             -- Pa :contentReference[oaicite:14]{index=14}
-    n      as nebulosity_octas,            -- si présent :contentReference[oaicite:15]{index=15}
-    dept_code,
-    load_ts
+    -- Ids / localisation
+    geo_id_insee                                        as station_id,        -- texte ddnnnpp
+    case 
+      when {{ safe_double('lat') }} between -90 and 90 
+      then {{ safe_double('lat') }} 
+    end                                                 as latitude,
+    case 
+      when {{ safe_double('lon') }} between -180 and 180 
+      then {{ safe_double('lon') }} 
+    end                                                 as longitude,
+
+    -- Timestamps (ISO 8601 / UTC)
+    try_cast(reference_time as timestamptz)             as production_time_utc,
+    try_cast(insert_time    as timestamptz)             as insert_time_utc,
+    try_cast(validity_time  as timestamptz)             as validity_time_utc,
+
+    -- Températures (K)
+    {{ safe_double('t') }}                               as temperature_k,
+    {{ safe_double('td') }}                              as dew_point_k,
+    {{ safe_double('tx') }}                              as t_max_k,
+    {{ safe_double('tn') }}                              as t_min_k,
+
+    -- Humidité (%)
+    case
+      when {{ safe_int('u') }} between 0 and 100 
+      then {{ safe_int('u') }}
+    end                                                 as humidity_pct,
+    case 
+      when {{ safe_int('ux') }} between 0 and 100 
+      then {{ safe_int('ux') }} 
+    end                                                 as humidity_max_pct,
+    case 
+      when {{ safe_int('un') }} between 0 and 100 
+      then {{ safe_int('un') }} 
+    end                                                 as humidity_min_pct,
+
+    -- Vent (moyen / max / rafales) - direction en degrés (0-360)
+    case when {{ safe_int('dd') }} between 0 and 360 then {{ safe_int('dd') }} end as wind_dir_deg,
+    {{ safe_double('ff') }}                              as wind_speed_ms,
+
+    case when {{ safe_int('dxy') }} between 0 and 360 then {{ safe_int('dxy') }} end as wind_dir_gust_avg_max_deg,
+    {{ safe_double('fxy') }}                             as wind_gust_avg_max_ms,
+
+    case when {{ safe_int('dxi') }} between 0 and 360 then {{ safe_int('dxi') }} end as wind_dir_gust_abs_max_deg,
+    {{ safe_double('fxi') }}                             as wind_gust_abs_max_ms,
+
+    -- Précipitations (horaire mm)
+    {{ safe_double('rr1') }}                             as precip_mm_h,
+
+    -- Températures du sol (K)
+    {{ safe_double('t_10') }}                            as soil_t_10cm_k,
+    {{ safe_double('t_20') }}                            as soil_t_20cm_k,
+    {{ safe_double('t_50') }}                            as soil_t_50cm_k,
+    {{ safe_double('t_100') }}                           as soil_t_100cm_k,
+
+    -- Visibilité (m)
+    {{ safe_int('vv') }}                                 as visibility_m,
+
+    -- État du sol (code)
+    {{ safe_int('etat_sol') }}                           as soil_state_code,
+
+    -- Neige (m)
+    {{ safe_double('sss') }}                             as snow_depth_m,
+
+    -- Ensoleillement / rayonnement
+    {{ safe_double('insolh') }}                          as sunshine_duration_min,
+    {{ safe_double('ray_glo01') }}                       as global_radiation_j_m2,
+
+    -- Pressions (Pa)
+    {{ safe_double('pres') }}                            as pressure_station_pa,
+    {{ safe_double('pmer') }}                            as pressure_sea_pa
+
   from {{ source('raw', 'obs_hourly') }}
 )
-select * from base
+
+select * from base;
