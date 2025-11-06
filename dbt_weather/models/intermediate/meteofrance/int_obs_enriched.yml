@@ -1,0 +1,183 @@
+version: 2
+
+models:
+  - name: int_obs_enriched
+    description: >
+      Observations horaires enrichies avec indicateurs dérivés (vent, cumuls
+      de précipitations/neige/température, visibilité, et drapeaux qualité).
+      Source : stg_obs_hourly join stg_stations. Warehouse: DuckDB.
+
+    columns:
+      - name: event_id
+        description: Clé métier unique (station_id + validity_time_utc).
+        tests:
+          - not_null
+          - unique
+
+      - name: station_id
+        description: Identifiant station (référence à stg_stations).
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stations')
+                field: station_id
+
+      - name: validity_time_utc
+        description: Heure de validité de la mesure (UTC).
+        tests:
+          - not_null
+
+      - name: station_name
+        description: Nom de la station issu de stg_stations.
+
+      # --- Vent ---
+      - name: wind_dir_deg
+        description: Direction moyenne du vent en degrés (0–360).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (wind_dir_deg >= 0 and wind_dir_deg <= 360)"
+
+      - name: wind_sector
+        description: Secteur de vent cardinal (N, NE, E, SE, S, SW, W, NW).
+        tests:
+          - accepted_values:
+              values: ["N","NE","E","SE","S","SW","W","NW"]
+
+      - name: wind_speed_kmh
+        description: Vitesse du vent convertie en km/h depuis m/s (ms_to_kmh).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or wind_speed_kmh >= 0"
+
+      - name: wind_beaufort
+        description: Force du vent (échelle de Beaufort, 0–12) calculée via macro.
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 12
+
+      # --- Précipitations (cumuls glissants) ---
+      - name: precip_mm_h
+        description: Précipitation horaire (mm).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or precip_mm_h >= 0"
+
+      - name: precip_1h_mm
+        description: Cumul mobile des précipitations sur 1h (mm), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or precip_1h_mm >= 0"
+
+      - name: precip_3h_mm
+        description: Cumul mobile des précipitations sur 3h (mm), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or precip_3h_mm >= 0"
+
+      - name: precip_24h_mm
+        description: Cumul mobile des précipitations sur 24h (mm), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or precip_24h_mm >= 0"
+
+      # --- Neige (cumuls glissants) ---
+      - name: snow_depth_m
+        description: Hauteur de neige au sol (m).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or snow_depth_m >= 0"
+
+      - name: snow_1h_m
+        description: Cumul mobile de la hauteur de neige sur 1h (m), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or snow_1h_m >= 0"
+
+      - name: snow_3h_m
+        description: Cumul mobile de la hauteur de neige sur 3h (m), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or snow_3h_m >= 0"
+
+      - name: snow_24h_m
+        description: Cumul mobile de la hauteur de neige sur 24h (m), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or snow_24h_m >= 0"
+
+      # --- Température (conversion + cumuls glissants) ---
+      - name: temperature_c
+        description: Température de l'air en °C (convertie depuis Kelvin).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (temperature_c > -100 and temperature_c < 70)"
+
+      - name: temp_1h_c
+        description: Somme mobile de la température sur 1h (°C), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or temp_1h_c > -1000"
+
+      - name: temp_3h_c
+        description: Somme mobile de la température sur 3h (°C), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or temp_3h_c > -1000"
+
+      - name: temp_24h_c
+        description: Somme mobile de la température sur 24h (°C), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or temp_24h_c > -1000"
+
+      # --- Visibilité ---
+      - name: visibility_m
+        description: Portée visuelle horizontale (m).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or visibility_m >= 0"
+
+      - name: visibility_cat
+        description: Catégorie de visibilité (dense_fog, fog, haze, good) via macro.
+        tests:
+          - accepted_values:
+              values: ["dense_fog","fog","haze","good"]
+
+      # --- Drapeaux simples ---
+      - name: freezing_flag
+        description: 1 si T≤0°C, sinon NULL.
+        tests:
+          - accepted_values:
+              values: [1]
+              quote: false
+
+      - name: precip_flag
+        description: 1 si precip_mm_h > 0, sinon NULL.
+        tests:
+          - accepted_values:
+              values: [1]
+              quote: false
+
+      - name: snow_on_ground_flag
+        description: 1 si snow_depth_m > 0, sinon NULL.
+        tests:
+          - accepted_values:
+              values: [1]
+              quote: false
