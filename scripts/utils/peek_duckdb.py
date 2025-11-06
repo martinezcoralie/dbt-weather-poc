@@ -28,7 +28,7 @@ def main():
     """)
 
     run(con, "5 dernières obs_hourly (champs clés)", """
-        SELECT validity_time, station_code_insee
+        SELECT validity_time, geo_id_insee
         FROM raw.obs_hourly
         ORDER BY validity_time DESC
         LIMIT 5
