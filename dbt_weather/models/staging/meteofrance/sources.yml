@@ -5,14 +5,14 @@ sources:
     schema: raw
     tables:
       - name: stations
-        description: "Métadonnées stations (id, nom, lat, lon, altitude)"
+        description: "Métadonnées stations (id, nom, lat, lon, altitude, date ouverture)"
         columns: 
-          - name: Id_station
+          - name: "Id_station"
             tests: 
-              - not null
+              - not_null
       - name: obs_hourly
         description: "Observations horaires Météo-France (24h glissantes)"
-        loaded_at_field: "CAST(validity_time AS TIMESTAMP)"
+        loaded_at_field: load_time
         freshness:
           warn_after: {count: 2, period: hour}
           error_after: {count: 4, period: hour}
