@@ -7,7 +7,7 @@ sources:
       - name: stations
         description: "Métadonnées stations (id, nom, lat, lon, altitude)"
         columns: 
-          - name: geo_id_insee
+          - name: Id_station
             tests: 
               - not null
       - name: obs_hourly
