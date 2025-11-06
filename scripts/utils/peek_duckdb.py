@@ -20,6 +20,12 @@ def main():
     run(con, "Nombre d'observations horaires", "SELECT count(*) AS c FROM raw.obs_hourly")
 
     # Échantillons de données
+    run(con, "5 dernières stations", """
+        SELECT *
+        FROM raw.stations
+        LIMIT 5
+    """)
+
     run(con, "5 dernières obs_hourly (tout)", """
         SELECT *
         FROM raw.obs_hourly
