@@ -38,3 +38,11 @@ models:
       +materialized: table        # défaut pour les marts
       meteofrance:               # -> dossier models/marts/meteofrance/
         +tags: ["mart","meteofrance"]
+
+seeds:
+  +quote_columns: false
+  +column_types:
+    level: integer
+    label: varchar
+    ms_min: double
+    ms_max: double
