@@ -2,6 +2,10 @@
 
 **PoC Météo :** ingestion des données Météo-France (API Paquet Observations) vers DuckDB (`raw.*`).
 
+> Ce projet DBT collecte et historise les observations météo horaires de Météo France pour le département de l’Ariège afin d’analyser la qualité de vie climatique selon les zones (soleil, humidité, vent, pluie).
+> En parallèle, une lecture humoristique des mêmes indicateurs traduit la météo en unités du quotidien — une façon ludique de montrer comment transformer la donnée en récit.
+
+
 ### 💡 Objectif
 
 Démontrer un flux de données complet **API → Warehouse → dbt**, portable et reproductible.
