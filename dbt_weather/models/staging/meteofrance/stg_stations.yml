@@ -34,7 +34,7 @@ models:
         tests:
           - dbt_utils.expression_is_true:
               arguments:
-                expression: "altitude is null or altitude between -500 and 9000"
+                expression: "is null or altitude between -500 and 9000"
 
       - name: opening_date
         description: Date d’ouverture de la station (si disponible).

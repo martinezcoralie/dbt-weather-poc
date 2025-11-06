@@ -18,6 +18,7 @@ with base as (
     try_cast(reference_time as timestamptz)             as production_time_utc,
     try_cast(insert_time    as timestamptz)             as insert_time_utc,
     try_cast(validity_time  as timestamptz)             as validity_time_utc,
+    load_time                                           as load_time_utc,
 
     -- Températures (K)
     {{ safe_double('t') }}                               as temperature_k,
@@ -78,4 +79,4 @@ with base as (
   from {{ source('raw', 'obs_hourly') }}
 )
 
-select * from base;
+select * from base
