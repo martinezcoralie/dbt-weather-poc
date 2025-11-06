@@ -13,25 +13,28 @@ models:
           - unique
 
       - name: station_name
-        description: Nom usuel de la station (nettoyé, sans chaînes vides).
+        description: Nom usuel de la station (nettoyé, en lower case, sans chaînes vides).
 
       - name: latitude
         description: Latitude en degrés.
         tests:
           - dbt_utils.expression_is_true:
-              expression: "latitude between -90 and 90"
+              arguments:
+                expression: "between -90 and 90"
 
       - name: longitude
         description: Longitude en degrés.
         tests:
           - dbt_utils.expression_is_true:
-              expression: "longitude between -180 and 180"
+              arguments:
+                expression: "between -180 and 180"
 
-      - name: altitude_m
+      - name: altitude
         description: Altitude de la station en mètres (-500 à 9000 m).
         tests:
           - dbt_utils.expression_is_true:
-              expression: "altitude_m is null or altitude_m between -500 and 9000"
+              arguments:
+                expression: "is null or altitude between -500 and 9000"
 
       - name: opening_date
         description: Date d’ouverture de la station (si disponible).

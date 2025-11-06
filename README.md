@@ -1,18 +1,16 @@
 # dbt-weather-poc
 
-**PoC Météo :** ingestion des données Météo-France (API Paquet Observations) vers DuckDB (`raw.*`).
+Pipeline d’ingestion et de modélisation Météo-France (Paquet Observations DPPaquetObs)  
+Basé sur **DuckDB**, **Python**, et **dbt**.
 
 > Ce projet DBT collecte et historise les observations météo horaires de Météo France pour le département de l’Ariège afin d’analyser la qualité de vie climatique selon les zones (soleil, humidité, vent, pluie).
-> En parallèle, une lecture humoristique des mêmes indicateurs traduit la météo en unités du quotidien — une façon ludique de montrer comment transformer la donnée en récit.
 
+## 💡 Objectifs
 
-### 💡 Objectif
+- Démontrer un flux de données complet **API → Warehouse → dbt**, portable et reproductible.
+- Illustrer la chaîne de valeur **ingestion → modélisation → documentation**.
 
-Démontrer un flux de données complet **API → Warehouse → dbt**, portable et reproductible.
-
-Illustrer la chaîne de valeur **ingestion → modélisation → documentation**.
-
-### 🧩 Architecture
+## 🧩 Architecture
 
 ```
 Météo-France API
@@ -34,30 +32,72 @@ make install
 ```
 ---
 
+## 🔐 Variables d’environnement
+
+Créer un fichier `.env` :
+
+```bash
+METEOFRANCE_TOKEN=xxxxxxxxxxxxxxxx
+DUCKDB_PATH=./warehouse.duckdb     # optionnel
+```
+
+- `METEOFRANCE_TOKEN` : clé API Météo-France  
+- `DUCKDB_PATH` : chemin du fichier DuckDB (par défaut `./warehouse.duckdb`)
+
+---
+
 ## 🔧 Ingestion des données (API → DuckDB)
+
+### Lancer une ingestion départementale
 
 ```bash
 make write DEPT=75
 ```
-
 * Crée `warehouse.duckdb`
 * Charge les données brutes dans `raw.stations` et `raw.obs_hourly`
----
-### 🔍 Inspection rapide
+
+### Faire une inspection rapide
 
 ```bash
 make peek
 ```
 Permet de visualiser un extrait des données directement dans le terminal.
 
----
+### Contrat RAW
 
-## 🗑️ Nettoyer
+La couche `raw.*` correspond **strictement** au schéma renvoyé par l’API :
 
-```bash
-make clean-db
-```
-Supprime la base DuckDB locale.
+✅ Noms de colonnes inchangés  
+✅ Types conservés (strings)  
+✅ Structure fidèle au CSV API  
+✅ Métadonnée ajoutée : `load_ts` (UTC), `dept_code`
+✅ Déduplication via clé logique (`station_code_insee`, `validity_time` pour horaire)
+
+❌ aucun cast  
+❌ aucun renommage  
+❌ aucune normalisation d’unité  
+❌ aucun strip/lower
+
+Toutes les transformations se font dans **dbt (staging)**.
+
+
+### 🧰 Scripts ingestion
+
+#### `scripts/ingestion/fetch_meteofrance_paquetobs.py`
+
+Client fetch-only :
+
+- Appels API `/liste-stations` et `/paquet/horaire`
+- Parsing CSV **sans aucune transformation**
+- Retourne des DataFrames RAW
+
+#### `scripts/ingestion/write_duckdb_raw.py`
+
+Writer vers DuckDB :
+
+- création du schéma `raw`
+- `load_ts` et `dept_code` ajoutés
+- déduplication sur PK logique
 
 ---
 ## 🔢 Explorer le warehouse avec DuckDB CLI
@@ -113,7 +153,6 @@ dbt test
 
 ### 📊 Prochaines étapes
 
-* Ajouter `dbt_project.yml` + modèles `stg_*/int_*/mart_*`
 * Configurer CI (`dbt build`, tests, docs)
 * Publier artefacts (docs/lineage)
 

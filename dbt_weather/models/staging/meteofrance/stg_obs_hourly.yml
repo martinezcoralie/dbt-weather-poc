@@ -11,8 +11,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_stations')
-              field: station_id
+              arguments:
+                to: ref('stg_stations')
+                field: station_id
 
       - name: production_time_utc
         description: Heure de production du bulletin (UTC).
@@ -26,46 +27,54 @@ models:
         description: Latitude du poste de mesure (-90 à 90).
         tests:
           - dbt_utils.expression_is_true:
-              expression: "latitude between -90 and 90"
+              arguments:
+                expression: "between -90 and 90"
 
       - name: longitude
         description: Longitude du poste de mesure (-180 à 180).
         tests:
           - dbt_utils.expression_is_true:
-              expression: "longitude between -180 and 180"
+              arguments:
+                expression: "between -180 and 180"
 
       - name: humidity_pct
         description: Humidité relative (%) bornée 0–100.
         tests:
           - dbt_utils.expression_is_true:
-              expression: "humidity_pct is null or humidity_pct between 0 and 100"
+              arguments:
+                expression: "is null or humidity_pct between 0 and 100"
 
       - name: wind_dir_deg
         description: Direction moyenne du vent (0–360°).
         tests:
           - dbt_utils.expression_is_true:
-              expression: "wind_dir_deg is null or wind_dir_deg between 0 and 360"
+              arguments:
+                expression: "is null or wind_dir_deg between 0 and 360"
 
       - name: pressure_station_pa
         description: Pression au niveau de la station (Pa).
         tests:
           - dbt_utils.expression_is_true:
-              expression: "pressure_station_pa is null or pressure_station_pa between 80000 and 110000"
+              arguments:
+                expression: "is null or pressure_station_pa between 80000 and 110000"
 
       - name: pressure_sea_pa
         description: Pression ramenée au niveau de la mer (Pa).
         tests:
           - dbt_utils.expression_is_true:
-              expression: "pressure_sea_pa is null or pressure_sea_pa between 80000 and 110000"
+              arguments:
+                expression: "is null or pressure_sea_pa between 80000 and 110000"
 
       - name: visibility_m
         description: Portée visuelle horizontale (m).
         tests:
           - dbt_utils.expression_is_true:
-              expression: "visibility_m is null or visibility_m >= 0"
+              arguments:
+                expression: "is null or visibility_m >= 0"
 
       - name: snow_depth_m
         description: Hauteur de neige au sol (m).
         tests:
           - dbt_utils.expression_is_true:
-              expression: "snow_depth_m is null or snow_depth_m >= 0"
+              arguments:
+                expression: "is null or snow_depth_m >= 0"
