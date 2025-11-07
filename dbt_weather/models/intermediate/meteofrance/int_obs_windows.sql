@@ -12,7 +12,10 @@ with src as (
   {% if is_incremental() %}
     -- Recalcule un buffer de 24h
     where validity_time_utc >= (
-      select coalesce(dateadd(hour, -25, max(validity_time_utc)), '1900-01-01')
+      select coalesce(
+        date_add(max(validity_time_utc), INTERVAL '-25 hours'),
+        TIMESTAMP '1900-01-01'
+      )
       from {{ this }}
     )
   {% endif %}
