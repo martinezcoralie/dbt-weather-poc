@@ -28,7 +28,9 @@ def _connect(db_path: str) -> duckdb.DuckDBPyConnection:
     return con
 
 
-def write_raw_dedup(df: pd.DataFrame, table: str, pk_cols: Sequence[str], db_path: str) -> None:
+def write_raw_dedup(
+    df: pd.DataFrame, table: str, pk_cols: Sequence[str], db_path: str
+) -> None:
     """Insert a DataFrame into a DuckDB table with PK-based deduplication.
 
     Args:
@@ -72,8 +74,12 @@ def main() -> None:
     """Fetch and load hourly observations for a département into DuckDB."""
     load_dotenv()
 
-    ap = argparse.ArgumentParser(description="Ingest hourly department data -> DuckDB raw.obs_hourly")
-    ap.add_argument("--dept", required=True, help="Code département (ex. '09', '75', '2A', '2B').")
+    ap = argparse.ArgumentParser(
+        description="Ingest hourly department data -> DuckDB raw.obs_hourly"
+    )
+    ap.add_argument(
+        "--dept", required=True, help="Code département (ex. '09', '75', '2A', '2B')."
+    )
     ap.add_argument("--db", default=os.getenv("DUCKDB_PATH", "./warehouse.duckdb"))
     args = ap.parse_args()
 
