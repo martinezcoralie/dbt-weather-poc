@@ -94,7 +94,7 @@ def main() -> None:
 
     # Observations horaires → raw.obs_hourly
     df_hr = fetch_hourly_for_dept(session, args.dept)
-    pk_hr = ["validity_time", "geo_id_insee"]
+    pk_hr = ["validity_time", "geo_id_insee", "reference_time"]
     write_raw_dedup(df_hr, "raw.obs_hourly", pk_hr, args.db)
     print(f"raw.obs_hourly[{args.dept}]: {len(df_hr):,} rows (dedup)")
 
