@@ -47,6 +47,7 @@ ENDPOINTS = {
 # Utilitaires
 # --------------------------------------------------------------------------- #
 
+
 def _require_env(var_name: str) -> str:
     """Récupère une variable d'environnement (après chargement .env) ou lève."""
     value = os.getenv(var_name, "").strip()
@@ -58,6 +59,7 @@ def _require_env(var_name: str) -> str:
 # --------------------------------------------------------------------------- #
 # Session HTTP
 # --------------------------------------------------------------------------- #
+
 
 def open_session_paquetobs(apikey: Optional[str] = None) -> requests.Session:
     """Crée une session HTTP authentifiée (header `apikey`)."""
@@ -77,6 +79,7 @@ def open_session_paquetobs(apikey: Optional[str] = None) -> requests.Session:
 # Validations
 # --------------------------------------------------------------------------- #
 
+
 def normalize_dept_code(dept: str) -> str:
     """Normalise le code département."""
     return str(dept).strip().upper()
@@ -85,6 +88,7 @@ def normalize_dept_code(dept: str) -> str:
 # --------------------------------------------------------------------------- #
 # Fetchers
 # --------------------------------------------------------------------------- #
+
 
 def fetch_stations(session: requests.Session) -> pd.DataFrame:
     """Récupère la liste des stations (CSV) — RAW inchangé."""
@@ -118,8 +122,11 @@ def fetch_hourly_for_dept(session: requests.Session, dept: str) -> pd.DataFrame:
 # CLI
 # --------------------------------------------------------------------------- #
 
+
 def _build_arg_parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(description="Client fetch-only Météo-France DPPaquetObs")
+    ap = argparse.ArgumentParser(
+        description="Client fetch-only Météo-France DPPaquetObs"
+    )
     ap.add_argument(
         "--list-stations",
         action="store_true",
@@ -157,7 +164,9 @@ def main() -> None:
     if args.dept:
         df_hr = fetch_hourly_for_dept(session, args.dept)
         print(df_hr.head(args.head).to_string(index=False))
-        print(f"\nObservations horaires pour le département {normalize_dept_code(args.dept)} : {len(df_hr):,}")
+        print(
+            f"\nObservations horaires pour le département {normalize_dept_code(args.dept)} : {len(df_hr):,}"
+        )
 
 
 if __name__ == "__main__":
