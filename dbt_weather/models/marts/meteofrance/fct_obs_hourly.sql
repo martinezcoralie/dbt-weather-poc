@@ -10,7 +10,7 @@ f as (
 ),
 d as (
   select station_id, station_name
-  from {{ ref('stg_stations') }}
+  from {{ ref('dim_stations') }}
 )
 
 select
