@@ -1,0 +1,89 @@
+version: 2
+
+models:
+  - name: fct_obs_hourly
+    description: >
+      Table de faits horaire rassemblant :
+      - les fenêtres glissantes (int_obs_windowing)
+      - les features météo atomiques (int_obs_features)
+      - les attributs station (dim_stations).
+      Modèle final destiné au BI.
+
+    columns:
+
+      - name: event_id
+        description: Clé unique (station_id + validity_time_utc).
+        tests:
+          - not_null
+          - unique
+
+      - name: station_id
+        description: Identifiant station utilisé pour joindre la dimension.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_stations')
+              field: station_id
+
+      - name: station_name
+        description: Nom de la station issu de la dimension stations.
+
+      - name: validity_time_utc
+        description: Heure de validité de l'observation (UTC).
+        tests:
+          - not_null
+
+      # --- Fenêtres (cumul précipitations) ---
+      - name: precip_1h_mm
+        description: Précipitations cumulées sur les 1h précédentes (mm).
+      - name: precip_3h_mm
+        description: Précipitations cumulées sur les 3h précédentes (mm).
+      - name: precip_24h_mm
+        description: Précipitations cumulées sur les 24h précédentes (mm).
+
+      # --- Fenêtres (neige) ---
+      - name: snow_1h_m
+        description: Neige cumulée sur 1h (m).
+      - name: snow_3h_m
+        description: Neige cumulée sur 3h (m).
+      - name: snow_24h_m
+        description: Neige cumulée sur 24h (m).
+
+      # --- Fenêtres (température) ---
+      - name: temp_1h_c
+        description: Moyenne glissante de température sur 1h (°C).
+      - name: temp_3h_c
+        description: Moyenne glissante de température sur 3h (°C).
+      - name: temp_24h_c
+        description: Moyenne glissante de température sur 24h (°C).
+
+      # --- Features atomiques ---
+      - name: wind_dir_deg
+        description: Direction du vent (°).
+      - name: wind_sector
+        description: Secteur cardinal du vent.
+      - name: wind_speed_kmh
+        description: Vitesse du vent (km/h).
+      - name: wind_beaufort
+        description: Indice de force du vent Beaufort (0–12).
+
+      - name: visibility_m
+        description: Visibilité horizontale (m).
+      - name: visibility_cat
+        description: Catégorie de visibilité.
+
+      - name: freezing_flag
+        description: 1 si T ≤ 0°C.
+      - name: precip_flag
+        description: 1 si precip_mm_h > 0.
+      - name: snow_on_ground_flag
+        description: 1 si neige au sol > 0.
+
+      - name: precip_mm_h
+        description: Précipitation horaire (mm).
+      - name: snow_depth_m
+        description: Hauteur de neige (m).
+      - name: temperature_c
+        description: Température horaire (°C).
+      - name: humidity_pct
+        description: Humidité relative (%).
