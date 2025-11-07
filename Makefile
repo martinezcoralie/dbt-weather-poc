@@ -9,6 +9,7 @@ SHELL := bash
 VENV := .venv
 PY   := $(VENV)/bin/python
 PIP  := $(VENV)/bin/pip
+DBT_PROJECT := dbt_weather
 
 # Scripts et modules ingestion
 SCRIPT_FETCH  := scripts/ingestion/fetch_meteofrance_paquetobs.py
@@ -109,10 +110,10 @@ py-fmt: ## Format Python via ruff format
 	$(VENV)/bin/ruff format .
 
 sql-lint: ## Lint SQL via sqlfluff
-	$(VENV)/bin/sqlfluff lint .
+	$(VENV)/bin/sqlfluff lint $(DBT_PROJECT)
 
 sql-fmt: ## Format SQL via sqlfluff fix
-	$(VENV)/bin/sqlfluff fix .
+	$(VENV)/bin/sqlfluff fix $(DBT_PROJECT) --rules LT08,LT09,LT10,LT12,AL01
 
 yaml-lint: ## Lint YAML via yamllint
-	$(VENV)/bin/yamllint .
+	$(VENV)/bin/yamllint $(DBT_PROJECT)
