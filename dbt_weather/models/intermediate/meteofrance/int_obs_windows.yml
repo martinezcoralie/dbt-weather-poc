@@ -1,0 +1,93 @@
+version: 2
+
+models:
+  - name: int_obs_windows
+    description: >
+      Fenêtres glissantes par station sur les observations horaires :
+      cumuls précipitations/neige et moyennes de température. 
+      Source : int_obs_features.
+    columns:
+      - name: event_id
+        description: Clé de substitution (station_id + validity_time_utc).
+        tests:
+          - not_null
+          - unique
+
+      - name: station_id
+        description: Identifiant station (référence stg_stations).
+        tests:
+          - not_null
+          - relationships:
+              to: ref('stg_stations')
+              field: station_id
+
+      - name: validity_time_utc
+        description: Horodate de validité (UTC).
+        tests:
+          - not_null
+
+      # --- Précipitations (cumuls glissants) ---
+      - name: precip_1h_mm
+        description: Cumul mobile des précipitations sur 1h (mm), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or precip_1h_mm >= 0"
+
+      - name: precip_3h_mm
+        description: Cumul mobile des précipitations sur 3h (mm), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or precip_3h_mm >= 0"
+
+      - name: precip_24h_mm
+        description: Cumul mobile des précipitations sur 24h (mm), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or precip_24h_mm >= 0"
+
+      # --- Neige (cumuls glissants) ---
+      - name: snow_1h_m
+        description: Cumul mobile de la hauteur de neige sur 1h (m), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or snow_1h_m >= 0"
+
+      - name: snow_3h_m
+        description: Cumul mobile de la hauteur de neige sur 3h (m), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or snow_3h_m >= 0"
+
+      - name: snow_24h_m
+        description: Cumul mobile de la hauteur de neige sur 24h (m), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or snow_24h_m >= 0"
+
+      # --- Température (moyennes glissantes) ---
+      - name: temp_1h_c
+        description: Moyenne mobile de la température sur 1h (°C), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (temp_1h_c > -100 and temp_1h_c < 70)"
+
+      - name: temp_3h_c
+        description: Moyenne mobile de la température sur 3h (°C), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (temp_3h_c > -100 and temp_3h_c < 70)"
+
+      - name: temp_24h_c
+        description: Moyenne mobile de la température sur 24h (°C), par station.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (temp_24h_c > -100 and temp_24h_c < 70)"
