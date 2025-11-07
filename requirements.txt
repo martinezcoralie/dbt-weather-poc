@@ -7,3 +7,4 @@ dbt-duckdb
 yamllint
 sqlfluff
 ruff
+sqlfluff-templater-dbt
