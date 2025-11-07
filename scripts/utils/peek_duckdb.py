@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import duckdb
 
+
 def run(con, title, sql):
     print(f"\n=== {title} ===")
     df = con.sql(sql).df()
