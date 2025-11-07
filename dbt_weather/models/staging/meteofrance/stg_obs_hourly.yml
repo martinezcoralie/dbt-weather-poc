@@ -5,6 +5,10 @@ models:
     description: >
       Observations horaires issues du flux Météo-France.
       Types corrigés, timestamps normalisés en UTC, et valeurs bornées pour cohérence.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [validity_time_utc, station_id, production_time_utc]
     columns:
 
       # ─────────────── Identification & localisation ───────────────

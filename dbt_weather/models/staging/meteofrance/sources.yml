@@ -40,6 +40,10 @@ sources:
         freshness:
           warn_after: {count: 2, period: hour}
           error_after: {count: 4, period: hour}
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              arguments:
+                combination_of_columns: [validity_time, geo_id_insee, reference_time]
         columns:
           # IDs / localisation
           - name: geo_id_insee
@@ -54,6 +58,8 @@ sources:
           # Timestamps
           - name: reference_time
             description: Date/heure de production (ISO 8601/UTC)
+            tests:
+              - not_null
           - name: insert_time
             description: Date/heure d’insertion en base source (ISO 8601/UTC)
           - name: validity_time
