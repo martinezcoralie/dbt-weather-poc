@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import duckdb
-
+import argparse
+import os
 
 def run(con, title, sql):
     print(f"\n=== {title} ===")
@@ -8,59 +9,35 @@ def run(con, title, sql):
     print(df)
     return df
 
-
 def main():
-    con = duckdb.connect("warehouse.duckdb")
-
-    # Lister les tables et schémas
-    run(con, "Liste des schémas", "SELECT * FROM information_schema.schemata")
-    run(
-        con,
-        "Tables disponibles",
-        "SELECT table_schema, table_name FROM information_schema.tables ORDER BY table_schema, table_name",
+    ap = argparse.ArgumentParser(
+        description="Show a sample of a table from DuckDB warehouse"
     )
-
-    # Comptages
-    run(con, "Nombre de stations", "SELECT count(*) AS c FROM raw.stations")
-    run(
-        con,
-        "Nombre d'observations horaires",
-        "SELECT count(*) AS c FROM raw.obs_hourly",
+    ap.add_argument(
+        "--table",
+        required=True,
+        help="table_schema.table_name (ex. 'raw.obs_hourly', 'staging.stg_obs_hourly')."
     )
+    ap.add_argument(
+        "--db",
+        default=os.getenv("DUCKDB_PATH", "./warehouse.duckdb")
+    )
+    args = ap.parse_args()
 
-    # Échantillons de données
+    con = duckdb.connect(args.db)
+
+    table = args.table
+
+    # Échantillon de données
     run(
         con,
-        "5 dernières stations",
-        """
+        "Extrait de 5 lignes",
+        f"""
         SELECT *
-        FROM raw.stations
+        FROM {table}
         LIMIT 5
-    """,
+        """,
     )
-
-    run(
-        con,
-        "5 dernières obs_hourly (tout)",
-        """
-        SELECT *
-        FROM raw.obs_hourly
-        ORDER BY validity_time DESC
-        LIMIT 5
-    """,
-    )
-
-    run(
-        con,
-        "5 dernières obs_hourly (champs clés)",
-        """
-        SELECT validity_time, geo_id_insee
-        FROM raw.obs_hourly
-        ORDER BY validity_time DESC
-        LIMIT 5
-    """,
-    )
-
 
 if __name__ == "__main__":
     main()
