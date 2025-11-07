@@ -3,7 +3,7 @@
 {{ config(materialized='table') }}
 
 with w as (
-  select * from {{ ref('int_obs_windowing') }}
+  select * from {{ ref('int_obs_windows') }}
 ),
 f as (
   select * from {{ ref('int_obs_features') }}
