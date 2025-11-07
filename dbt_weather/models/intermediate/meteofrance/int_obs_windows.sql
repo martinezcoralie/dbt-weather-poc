@@ -8,7 +8,7 @@
 
 with src as (
   select *
-  from {{ ref('int_obs_enriched') }}
+  from {{ ref('int_obs_features') }}
   {% if is_incremental() %}
     -- Recalcule un buffer de 24h
     where validity_time_utc >= (

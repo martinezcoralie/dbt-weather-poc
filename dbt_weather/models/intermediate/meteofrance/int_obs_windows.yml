@@ -18,8 +18,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('stg_stations')
-              field: station_id
+              arguments:
+                to: ref('stg_stations')
+                field: station_id
 
       - name: validity_time_utc
         description: Horodate de validité (UTC).
