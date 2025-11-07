@@ -10,7 +10,7 @@ Basé sur **DuckDB**, **Python**, et **dbt**.
 - Démontrer un flux de données complet **API → Warehouse → dbt**, portable et reproductible.
 - Illustrer la chaîne de valeur **ingestion → modélisation → documentation**.
 
-## 🧩 Architecture
+### Architecture
 
 ```
 Météo-France API
@@ -25,96 +25,146 @@ Analyses / Visualisations
 ```
 ---
 
-## 🛠️ Installation (dev local)
+## 🛠️ Mise en place
 
+### Installer l'environnement
 ```bash
-make install
+make env-setup
 ```
----
 
-## 🔐 Variables d’environnement
+### Activer l'environnement
+```bash
+source .venv/bin/activate
+```
 
+### Définir les variables d’environnement
 Créer un fichier `.env` :
-
 ```bash
 METEOFRANCE_TOKEN=xxxxxxxxxxxxxxxx
-DUCKDB_PATH=./warehouse.duckdb     # optionnel
+DUCKDB_PATH=./warehouse.duckdb
 ```
-
-- `METEOFRANCE_TOKEN` : clé API Météo-France  
-- `DUCKDB_PATH` : chemin du fichier DuckDB (par défaut `./warehouse.duckdb`)
+avec :
+- `METEOFRANCE_TOKEN` : la clé API Météo-France  
+- `DUCKDB_PATH` : le chemin du fichier DuckDB (par défaut `./warehouse.duckdb`)
 
 ---
 
 ## 🔧 Ingestion des données (API → DuckDB)
 
 ### Lancer une ingestion départementale
-
 ```bash
-make write DEPT=75
+make dwh-ingest DEPT=75
 ```
-* Crée `warehouse.duckdb`
-* Charge les données brutes dans `raw.stations` et `raw.obs_hourly`
+**Ce que fait la commande :**
 
-### Faire une inspection rapide
+* crée `warehouse.duckdb` si absent ;
+* interroge l’API Météo-France (dernières **24 h**) pour le département `DEPT` ;
+* écrit en **brut** dans `raw.stations` et `raw.obs_hourly`.
 
-```bash
-make peek
-```
-Permet de visualiser un extrait des données directement dans le terminal.
+**Garantie de “raw” :**
 
-### Contrat RAW
+* ✅ Noms de colonnes **strictement identiques** à la source (aucun renommage, aucun `lower/strip`)
+* ✅ Types **inchangés** (strings le cas échéant)
+* ✅ Aucune normalisation d’unités / sémantique (fait plus tard en **staging dbt**)
+* ➕ Champs ajoutés par l’ingestion : `load_time` (UTC) et `dept_code`
 
-La couche `raw.*` correspond **strictement** au schéma renvoyé par l’API :
+**Idempotence & déduplication :**
 
-✅ Noms de colonnes inchangés  
-✅ Types conservés (strings)  
-✅ Structure fidèle au CSV API  
-✅ Métadonnée ajoutée : `load_ts` (UTC), `dept_code`
-✅ Déduplication via clé logique (`station_code_insee`, `validity_time` pour horaire)
+* Les doublons sont empêchés via la clé logique
+  `(validity_time, geo_id_insee, reference_time)` : seules les lignes nouvelles sont ajoutées.
 
-❌ aucun cast  
-❌ aucun renommage  
-❌ aucune normalisation d’unité  
-❌ aucun strip/lower
+**Paramètres requis :**
 
-Toutes les transformations se font dans **dbt (staging)**.
-
-
-### 🧰 Scripts ingestion
-
-#### `scripts/ingestion/fetch_meteofrance_paquetobs.py`
-
-Client fetch-only :
-
-- Appels API `/liste-stations` et `/paquet/horaire`
-- Parsing CSV **sans aucune transformation**
-- Retourne des DataFrames RAW
-
-#### `scripts/ingestion/write_duckdb_raw.py`
-
-Writer vers DuckDB :
-
-- création du schéma `raw`
-- `load_ts` et `dept_code` ajoutés
-- déduplication sur PK logique
+* `METEOFRANCE_TOKEN` (clé API)
+* `DUCKDB_PATH` (par défaut `./warehouse.duckdb`)
 
 ---
-## 🔢 Explorer le warehouse avec DuckDB CLI
 
-### Installation du client DuckDB
+### Mesurer la fraîcheur des sources (dbt)
 
-**macOS**
+```bash
+make dbt-sources-freshness
+```
+
+**Comment ça marche :**
+
+* dbt lit `loaded_at_field: load_time` (défini dans `sources.yml`)
+* compare `load_time` à l’horloge actuelle, et applique les seuils :
+
+  * ⚠️ **warn** si `load_time` > **2 h**
+  * ⛔ **error** si `load_time` > **4 h**
+
+**Lecture des résultats :**
+
+* ✅ **pass** : la source est à jour
+* ⚠️ **warn** : données en retard (surveillance conseillée)
+* ⛔ **error** : pipeline considéré **en échec**
+
+**Que faire en cas d’alerte/erreur ?**
+
+1. Relancer l’ingestion :
+
+   ```bash
+   make dwh-ingest DEPT=09
+   ```
+2. Vérifier le token API et la connectivité réseau.
+
+---
+
+### Exécuter les tests de schéma et de données (dbt)
+
+```bash
+make dbt-sources-test
+```
+Les tests effectuées sont ceux déclarés dans `sources.yml`.
+
+---
+
+## 🔎 Inspection du DataWarehouse (DuckDB)
+
+### Lister l'ensemble des tables
+```bash
+make dwh-tables
+```
+Cela permet de visualiser les schemas et noms de toutes les tables du DataWarehouse.
+
+### Afficher les colonnes d'une table
+```bash
+make dwh-table-info TABLE=raw.stations
+```
+Cela permet de visualiser les noms des colonnes de la table `TABLE` et leur type.
+
+### Afficher un extrait d'une table
+```bash
+make dwh-table-sample TABLE=raw.stations
+```
+Permet de visualiser un extrait des données de la table `TABLE` directement dans le terminal.
+
+### Afficher les dimensions d'une table
+```bash
+make dwh-table-shape TABLE=raw.stations
+```
+Permet de visualiser le nombre de lignes et de colonnes de la table `TABLE`.
+
+### Afficher toute les infos d'une table
+```bash
+make dwh-table TABLE=raw.stations
+```
+Permet de visualiser colonnes + dimensions + extrait de la table `TABLE`.
+
+### Explorer le warehouse avec DuckDB CLI
+
+#### Installation du client DuckDB
 ```bash
 brew install duckdb
 ```
 
-### Ouvrir le shell interactif
+#### Ouvrir le shell interactif
 ```bash
 duckdb warehouse.duckdb
 ```
 
-### Commandes utiles
+#### Commandes utiles
 ```sql
 show;                                  -- liste les tables
 select count(*) from raw.stations;     -- compte les lignes d'une table
@@ -124,29 +174,42 @@ show raw.stations;                     -- affiche le schéma d'une table
 
 ---
 
-## ⚙️ Configuration du profil dbt
+## ⚙️ dbt — exécution par actions
 
-Ce projet utilise un **profil dbt local** pour rester totalement autonome et reproductible, sans dépendance au dossier `~/.dbt`.
-
-Le fichier de profil est stocké dans :
-```
-profiles/profiles.yml
-```
-
-### 📦 Utilisation
-
-Avant d'exécuter dbt, indiquez à dbt où trouver le profil :
-
+### 1) Activer le profil local
 ```bash
 export DBT_PROFILES_DIR=./profiles
 ```
 
-Puis lancez vos commandes :
-
+### 2) Tester la connexion au DWH
 ```bash
 dbt debug
-dbt run
-dbt test
+```
+
+### 3) Lancer l’exécution de tous les modèles
+```bash
+make dbt-build     # deps + run
+```
+
+### 4) Exécuter un sous-ensemble de modèles
+
+```bash
+dbt run --select stg_obs_hourly      # un modèle
+dbt run --select tag:stg     # tous les modèles ayant le tag `stg`
+dbt run --full-refresh -s tag:int # full refresh ciblé
+```
+
+### 5) Lancer les tests
+
+```bash
+make dbt-test    # tous les tests
+dbt test -s tag:staging  # cibler un tag
+```
+
+### 6) Lancer un rebuild complet
+
+```bash
+make dbt-rebuild                     # reset + deps + run --full-refresh + test
 ```
 
 ---
@@ -158,4 +221,24 @@ dbt test
 
 ---
 
-**Auteur :** Coralie
+## Annexes
+
+### 🧰 Scripts ingestion
+
+#### `scripts/ingestion/fetch_meteofrance_paquetobs.py`
+
+Client fetch-only :
+- Appels API `/liste-stations` et `/paquet/horaire`
+- Parsing CSV **sans aucune transformation**
+- Retourne des DataFrames RAW
+
+#### `scripts/ingestion/write_duckdb_raw.py`
+
+Writer vers DuckDB :
+- création du schéma `raw`
+- `load_time` et `dept_code` ajoutés
+- déduplication sur PK logique
+
+---
+
+**Auteur :** Coralie Martinez
