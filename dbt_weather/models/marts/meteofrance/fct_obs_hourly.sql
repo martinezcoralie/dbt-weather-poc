@@ -28,5 +28,5 @@ select
   f.freezing_flag, f.precip_flag, f.snow_on_ground_flag,
   f.precip_mm_h, f.snow_depth_m, f.temperature_c, f.humidity_pct
 from w
-left join f using (event_id)
-left join d using (station_id)
+left join f on w.event_id = f.event_id
+left join d on w.station_id = d.station_id
