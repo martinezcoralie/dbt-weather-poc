@@ -28,7 +28,9 @@ def _connect(db_path: str) -> duckdb.DuckDBPyConnection:
     return con
 
 
-def write_raw_dedup(df: pd.DataFrame, table: str, pk_cols: Sequence[str], db_path: str) -> None:
+def write_raw_dedup(
+    df: pd.DataFrame, table: str, pk_cols: Sequence[str], db_path: str
+) -> None:
     """Insert a DataFrame into a DuckDB table with PK-based deduplication.
 
     Args:
@@ -45,7 +47,7 @@ def write_raw_dedup(df: pd.DataFrame, table: str, pk_cols: Sequence[str], db_pat
         raise ValueError(f"Missing PK columns in DataFrame: {missing}")
 
     df = df.copy()
-    df["load_ts"] = pd.Timestamp.now(tz="UTC")
+    df["load_time"] = pd.Timestamp.now(tz="UTC")
 
     with _connect(db_path) as con:
         # Utiliser le DF complet et créer une table vide avec les bons types
@@ -72,8 +74,12 @@ def main() -> None:
     """Fetch and load hourly observations for a département into DuckDB."""
     load_dotenv()
 
-    ap = argparse.ArgumentParser(description="Ingest hourly department data -> DuckDB raw.obs_hourly")
-    ap.add_argument("--dept", required=True, help="Code département (ex. '09', '75', '2A', '2B').")
+    ap = argparse.ArgumentParser(
+        description="Ingest hourly department data -> DuckDB raw.obs_hourly"
+    )
+    ap.add_argument(
+        "--dept", required=True, help="Code département (ex. '09', '75', '2A', '2B')."
+    )
     ap.add_argument("--db", default=os.getenv("DUCKDB_PATH", "./warehouse.duckdb"))
     args = ap.parse_args()
 
@@ -88,13 +94,14 @@ def main() -> None:
 
     # Stations → raw.stations
     df_st = fetch_stations(session)
-    pk_st = ["id"] if "id" in df_st.columns else ["id_station"]
+    pk_st = ["Id_station"]
     write_raw_dedup(df_st, "raw.stations", pk_st, args.db)
     print(f"raw.stations: {len(df_st):,} rows (dedup)")
 
     # Observations horaires → raw.obs_hourly
     df_hr = fetch_hourly_for_dept(session, args.dept)
-    write_raw_dedup(df_hr, "raw.obs_hourly", ["validity_time", "station_code_insee"], args.db)
+    pk_hr = ["validity_time", "geo_id_insee", "reference_time"]
+    write_raw_dedup(df_hr, "raw.obs_hourly", pk_hr, args.db)
     print(f"raw.obs_hourly[{args.dept}]: {len(df_hr):,} rows (dedup)")
 
 

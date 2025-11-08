@@ -1,0 +1,14 @@
+level,label,ms_min,ms_max
+0,Calme,0.0,0.5
+1,Très légère brise,0.5,1.6
+2,Légère brise,1.6,3.4
+3,Petite brise,3.4,5.5
+4,Jolie brise,5.5,8.0
+5,Bonne brise,8.0,10.8
+6,Vent frais,10.8,13.9
+7,Grand frais,13.9,17.2
+8,Coup de vent,17.2,20.8
+9,Fort coup de vent,20.8,24.5
+10,Tempête,24.5,28.5
+11,Violente tempête,28.5,32.7
+12,Ouragan,32.7,1000

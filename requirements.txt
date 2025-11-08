@@ -4,3 +4,6 @@ requests
 python-dotenv
 dbt-core
 dbt-duckdb
+sqlfluff
+sqlfluff-templater-dbt
+ruff

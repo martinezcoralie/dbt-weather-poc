@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: stg_stations
+    description: >
+      Stations météorologiques Météo-France.  
+      Données nettoyées et typées structurellement (coordonnées, altitude, dates).
+    columns:
+      - name: station_id
+        description: Identifiant unique de la station.
+        tests:
+          - not_null
+          - unique
+
+      - name: station_name
+        description: Nom usuel de la station (nettoyé, en lower case, sans chaînes vides).
+
+      - name: latitude
+        description: Latitude en degrés.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "between -90 and 90"
+
+      - name: longitude
+        description: Longitude en degrés.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "between -180 and 180"
+
+      - name: altitude
+        description: Altitude de la station en mètres (-500 à 9000 m).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or altitude between -500 and 9000"
+
+      - name: opening_date
+        description: Date d’ouverture de la station (si disponible).

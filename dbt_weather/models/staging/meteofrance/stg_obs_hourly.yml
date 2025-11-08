@@ -1,0 +1,231 @@
+version: 2
+
+models:
+  - name: stg_obs_hourly
+    description: >
+      Observations horaires issues du flux Météo-France.
+      Types corrigés, timestamps normalisés en UTC, et valeurs bornées pour cohérence.
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: [validity_time_utc, station_id, production_time_utc]
+    columns:
+
+      # ─────────────── Identification & localisation ───────────────
+      - name: station_id
+        description: Identifiant de la station (référence à stg_stations).
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stations')
+                field: station_id
+
+      - name: latitude
+        description: Latitude du poste de mesure (-90 à 90).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "between -90 and 90"
+
+      - name: longitude
+        description: Longitude du poste de mesure (-180 à 180).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "between -180 and 180"
+
+      # ─────────────── Timestamps (UTC) ───────────────
+      - name: production_time_utc
+        description: Heure de production du bulletin (UTC).
+        tests: [not_null]
+
+      - name: validity_time_utc
+        description: Heure de validité de la mesure (UTC).
+        tests: [not_null]
+
+      - name: insert_time_utc
+        description: Date et heure d’insertion des données dans la base source (UTC).
+
+      - name: load_time_utc
+        description: Horodatage de chargement dans l'ELT (UTC).
+
+      # ─────────────── Températures de l’air (K) ───────────────
+      - name: temperature_k
+        description: Température de l’air sous abri en kelvins (K).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (temperature_k between 180 and 330)"
+
+      - name: dew_point_k
+        description: Point de rosée à 2 m en kelvins (K).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (dew_point_k between 180 and 330)"
+
+      - name: t_max_k
+        description: Température maximale horaire de l’air à 2 m (K).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (t_max_k between 180 and 330)"
+
+      - name: t_min_k
+        description: Température minimale horaire de l’air à 2 m (K).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (t_min_k between 180 and 330)"
+
+      # ─────────────── Humidité relative (%) ───────────────
+      - name: humidity_pct
+        description: Humidité relative (%) bornée 0–100.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or humidity_pct between 0 and 100"
+
+      - name: humidity_max_pct
+        description: Humidité relative maximale sur l’heure (%).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or humidity_max_pct between 0 and 100"
+
+      - name: humidity_min_pct
+        description: Humidité relative minimale sur l’heure (%).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or humidity_min_pct between 0 and 100"
+
+      # ─────────────── Vent (m/s, degrés 0–360) ───────────────
+      - name: wind_dir_deg
+        description: Direction moyenne du vent (0–360°).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or wind_dir_deg between 0 and 360"
+
+      - name: wind_speed_ms
+        description: Vitesse moyenne du vent sur 10 min à 10 m (m/s).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or wind_speed_ms >= 0"
+
+      - name: wind_dir_gust_avg_max_deg
+        description: Direction (rose 0–360°) de la rafale moyenne maximale sur l’heure.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or wind_dir_gust_avg_max_deg between 0 and 360"
+
+      - name: wind_gust_avg_max_ms
+        description: Force (m/s) de la rafale moyenne maximale sur l’heure.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or wind_gust_avg_max_ms >= 0"
+
+      - name: wind_dir_gust_abs_max_deg
+        description: Direction (rose 0–360°) de la rafale absolue maximale sur l’heure.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or wind_dir_gust_abs_max_deg between 0 and 360"
+
+      - name: wind_gust_abs_max_ms
+        description: Force (m/s) de la rafale absolue maximale sur l’heure.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or wind_gust_abs_max_ms >= 0"
+
+      # ─────────────── Précipitations ───────────────
+      - name: precip_mm_h
+        description: Hauteur de précipitations horaire (mm).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or precip_mm_h >= 0"
+
+      # ─────────────── Températures du sol (K) ───────────────
+      - name: soil_t_10cm_k
+        description: Température du sol à 10 cm de profondeur (K).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (soil_t_10cm_k between 180 and 330)"
+
+      - name: soil_t_20cm_k
+        description: Température du sol à 20 cm de profondeur (K).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (soil_t_20cm_k between 180 and 330)"
+
+      - name: soil_t_50cm_k
+        description: Température du sol à 50 cm de profondeur (K).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (soil_t_50cm_k between 180 and 330)"
+
+      - name: soil_t_100cm_k
+        description: Température du sol à 100 cm de profondeur (K).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (soil_t_100cm_k between 180 and 330)"
+
+      # ─────────────── Visibilité & neige ───────────────
+      - name: visibility_m
+        description: Portée visuelle horizontale (m).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or visibility_m >= 0"
+
+      - name: snow_depth_m
+        description: Hauteur de neige au sol (m).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or snow_depth_m >= 0"
+
+      # ─────────────── Pressions (Pa) ───────────────
+      - name: pressure_station_pa
+        description: Pression au niveau de la station (Pa).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or pressure_station_pa between 80000 and 110000"
+
+      - name: pressure_sea_pa
+        description: Pression ramenée au niveau de la mer (Pa).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or pressure_sea_pa between 80000 and 110000"
+
+      # ─────────────── Ensoleillement & rayonnement ───────────────
+      - name: sunshine_duration_min
+        description: Durée d’ensoleillement de l’heure (minutes, 0–60).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (sunshine_duration_min between 0 and 60)"
+
+      - name: global_radiation_j_m2
+        description: Rayonnement global sur l’heure (J/m²).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or global_radiation_j_m2 >= 0"
+
+      # ─────────────── État du sol ───────────────
+      - name: soil_state_code
+        description: Code de l’état du sol (liste de codes de référence Météo-France). Valeurs brutes conservées.

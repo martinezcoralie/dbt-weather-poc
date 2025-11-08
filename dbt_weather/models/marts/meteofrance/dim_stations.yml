@@ -1,0 +1,10 @@
+version: 2
+models:
+  - name: dim_stations
+    description: Dimension stations.
+    columns:
+      - name: station_id
+        description: Identifiant station.
+        tests: [not_null, unique]
+      - name: station_name
+        description: Libellé courant de la station.
