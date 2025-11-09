@@ -102,7 +102,7 @@ dbt-test: ## dbt test
 	$(DBT) test
 
 dbt-rebuild: ## Full refresh (reset + deps + run --full-refresh + test)
-	@$(MAKE) dbt-reset
+	@$(MAKE) dwh-reset
 	$(DBT) deps
 	$(DBT) run --full-refresh
 	$(DBT) test
