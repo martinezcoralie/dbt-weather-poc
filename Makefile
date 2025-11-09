@@ -9,7 +9,7 @@ SHELL := bash
 VENV := .venv
 PY   := $(VENV)/bin/python
 PIP  := $(VENV)/bin/pip
-DBT_PROJECT := dbt_weather
+DBT_PROJECT := weather_dbt
 
 # Scripts et modules ingestion
 SCRIPT_FETCH  := scripts/ingestion/fetch_meteofrance_paquetobs.py
@@ -42,7 +42,7 @@ help: ## Affiche cette aide
 
 tree: ## Affiche la structure du repo
 	tree -I 'node_modules|.git|dist|build|venv|__pycache__|dbt_utils|target'
-	
+
 # ========== Environnement Python ==========
 env-setup: ## Crée le virtualenv et installe les dépendances
 	@test -d $(VENV) || python -m venv $(VENV)

@@ -1,4 +1,4 @@
-dbt_weather:
+weather_dbt:
   outputs:
     dev:
       type: duckdb
