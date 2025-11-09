@@ -8,3 +8,9 @@ models:
         tests: [not_null, unique]
       - name: station_name
         description: Libellé courant de la station.
+      - name: latitude
+        description: Latitude en degrés.
+      - name: longitude
+        description: Longitude en degrés.
+      - name: altitude
+        description: Altitude de la station en mètres (-500 à 9000 m).

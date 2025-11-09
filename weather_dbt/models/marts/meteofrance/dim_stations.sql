@@ -3,5 +3,8 @@
 
 select
     station_id,
-    station_name
+    station_name,
+    latitude,
+    longitude,
+    altitude
 from {{ ref('stg_stations') }}
