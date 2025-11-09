@@ -33,6 +33,46 @@ station_id = stations.loc[stations["station_name"]==chosen, "station_id"].iloc[0
 
 df = load_obs_for(station_id)
 
+import pydeck as pdk
+
+# Carte : toutes les stations + mise en évidence de la station sélectionnée
+stations_map = stations.rename(columns={"longitude": "lon", "latitude": "lat"})
+
+# Couche "toutes les stations"
+all_layer = pdk.Layer(
+    "ScatterplotLayer",
+    data=stations_map,
+    get_position="[lon, lat]",
+    get_radius=2000,            # ajuste selon l’échelle
+    get_color=[0, 122, 255],    # bleu
+    pickable=True
+)
+
+# Couche "station sélectionnée"
+selected_station = stations_map[stations_map["station_name"] == chosen]
+selected_layer = pdk.Layer(
+    "ScatterplotLayer",
+    data=selected_station,
+    get_position="[lon, lat]",
+    get_radius=4000,
+    get_color=[255, 60, 60],    # rouge
+    pickable=True
+)
+
+# Vue initiale centrée sur le barycentre (fallback si vide)
+center_lat = stations_map["lat"].mean() if not stations_map.empty else 46.5
+center_lon = stations_map["lon"].mean() if not stations_map.empty else 2.5
+
+view_state = pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=5)
+
+st.subheader("Carte des stations")
+st.pydeck_chart(pdk.Deck(
+    layers=[all_layer, selected_layer],
+    initial_view_state=view_state,
+    tooltip={"text": "{station_name}\n(lat: {lat}, lon: {lon})"}
+))
+
+
 col1, col2, col3 = st.columns(3)
 if not df.empty:
     freshness_hours = (pd.Timestamp.utcnow() - pd.to_datetime(df["validity_time_utc"]).max()).total_seconds()/3600
