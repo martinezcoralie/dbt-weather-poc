@@ -24,7 +24,7 @@ DBT    := dbt
 DEPT    ?= 9
 TABLE   ?= raw.obs_hourly
 
-.PHONY: help \
+.PHONY: help tree \
 		env-setup env-lock env-clean env-activate \
 		api-check \
 		dwh-ingest dwh-reset dwh-tables \
@@ -40,6 +40,9 @@ help: ## Affiche cette aide
 	@grep -E '^[a-zA-Z0-9_-]+:.*##' $(MAKEFILE_LIST) \
 	 | sed -E 's/:.*##/\t- /'
 
+tree: ## Affiche la structure du repo
+	tree -I 'node_modules|.git|dist|build|venv|__pycache__|dbt_utils|target'
+	
 # ========== Environnement Python ==========
 env-setup: ## Crée le virtualenv et installe les dépendances
 	@test -d $(VENV) || python -m venv $(VENV)
