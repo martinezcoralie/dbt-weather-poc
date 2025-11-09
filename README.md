@@ -41,11 +41,11 @@ source .venv/bin/activate
 Créer un fichier `.env` :
 ```bash
 METEOFRANCE_TOKEN=xxxxxxxxxxxxxxxx
-DUCKDB_PATH=./warehouse.duckdb
+DUCKDB_PATH=data/warehouse.duckdb
 ```
 avec :
 - `METEOFRANCE_TOKEN` : la clé API Météo-France  
-- `DUCKDB_PATH` : le chemin du fichier DuckDB (par défaut `./warehouse.duckdb`)
+- `DUCKDB_PATH` : le chemin du fichier DuckDB (par défaut `data/warehouse.duckdb`)
 
 ---
 
@@ -76,7 +76,7 @@ make dwh-ingest DEPT=75
 **Paramètres requis :**
 
 * `METEOFRANCE_TOKEN` (clé API)
-* `DUCKDB_PATH` (par défaut `./warehouse.duckdb`)
+* `DUCKDB_PATH` (par défaut `data/warehouse.duckdb`)
 
 ---
 

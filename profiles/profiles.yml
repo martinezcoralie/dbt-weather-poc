@@ -2,6 +2,6 @@ dbt_weather:
   outputs:
     dev:
       type: duckdb
-      path: warehouse.duckdb
+      path: data/warehouse.duckdb
       schema: analytics
   target: dev

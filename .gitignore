@@ -1,7 +1,10 @@
 /.venv/
-/warehouse.duckdb
 /.env
-/target/
-/dbt_packages/
-/logs/
+target/
+dbt_packages/
+logs/
+__pycache__/.streamlit/
 __pycache__/
+data/*.duckdb
+.vscode
+.ruff_cache
