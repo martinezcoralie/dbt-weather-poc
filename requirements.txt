@@ -7,3 +7,4 @@ dbt-duckdb
 sqlfluff
 sqlfluff-templater-dbt
 ruff
+streamlit

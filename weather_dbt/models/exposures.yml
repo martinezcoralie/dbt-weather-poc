@@ -1,0 +1,15 @@
+version: 2
+
+exposures:
+  - name: weather_bi_streamlit
+    type: dashboard
+    maturity: low
+    url: http://localhost:8501
+    description: Dashboard météo sur les marts DBT.
+    owner:
+      name: Coralie Martinez
+      email: comartinez.pro@gmail.com
+    depends_on:
+      - ref('fct_obs_hourly')
+      - ref('agg_daily_station')
+      - ref('dim_stations')
