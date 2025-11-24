@@ -8,3 +8,7 @@ __pycache__/
 data/*.duckdb
 .vscode
 .ruff_cache
+
+# macOS Finder files
+.DS_Store
+**/.DS_Store

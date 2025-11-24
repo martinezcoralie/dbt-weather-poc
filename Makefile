@@ -31,6 +31,7 @@ TABLE   ?= raw.obs_hourly
 		dwh-table-info dwh-table-shape dwh-table-sample dwh-table \
 		dbt-build dbt-test dbt-rebuild \
 		dbt-sources-test dbt-sources-freshness dbt-sources-check \
+		dbt-docs-generate dbt-docs-serve dbt-docs \
 		py-lint py-fmt sql-lint sql-fmt
 
 # ========== Default / Help ==========
@@ -116,6 +117,15 @@ dbt-sources-freshness: ## Vérifie la fraîcheur des sources
 	$(DBT) source freshness
 
 dbt-sources-check: dbt-sources-test dbt-sources-freshness ## Combo sur les sources: Tests & Fraîcheur
+
+# ========== Documentation DBT ==========
+dbt-docs-generate: ## Génère la documentation HTML dbt dans target/
+	$(DBT) docs generate
+
+dbt-docs-serve: ## Sert la doc dbt en local (http://localhost:8080)
+	$(DBT) docs serve --port 8080
+
+dbt-docs: dbt-docs-generate dbt-docs-serve ## Génère puis sert la doc dbt en local (http://localhost:8080)
 
 # ========== Lint ==========
 py-lint: ## Lint Python
