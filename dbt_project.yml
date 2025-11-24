@@ -25,19 +25,16 @@ models:
     +materialized: view          # défaut global
     staging:                     # -> dossier models/staging/
       +schema: staging
-      meteofrance:               # -> dossier models/staging/meteofrance/
-        +tags: ["stg","meteofrance"]
+      +tags: ["stg"]
 
     intermediate:                # -> dossier models/intermediate/
       +schema: intermediate
-      meteofrance:               # -> dossier models/intermediate/meteofrance/
-        +tags: ["int","meteofrance"]
+      +tags: ["int"]
 
     marts:                       # -> dossier models/marts/
       +schema: marts  
       +materialized: table        # défaut pour les marts
-      meteofrance:               # -> dossier models/marts/meteofrance/
-        +tags: ["mart","meteofrance"]
+      +tags: ["mart"]
 
 seeds:
   +quote_columns: false
