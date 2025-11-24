@@ -3,8 +3,10 @@ version: 2
 sources:
   - name: raw
     schema: raw
+    description: "{{ doc('sources_doc') }}"
     meta:
-      owner: comartinez.pro@gmail.com
+      owner: Coralie Martinez
+      source_system: "Météo-France – API Observations Horaire"
     tables:
 
       # ───────────── Stations ─────────────
@@ -14,7 +16,6 @@ sources:
           Données de référence utilisées pour enrichir les observations.
         meta:
           grain: station
-          source_system: "Météo-France"
         columns:
           - name: Id_station
             description: Identifiant station (clé primaire fournie par la source).
@@ -28,7 +29,6 @@ sources:
           Observations horaires Météo-France.
           Schéma brut de la source ; les unités détaillées et contrôlées sont documentées dans le modèle de staging.
         meta:
-          source_system: "Météo-France"
           update_frequency: "TBD"
           source_retention: "24h"
           grain: "station_id + validity_time"
