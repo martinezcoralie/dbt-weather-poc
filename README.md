@@ -5,6 +5,8 @@ Basé sur **DuckDB**, **Python**, et **dbt**.
 
 > Ce projet DBT collecte et historise les observations météo horaires de Météo France pour le département de l’Ariège afin d’analyser la qualité de vie climatique selon les zones (soleil, humidité, vent, pluie).
 
+Les marts sont exposés dans un petit dashboard Streamlit (cf. section 📊 Visualisation BI).
+
 ## 💡 Objectifs
 
 - Démontrer un flux de données complet **API → Warehouse → dbt**, portable et reproductible.
@@ -46,6 +48,12 @@ DUCKDB_PATH=data/warehouse.duckdb
 avec :
 - `METEOFRANCE_TOKEN` : la clé API Météo-France  
 - `DUCKDB_PATH` : le chemin du fichier DuckDB (par défaut `data/warehouse.duckdb`)
+
+
+### Activer le profil local
+```bash
+export DBT_PROFILES_DIR=./profiles
+```
 
 ---
 
@@ -176,22 +184,17 @@ show raw.stations;                     -- affiche le schéma d'une table
 
 ## ⚙️ dbt — exécution par actions
 
-### 1) Activer le profil local
-```bash
-export DBT_PROFILES_DIR=./profiles
-```
-
-### 2) Tester la connexion au DWH
+### 1) Tester la connexion au DWH
 ```bash
 dbt debug
 ```
 
-### 3) Lancer l’exécution de tous les modèles
+### 2) Lancer l’exécution de tous les modèles
 ```bash
 make dbt-build     # deps + run
 ```
 
-### 4) Exécuter un sous-ensemble de modèles
+### 2.bis) Exécuter un sous-ensemble de modèles
 
 ```bash
 dbt run --select stg_obs_hourly      # un modèle
@@ -199,18 +202,46 @@ dbt run --select tag:stg     # tous les modèles ayant le tag `stg`
 dbt run --full-refresh -s tag:int # full refresh ciblé
 ```
 
-### 5) Lancer les tests
+### 3) Lancer les tests
 
 ```bash
 make dbt-test    # tous les tests
 dbt test -s tag:staging  # cibler un tag
 ```
 
-### 6) Lancer un rebuild complet
+### 4) Lancer un rebuild complet
 
 ```bash
-make dbt-rebuild                     # reset + deps + run --full-refresh + test
+make dbt-rebuild    # reset + deps + run --full-refresh + test
 ```
+
+---
+
+## 📊 Visualisation BI (dashboard Streamlit)
+
+Une fois les données ingérées et les modèles dbt exécutés, on peut explorer les marts via une petite app Streamlit.
+
+### Lancer le dashboard
+
+```bash
+# 1) S'assurer que l'environnement est prêt
+make env-setup
+source .venv/bin/activate
+
+# 2) Lancer l'application Streamlit
+streamlit run apps/bi-streamlit/app.py
+```
+
+Par défaut, le dashboard est disponible sur :
+
+* [http://localhost:8501](http://localhost:8501)
+
+Le dashboard lit directement dans le fichier DuckDB (`DUCKDB_PATH`, par défaut `data/warehouse.duckdb`)
+et s’appuie sur les modèles marts, notamment :
+
+* `marts.meteofrance.fct_obs_hourly`
+* `marts.meteofrance.dim_stations`
+* `marts.meteofrance.agg_daily_station`
 
 ---
 
