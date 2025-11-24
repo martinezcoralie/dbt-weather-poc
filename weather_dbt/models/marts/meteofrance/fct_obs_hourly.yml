@@ -2,13 +2,14 @@ version: 2
 
 models:
   - name: fct_obs_hourly
-    description: >
-      Table de faits horaire rassemblant :
-      - les fenêtres glissantes (int_obs_windowing)
-      - les features météo atomiques (int_obs_features)
-      - les attributs station (dim_stations).
-      Modèle final destiné au BI.
-
+    description: "{{ doc('fct_obs_hourly_doc') }}"
+    meta:
+      owner: "Coralie Martinez"
+      domain: "weather_analytics"
+      criticality: "high"
+      pii: false
+      refresh_expectation: "hourly"
+      usage: "Base analytique pour visualisation météo horaire et contrôles qualité"
     columns:
 
       - name: event_id
