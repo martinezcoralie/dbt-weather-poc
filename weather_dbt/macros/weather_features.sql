@@ -14,26 +14,6 @@
   end
 {%- endmacro %}
 
-{# Beaufort (m/s -> échelle 0–12) #}
-{% macro beaufort(speed_ms) -%}
-  case
-    when {{ speed_ms }} is null then null
-    when {{ speed_ms }} < 0.5 then 0
-    when {{ speed_ms }} < 1.6 then 1
-    when {{ speed_ms }} < 3.4 then 2
-    when {{ speed_ms }} < 5.5 then 3
-    when {{ speed_ms }} < 8.0 then 4
-    when {{ speed_ms }} < 10.8 then 5
-    when {{ speed_ms }} < 13.9 then 6
-    when {{ speed_ms }} < 17.2 then 7
-    when {{ speed_ms }} < 20.8 then 8
-    when {{ speed_ms }} < 24.5 then 9
-    when {{ speed_ms }} < 28.5 then 10
-    when {{ speed_ms }} < 32.7 then 11
-    else 12
-  end
-{%- endmacro %}
-
 {# Visibilité -> catégories #}
 {% macro visibility_category(visibility_m) -%}
   case

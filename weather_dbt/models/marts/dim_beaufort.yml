@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: dim_beaufort
+    description: >
+      Dimension statique de l'échelle de Beaufort (0–12) avec libellés métiers
+      et bornes min/max de vitesse du vent en m/s.
+    columns:
+      - name: beaufort_level
+        description: Niveau Beaufort (0–12).
+        tests:
+          - not_null
+          - unique
+
+      - name: beaufort_label
+        description: Libellé descriptif du niveau (Calme, Très légère brise, etc.).
+        tests:
+          - not_null
+
+      - name: ms_min
+        description: Vitesse minimale du vent (m/s) pour ce niveau.
+        tests:
+          - not_null
+
+      - name: ms_max
+        description: Vitesse maximale du vent (m/s) pour ce niveau.
+        tests:
+          - not_null
