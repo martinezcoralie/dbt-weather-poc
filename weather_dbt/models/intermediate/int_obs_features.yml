@@ -6,6 +6,14 @@ models:
       Observations horaires enrichies de features météo (vent, visibilité, drapeaux),
       plus mesures brutes utiles aux fenêtres. 
       Source : stg_obs_hourly.
+      Modèle incrémental basé sur event_id utilisant merge pour ne recalculer que les dernières observations.
+    meta:
+      materialization: incremental
+      incremental_strategy: merge
+      unique_key: event_id
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ['station_id', 'validity_time_utc']
     columns:
       - name: event_id
         description: Clé de substitution (station_id + validity_time_utc).

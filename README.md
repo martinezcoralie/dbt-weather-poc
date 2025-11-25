@@ -11,6 +11,7 @@ Les marts sont exposés dans un petit dashboard Streamlit (cf. section 📊 Visu
 
 - Démontrer un flux de données complet **API → Warehouse → dbt**, portable et reproductible.
 - Illustrer la chaîne de valeur **ingestion → modélisation → documentation**.
+- Montrer l’usage de modèles **incrémentaux dbt** pour optimiser les mises à jour de données horaires.
 
 ### Architecture
 
@@ -213,6 +214,29 @@ dbt test -s tag:staging  # cibler un tag
 
 ```bash
 make dbt-rebuild    # reset + deps + run --full-refresh + test
+```
+
+### À propos des modèles incrémentaux
+
+Ce projet utilise des modèles **incrémentaux dbt** pour éviter de recalculer l’historique complet à chaque exécution.
+
+Concrètement :
+
+* seules les nouvelles observations météo sont traitées ;
+* l’historique déjà calculé est conservé ;
+* l’exécution est plus rapide et plus économique qu’un *full refresh*.
+
+Les modèles concernés :
+
+* `intermediate.int_obs_features`
+* `intermediate.int_obs_windowing`
+
+Ces modèles sont basés sur la clé `event_id` et utilisent la stratégie `merge`.
+
+Pour forcer un recalcul complet :
+
+```bash
+make dbt-rebuild
 ```
 
 ---
