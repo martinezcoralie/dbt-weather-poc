@@ -3,6 +3,9 @@ version: 2
 models:
   - name: fct_obs_hourly
     description: "{{ doc('fct_obs_hourly_doc') }}"
+    config:
+      contract:
+        enforced: true
     meta:
       owner: "Coralie Martinez"
       domain: "weather_analytics"
@@ -12,14 +15,17 @@ models:
       usage: "Base analytique pour visualisation météo horaire et contrôles qualité"
     columns:
 
+      # --- clés & grain ---
       - name: event_id
         description: Clé unique (station_id + validity_time_utc).
+        data_type: varchar
         tests:
           - not_null
           - unique
 
       - name: station_id
         description: Identifiant station utilisé pour joindre la dimension.
+        data_type: varchar
         tests:
           - not_null
           - relationships:
@@ -29,50 +35,74 @@ models:
 
       - name: station_name
         description: Nom de la station issu de la dimension stations.
+        data_type: varchar
 
       - name: validity_time_utc
         description: Heure de validité de l'observation (UTC).
+        data_type: timestamptz
         tests:
           - not_null
 
       # --- Fenêtres (cumul précipitations) ---
       - name: precip_1h_mm
         description: Précipitations cumulées sur les 1h précédentes (mm).
+        data_type: double
+
       - name: precip_3h_mm
         description: Précipitations cumulées sur les 3h précédentes (mm).
+        data_type: double
+
       - name: precip_24h_mm
         description: Précipitations cumulées sur les 24h précédentes (mm).
+        data_type: double
 
       # --- Fenêtres (neige) ---
       - name: snow_1h_m
         description: Neige cumulée sur 1h (m).
+        data_type: double
+
       - name: snow_3h_m
         description: Neige cumulée sur 3h (m).
+        data_type: double
+
       - name: snow_24h_m
         description: Neige cumulée sur 24h (m).
+        data_type: double
 
       # --- Fenêtres (température) ---
       - name: temp_1h_c
         description: Moyenne glissante de température sur 1h (°C).
+        data_type: double
+
       - name: temp_3h_c
         description: Moyenne glissante de température sur 3h (°C).
+        data_type: double
+
       - name: temp_24h_c
         description: Moyenne glissante de température sur 24h (°C).
+        data_type: double
 
       # --- Features atomiques ---
       - name: wind_dir_deg
         description: Direction du vent (°).
+        data_type: integer
+
       - name: wind_sector
         description: Secteur cardinal du vent (N, NE, E, SE, S, SW, W, NW).
+        data_type: varchar
 
       - name: wind_speed_ms
         description: Vitesse du vent en m/s (unité de la source brute).
+        data_type: double
 
       - name: wind_speed_kmh
         description: Vitesse du vent en km/h (convertie depuis m/s).
+        data_type: double
 
+      # --- Enrichissement Beaufort ---
       - name: wind_beaufort
         description: Niveau de l’échelle de Beaufort (0–12) dérivé de la vitesse du vent via dim_beaufort.
+        data_type: integer
         tests:
           - relationships:
               arguments:
@@ -81,24 +111,42 @@ models:
 
       - name: wind_beaufort_label
         description: Libellé descriptif du niveau Beaufort (ex. calme, brise légère, coup de vent).
+        data_type: varchar
 
+      # --- Visibilité & flags ---
       - name: visibility_m
         description: Visibilité horizontale (m).
+        data_type: integer
+
       - name: visibility_cat
         description: Catégorie de visibilité dérivée de visibility_m.
+        data_type: varchar
 
       - name: freezing_flag
         description: Indicateur 1 si température ≤ 0°C, sinon null/0.
+        data_type: integer
+
       - name: precip_flag
         description: Indicateur 1 si précipitation horaire > 0 mm, sinon null/0.
+        data_type: integer
+
       - name: snow_on_ground_flag
         description: Indicateur 1 si neige au sol > 0, sinon null/0.
+        data_type: integer
 
+      # --- Mesures brutes utiles ---
       - name: precip_mm_h
         description: Précipitation horaire (mm).
+        data_type: double
+
       - name: snow_depth_m
         description: Hauteur de neige (m).
+        data_type: double
+
       - name: temperature_c
         description: Température horaire (°C).
+        data_type: double
+
       - name: humidity_pct
         description: Humidité relative (%).
+        data_type: integer
