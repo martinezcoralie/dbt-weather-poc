@@ -300,12 +300,36 @@ et s’appuie sur les modèles marts, notamment :
 * `marts.meteofrance.dim_stations`
 * `marts.meteofrance.agg_daily_station`
 
+### Models en amont du dashboard (exposure dbt)
+
+Ce projet définit un **exposure dbt** nommé `weather_bi_streamlit`, qui représente le dashboard Streamlit comme un consommateur final des données.
+
+Cet exposure permet d’**identifier explicitement** quels modèles dbt alimentent le dashboard, et donc de **sélectionner, tester ou exécuter uniquement le périmètre réellement utilisé** par la BI.
+
+```bash
+# Voir les modèles qui alimentent le dashboard
+dbt ls -s +exposure:weather_bi_streamlit
+
+# Exécuter uniquement ces modèles
+dbt run -s +exposure:weather_bi_streamlit
+dbt test -s +exposure:weather_bi_streamlit
+```
+
+💡 **Intérêt**
+Si, plus tard, le projet comporte d’autres modèles non utilisés par le dashboard
+(ex. nouveaux marts, analyses, features), ces commandes permettent de :
+
+* ne construire **que** ce qui alimente le dashboard ;
+* réduire le temps d’exécution ;
+* éviter de tester ou builder des modèles hors scope BI.
+
 ---
 
 ### 📊 Prochaines étapes
 
 * Configurer CI (`dbt build`, tests, docs)
 * Publier artefacts (docs/lineage)
+* Enrichir l’exposition `weather_bi_streamlit` au fil des évolutions du projet
 
 ---
 
