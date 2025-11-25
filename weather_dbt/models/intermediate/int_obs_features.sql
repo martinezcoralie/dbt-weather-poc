@@ -8,13 +8,13 @@
 
 with base as (
     select
-        {{ dbt_utils.generate_surrogate_key(['o.station_id','o.validity_time_utc']) }} as event_id,
-        o.*,
-        {{ kelvin_to_c('o.temperature_k') }} as temperature_c
-    from {{ ref('stg_obs_hourly') }} AS o
+        {{ dbt_utils.generate_surrogate_key(['obs_hourly.station_id','obs_hourly.validity_time_utc']) }} as event_id,
+        obs_hourly.*,
+        {{ kelvin_to_c('obs_hourly.temperature_k') }} as temperature_c
+    from {{ ref('stg_obs_hourly') }} AS obs_hourly
     {% if is_incremental() %}
     -- On n’ingère que les nouvelles heures
-        where o.validity_time_utc > (
+        where obs_hourly.validity_time_utc > (
             select coalesce(max(validity_time_utc), '1900-01-01') from {{ this }}
         )
     {% endif %}
@@ -27,9 +27,9 @@ select
 
     -- Vent
     wind_dir_deg,
-    {{ wind_sector('wind_dir_deg') }} as wind_sector,
+    wind_speed_ms,
     {{ ms_to_kmh('wind_speed_ms') }} as wind_speed_kmh,
-    {{ beaufort('wind_speed_ms') }} as wind_beaufort,
+    {{ wind_sector('wind_dir_deg') }} as wind_sector,
 
     -- Visibilité
     {{ visibility_category('visibility_m') }} as visibility_cat,

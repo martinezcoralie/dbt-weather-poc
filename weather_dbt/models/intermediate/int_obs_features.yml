@@ -56,13 +56,14 @@ models:
               arguments:
                 expression: "is null or wind_speed_kmh >= 0"
 
-      - name: wind_beaufort
-        description: Force du vent (échelle de Beaufort, 0–12).
+      - name: wind_speed_ms
+        description: Vitesse du vent en m/s.
         tests:
-          - dbt_utils.accepted_range:
+          - dbt_utils.expression_is_true:
               arguments:
-                min_value: 0
-                max_value: 12
+                expression: "is null or wind_speed_ms >= 0"
+
+
 
       # --- Visibilité ---
       - name: visibility_m
