@@ -16,6 +16,7 @@ models:
         description: Libellé descriptif du niveau (Calme, Très légère brise, etc.).
         tests:
           - not_null
+          - unique
 
       - name: ms_min
         description: Vitesse minimale du vent (m/s) pour ce niveau.

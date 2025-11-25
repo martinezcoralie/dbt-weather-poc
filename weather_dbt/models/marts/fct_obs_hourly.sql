@@ -55,8 +55,8 @@ select
     obs_features.wind_speed_ms,
 
     -- enrichissement via dimension Beaufort
-    dim_beaufort.beaufort_level,
-    dim_beaufort.beaufort_label,
+    dim_beaufort.beaufort_level as wind_beaufort,
+    dim_beaufort.beaufort_label as wind_beaufort_label,
 
     -- visibilité & flags
     obs_features.visibility_m,
@@ -79,6 +79,5 @@ left join dim_stations
     on obs_windows.station_id = dim_stations.station_id
 
 left join dim_beaufort
-    on obs_features.wind_speed_ms between dim_beaufort.ms_min
-                                    and dim_beaufort.ms_max
-;
+  on obs_features.wind_speed_ms >= dim_beaufort.ms_min
+ and obs_features.wind_speed_ms <  dim_beaufort.ms_max
