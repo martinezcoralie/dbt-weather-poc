@@ -63,23 +63,36 @@ models:
       - name: wind_dir_deg
         description: Direction du vent (°).
       - name: wind_sector
-        description: Secteur cardinal du vent.
+        description: Secteur cardinal du vent (N, NE, E, SE, S, SW, W, NW).
+
+      - name: wind_speed_ms
+        description: Vitesse du vent en m/s (unité de la source brute).
+
       - name: wind_speed_kmh
-        description: Vitesse du vent (km/h).
+        description: Vitesse du vent en km/h (convertie depuis m/s).
+
       - name: wind_beaufort
-        description: Indice de force du vent Beaufort (0–12).
+        description: Niveau de l’échelle de Beaufort (0–12) dérivé de la vitesse du vent via dim_beaufort.
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_beaufort')
+                field: beaufort_level
+
+      - name: wind_beaufort_label
+        description: Libellé descriptif du niveau Beaufort (ex. calme, brise légère, coup de vent).
 
       - name: visibility_m
         description: Visibilité horizontale (m).
       - name: visibility_cat
-        description: Catégorie de visibilité.
+        description: Catégorie de visibilité dérivée de visibility_m.
 
       - name: freezing_flag
-        description: 1 si T ≤ 0°C.
+        description: Indicateur 1 si température ≤ 0°C, sinon null/0.
       - name: precip_flag
-        description: 1 si precip_mm_h > 0.
+        description: Indicateur 1 si précipitation horaire > 0 mm, sinon null/0.
       - name: snow_on_ground_flag
-        description: 1 si neige au sol > 0.
+        description: Indicateur 1 si neige au sol > 0, sinon null/0.
 
       - name: precip_mm_h
         description: Précipitation horaire (mm).
