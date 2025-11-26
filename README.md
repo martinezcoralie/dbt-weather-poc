@@ -44,7 +44,7 @@ Dashboard Streamlit (exposure)
 
 - **Python 3.12** — ingestion & utilitaires
 - **dbt-core + dbt-duckdb** — transformation & tests
-- **DuckDB** — data warehouse local
+- **DuckDB (CLI + lib Python)** — data warehouse local
 - **Streamlit** — exposition BI
 - **Pandas / PyArrow** — manipulation de données
 - **SQLFluff / Ruff** — linting SQL & Python
