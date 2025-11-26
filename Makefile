@@ -138,4 +138,4 @@ sql-lint: ## Lint SQL
 	$(VENV)/bin/sqlfluff lint $(DBT_PROJECT)
 
 sql-fmt: ## Format SQL
-	$(VENV)/bin/sqlfluff fix $(DBT_PROJECT) --rules LT08,LT09,LT10,LT12,AL01
+	$(VENV)/bin/sqlfluff fix $(DBT_PROJECT) --rules LT08,LT09,LT10,LT12,AL01,LT02
