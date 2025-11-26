@@ -18,7 +18,10 @@ MODULE_WRITE  := scripts.ingestion.write_duckdb_raw
 # DB / Tools
 DBPATH := data/warehouse.duckdb
 DUCKDB := duckdb
-DBT    := dbt
+DBT := dbt
+
+DBT_PROFILES_DIR ?= profiles
+export DBT_PROFILES_DIR
 
 # Paramètres (overridable)
 DEPT    ?= 9
