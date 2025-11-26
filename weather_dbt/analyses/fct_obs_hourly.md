@@ -2,23 +2,15 @@
 
 # fct_obs_hourly
 
-Table de faits horaire des observations météo rassemblant :
-- les fenêtres glissantes (int_obs_windowing)
-- les features météo atomiques (int_obs_features)
-- les attributs station (dim_stations).
+Table de faits horaire issue de l’assemblage :
+- des métriques dérivées (fenêtres glissantes) depuis `int_obs_windows`,
+- des features enrichies (unités, secteurs de vent, flags, conversions) depuis `int_obs_features`,
+- des attributs de référence station et Beaufort via `dim_stations` et `dim_beaufort`.
 
-Modèle final destiné au BI.
+**Grain** : 1 ligne = 1 station_id × 1 validity_time_utc  
+**Usage** : base analytique pour suivi météo et visualisation BI.
 
-Grain : 1 ligne par (station_id, validity_time_utc)
-
-Principales métriques :
-- precip_1h_mm, precip_3h_mm, precip_24h_mm
-- temp_1h_c, temp_3h_c, temp_24h_c
-- flags météo (freezing_flag, precip_flag, etc.)
-
-Use cases :
-- Suivi de la météo par station
-- Construction de KPIs journaliers / hebdomadaires
-- Base pour la détection de dérive climatique locale
+Les tests en `severity: warn` concernent les champs issus directement des mesures brutes Météo-France, susceptibles de contenir du bruit opérationnel. Les incohérences logiques (ex. flags) sont, elles, testées de manière stricte.
 
 {% enddocs %}
+
