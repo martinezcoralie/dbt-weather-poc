@@ -3,6 +3,7 @@ version: 2
 models:
   - name: fct_obs_hourly
     description: "{{ doc('fct_obs_hourly_doc') }}"
+    tags: ["mart", "fact", "critical"]
     config:
       contract:
         enforced: true
@@ -13,6 +14,7 @@ models:
       pii: false
       refresh_expectation: "hourly"
       usage: "Base analytique pour visualisation météo horaire et contrôles qualité"
+      grain: "1 ligne = 1 station_id x 1 validity_time_utc"
     columns:
 
       # --- clés & grain ---
@@ -47,57 +49,97 @@ models:
       - name: precip_1h_mm
         description: Précipitations cumulées sur les 1h précédentes (mm).
         data_type: double
+        tests:
+          - non_negative
 
       - name: precip_3h_mm
         description: Précipitations cumulées sur les 3h précédentes (mm).
         data_type: double
+        tests:
+          - non_negative
 
       - name: precip_24h_mm
         description: Précipitations cumulées sur les 24h précédentes (mm).
         data_type: double
+        tests:
+          - non_negative
 
       # --- Fenêtres (neige) ---
       - name: snow_1h_m
         description: Neige cumulée sur 1h (m).
         data_type: double
+        tests:
+          - non_negative
 
       - name: snow_3h_m
         description: Neige cumulée sur 3h (m).
         data_type: double
+        tests:
+          - non_negative
 
       - name: snow_24h_m
         description: Neige cumulée sur 24h (m).
         data_type: double
+        tests:
+          - non_negative
 
       # --- Fenêtres (température) ---
       - name: temp_1h_c
         description: Moyenne glissante de température sur 1h (°C).
         data_type: double
+        tests:
+          - between_range:
+              arguments:
+                min_value: -40
+                max_value: 60
 
       - name: temp_3h_c
         description: Moyenne glissante de température sur 3h (°C).
         data_type: double
+        tests:
+          - between_range:
+              arguments:
+                min_value: -40
+                max_value: 60
 
       - name: temp_24h_c
         description: Moyenne glissante de température sur 24h (°C).
         data_type: double
+        tests:
+          - between_range:
+              arguments:
+                min_value: -40
+                max_value: 60
 
       # --- Features atomiques ---
       - name: wind_dir_deg
         description: Direction du vent (°).
         data_type: integer
+        tests:
+          - between_range:
+              arguments:
+                min_value: 0
+                max_value: 360
 
       - name: wind_sector
         description: Secteur cardinal du vent (N, NE, E, SE, S, SW, W, NW).
         data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
 
       - name: wind_speed_ms
         description: Vitesse du vent en m/s (unité de la source brute).
         data_type: double
+        tests:
+          - non_negative
 
       - name: wind_speed_kmh
         description: Vitesse du vent en km/h (convertie depuis m/s).
         data_type: double
+        tests:
+          - non_negative
 
       # --- Enrichissement Beaufort ---
       - name: wind_beaufort
@@ -108,6 +150,10 @@ models:
               arguments:
                 to: ref('dim_beaufort')
                 field: beaufort_level
+          - between_range:
+              arguments:
+                min_value: 0
+                max_value: 12
 
       - name: wind_beaufort_label
         description: Libellé descriptif du niveau Beaufort (ex. calme, brise légère, coup de vent).
@@ -117,36 +163,79 @@ models:
       - name: visibility_m
         description: Visibilité horizontale (m).
         data_type: integer
+        tests:
+          - non_negative
 
       - name: visibility_cat
         description: Catégorie de visibilité dérivée de visibility_m.
         data_type: varchar
 
       - name: freezing_flag
-        description: Indicateur 1 si température ≤ 0°C, sinon null/0.
+        description: >
+          Indicateur de gel : 1 si température ≤ 0°C, 0 si > 0°C,
+          NULL si la température n’est pas disponible.
         data_type: integer
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+          - freezing_flag_matches_value:
+              arguments:
+                value_column: temperature_c
 
       - name: precip_flag
-        description: Indicateur 1 si précipitation horaire > 0 mm, sinon null/0.
+        description: >
+          Indicateur de pluie : 1 si précipitation horaire > 0 mm, 0 sinon. 
+          NULL si la précipitation n’est pas disponible.
         data_type: integer
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+          - precip_flag_matches_value:
+              arguments:
+                value_column: precip_mm_h
 
       - name: snow_on_ground_flag
-        description: Indicateur 1 si neige au sol > 0, sinon null/0.
+        description: >
+          Indicateur de neige : 1 si hauteur de neige au sol > 0 sinon.
+          NULL si la hauteur de neige au sol n’est pas disponible.
         data_type: integer
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+          - snow_flag_matches_value:
+              arguments:
+                value_column: snow_depth_m
 
       # --- Mesures brutes utiles ---
       - name: precip_mm_h
         description: Précipitation horaire (mm).
         data_type: double
+        tests:
+          - non_negative
 
       - name: snow_depth_m
         description: Hauteur de neige (m).
         data_type: double
+        tests:
+          - non_negative
 
       - name: temperature_c
         description: Température horaire (°C).
         data_type: double
+        tests:
+          - between_range:
+              arguments:
+                min_value: -50
+                max_value: 60
 
       - name: humidity_pct
         description: Humidité relative (%).
         data_type: integer
+        tests:
+          - between_range:
+              arguments:
+                min_value: 0
+                max_value: 100
