@@ -81,25 +81,28 @@ models:
 
       # --- Drapeaux ---
       - name: freezing_flag
-        description: 1 si T ≤ 0°C, sinon NULL.
+        description: >
+          Indicateur de gel : 1 si température ≤ 0°C, 0 si > 0°C,
+          NULL si la température n’est pas disponible.
         tests:
           - accepted_values:
-              values: [1]
-              quote: false
+              values: [0, 1]
 
       - name: precip_flag
-        description: 1 si precip_mm_h > 0, sinon NULL.
+        description: >
+          Indicateur de pluie : 1 si précipitation horaire > 0 mm, 0 sinon. 
+          NULL si la précipitation n’est pas disponible.
         tests:
           - accepted_values:
-              values: [1]
-              quote: false
+              values: [0, 1]
 
       - name: snow_on_ground_flag
-        description: 1 si snow_depth_m > 0, sinon NULL.
+        description: >
+          Indicateur de neige : 1 si hauteur de neige au sol > 0 sinon.
+          NULL si la hauteur de neige au sol n’est pas disponible.
         tests:
           - accepted_values:
-              values: [1]
-              quote: false
+              values: [0, 1]
 
       # --- Mesures brutes utiles aux fenêtres ---
       - name: precip_mm_h
