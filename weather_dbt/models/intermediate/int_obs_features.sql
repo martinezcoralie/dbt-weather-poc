@@ -11,7 +11,7 @@ with base as (
         {{ dbt_utils.generate_surrogate_key(['obs_hourly.station_id','obs_hourly.validity_time_utc']) }} as event_id,
         obs_hourly.*,
         {{ kelvin_to_c('obs_hourly.temperature_k') }} as temperature_c
-    from {{ ref('stg_obs_hourly') }} AS obs_hourly
+    from {{ ref('stg_obs_hourly') }} as obs_hourly
     {% if is_incremental() %}
     -- On n’ingère que les nouvelles heures
         where obs_hourly.validity_time_utc > (

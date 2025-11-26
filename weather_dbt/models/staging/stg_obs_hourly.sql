@@ -7,11 +7,11 @@ with base as (
         geo_id_insee                                        as station_id,        -- texte ddnnnpp
         case 
             when {{ safe_double('lat') }} between -90 and 90 
-            then {{ safe_double('lat') }} 
+                then {{ safe_double('lat') }} 
         end                                                 as latitude,
         case 
             when {{ safe_double('lon') }} between -180 and 180 
-            then {{ safe_double('lon') }} 
+                then {{ safe_double('lon') }} 
         end                                                 as longitude,
 
         -- Timestamps (ISO 8601 / UTC)
@@ -29,33 +29,33 @@ with base as (
         -- Humidité (%)
         case
             when {{ safe_int('u') }} between 0 and 100 
-            then {{ safe_int('u') }}
+                then {{ safe_int('u') }}
         end                                                 as humidity_pct,
         case 
             when {{ safe_int('ux') }} between 0 and 100 
-            then {{ safe_int('ux') }} 
+                then {{ safe_int('ux') }} 
         end                                                 as humidity_max_pct,
         case 
             when {{ safe_int('un') }} between 0 and 100 
-            then {{ safe_int('un') }} 
+                then {{ safe_int('un') }} 
         end                                                 as humidity_min_pct,
 
         -- Vent (moyen / max / rafales) - direction en degrés (0-360)
         case 
             when {{ safe_int('dd') }} between 0 and 360 
-            then {{ safe_int('dd') }} 
+                then {{ safe_int('dd') }} 
         end                                                 as wind_dir_deg,
         {{ safe_double('ff') }}                             as wind_speed_ms,
 
         case 
             when {{ safe_int('dxy') }} between 0 and 360 
-            then {{ safe_int('dxy') }} 
+                then {{ safe_int('dxy') }} 
         end                                                 as wind_dir_gust_avg_max_deg,
         {{ safe_double('fxy') }}                            as wind_gust_avg_max_ms,
 
         case 
             when {{ safe_int('dxi') }} between 0 and 360 
-            then {{ safe_int('dxi') }} 
+                then {{ safe_int('dxi') }} 
         end                                                 as wind_dir_gust_abs_max_deg,
         {{ safe_double('fxi') }}                             as wind_gust_abs_max_ms,
 
