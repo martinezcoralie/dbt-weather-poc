@@ -1,5 +1,5 @@
 # Makefile — dbt-weather-poc
-# Usage: make <cible> (ex : make ingest DEPT=09)
+# Usage: make <cible> (ex : make ingest DEPT=9)
 
 # ========== Configuration ==========
 SHELL := bash
@@ -9,17 +9,16 @@ SHELL := bash
 VENV := .venv
 PY   := $(VENV)/bin/python
 PIP  := $(VENV)/bin/pip
-DBT_PROJECT := weather_dbt
+DBT := $(VENV)/bin/dbt
+DUCKDB := duckdb
 
 # Scripts et modules ingestion
 SCRIPT_FETCH  := scripts/ingestion/fetch_meteofrance_paquetobs.py
 MODULE_WRITE  := scripts.ingestion.write_duckdb_raw
 
-# DB / Tools
+# Chemins
 DBPATH := data/warehouse.duckdb
-DUCKDB := duckdb
-DBT := dbt
-
+DBT_PROJECT := weather_dbt
 DBT_PROFILES_DIR ?= profiles
 export DBT_PROFILES_DIR
 
