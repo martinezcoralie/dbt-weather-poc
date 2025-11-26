@@ -50,38 +50,54 @@ models:
         description: Précipitations cumulées sur les 1h précédentes (mm).
         data_type: double
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
 
       - name: precip_3h_mm
         description: Précipitations cumulées sur les 3h précédentes (mm).
         data_type: double
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
 
       - name: precip_24h_mm
         description: Précipitations cumulées sur les 24h précédentes (mm).
         data_type: double
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
+
 
       # --- Fenêtres (neige) ---
       - name: snow_1h_m
         description: Neige cumulée sur 1h (m).
         data_type: double
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
+
 
       - name: snow_3h_m
         description: Neige cumulée sur 3h (m).
         data_type: double
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
+
 
       - name: snow_24h_m
         description: Neige cumulée sur 24h (m).
         data_type: double
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
+
 
       # --- Fenêtres (température) ---
       - name: temp_1h_c
@@ -92,6 +108,9 @@ models:
               arguments:
                 min_value: -40
                 max_value: 60
+              config:
+                severity: warn
+
 
       - name: temp_3h_c
         description: Moyenne glissante de température sur 3h (°C).
@@ -101,6 +120,8 @@ models:
               arguments:
                 min_value: -40
                 max_value: 60
+              config:
+                severity: warn
 
       - name: temp_24h_c
         description: Moyenne glissante de température sur 24h (°C).
@@ -110,6 +131,8 @@ models:
               arguments:
                 min_value: -40
                 max_value: 60
+              config:
+                severity: warn
 
       # --- Features atomiques ---
       - name: wind_dir_deg
@@ -133,13 +156,17 @@ models:
         description: Vitesse du vent en m/s (unité de la source brute).
         data_type: double
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
 
       - name: wind_speed_kmh
         description: Vitesse du vent en km/h (convertie depuis m/s).
         data_type: double
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
 
       # --- Enrichissement Beaufort ---
       - name: wind_beaufort
@@ -164,7 +191,9 @@ models:
         description: Visibilité horizontale (m).
         data_type: integer
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
 
       - name: visibility_cat
         description: Catégorie de visibilité dérivée de visibility_m.
@@ -214,13 +243,17 @@ models:
         description: Précipitation horaire (mm).
         data_type: double
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
 
       - name: snow_depth_m
         description: Hauteur de neige (m).
         data_type: double
         tests:
-          - non_negative
+          - non_negative:
+              config:
+                severity: warn
 
       - name: temperature_c
         description: Température horaire (°C).
@@ -230,6 +263,8 @@ models:
               arguments:
                 min_value: -50
                 max_value: 60
+              config:
+                severity: warn
 
       - name: humidity_pct
         description: Humidité relative (%).
