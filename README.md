@@ -38,6 +38,16 @@ dbt (staging → intermediate → marts)
     ↓
 Dashboard Streamlit (exposure)
 ```
+---
+
+## Stack technique
+
+- **Python 3.12** — ingestion & utilitaires
+- **dbt-core + dbt-duckdb** — transformation & tests
+- **DuckDB** — data warehouse local
+- **Streamlit** — exposition BI
+- **Pandas / PyArrow** — manipulation de données
+- **SQLFluff / Ruff** — linting SQL & Python
 
 ---
 
