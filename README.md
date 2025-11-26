@@ -1,19 +1,32 @@
-# dbt-weather-poc
 
-Pipeline d’ingestion et de modélisation Météo-France (Paquet Observations DPPaquetObs)  
-Basé sur **DuckDB**, **Python**, et **dbt**.
+# 🌤️ dbt-weather-poc
 
-> Ce projet DBT collecte et historise les observations météo horaires de Météo France pour le département de l’Ariège afin d’analyser la qualité de vie climatique selon les zones (soleil, humidité, vent, pluie).
+Pipeline analytique Météo-France — ingestion, historisation et modélisation de données horaires — basé sur **Python**, **DuckDB**, **dbt** et **streamlit**.
 
-Les marts sont exposés dans un petit dashboard Streamlit (cf. section 📊 Visualisation BI).
+Ce projet a un objectif simple : **démontrer, de bout en bout, la maîtrise d’un workflow moderne dbt**, depuis la collecte des données jusqu’à leur exposition en BI.
 
-## 💡 Objectifs
+---
 
-- Démontrer un flux de données complet **API → Warehouse → dbt**, portable et reproductible.
-- Illustrer la chaîne de valeur **ingestion → modélisation → documentation**.
-- Montrer l’usage de modèles **incrémentaux dbt** pour optimiser les mises à jour de données horaires.
+## Ce que ce projet met en œuvre côté dbt
 
-### Architecture
+Ce repository illustre concrètement :
+
+* **Sources déclarées** avec contrôle de fraîcheur (`loaded_at_field`)
+* **Tests dbt** : not_null, unique, relationships, contraintes métier, tests génériques
+* **Contrats de schéma** sur les modèles critiques
+* **Organisation modulaire** : `staging → intermediate → marts`
+* **Modèles incrémentaux** (stratégie `merge`)
+* **Macros personnalisées** (features météo, conversions, casts, time series analysis)
+* **Seeds** (échelle de Beaufort)
+* **Exposures** (dashboard Streamlit comme consommateur final)
+* **Documentation dbt** (descriptions, docs blocks, lineage graph)
+* **Facteurs métier** : dimensions stations & vent, table de faits horaire
+
+L’objectif n’est pas la BI en tant que produit, mais **la démonstration des bonnes pratiques dbt dans un pipeline réaliste**.
+
+---
+
+## Architecture globale
 
 ```
 Météo-France API
@@ -22,43 +35,48 @@ Ingestion Python
     ↓
 DuckDB (raw.*)
     ↓
-dbt models
+dbt (staging → intermediate → marts)
     ↓
-Analyses / Visualisations
+Dashboard Streamlit (exposure)
 ```
+
 ---
 
-## 🛠️ Mise en place
+## 🚀 Mise en route
 
-### Installer l'environnement
+### 1) Installer l’environnement
+
 ```bash
 make env-setup
 ```
 
-### Activer l'environnement
+### 2) Activer l’environnement
+
 ```bash
 source .venv/bin/activate
 ```
 
-### Définir les variables d’environnement
-Créer un fichier `.env` :
+### 3) Variables d’environnement
+
+Créer `.env` :
+
 ```bash
-METEOFRANCE_TOKEN=xxxxxxxxxxxxxxxx
+METEOFRANCE_TOKEN=xxxxxxxxxxxx
 DUCKDB_PATH=data/warehouse.duckdb
 ```
 avec :
 - `METEOFRANCE_TOKEN` : la clé API Météo-France  
 - `DUCKDB_PATH` : le chemin du fichier DuckDB (par défaut `data/warehouse.duckdb`)
+- 
+### 4) Activer le profil dbt
 
-
-### Activer le profil local
 ```bash
 export DBT_PROFILES_DIR=./profiles
 ```
 
 ---
 
-## 🔧 Ingestion des données (API → DuckDB)
+## Ingestion des données (API → DuckDB)
 
 ### Lancer une ingestion départementale
 ```bash
@@ -82,14 +100,9 @@ make dwh-ingest DEPT=75
 * Les doublons sont empêchés via la clé logique
   `(validity_time, geo_id_insee, reference_time)` : seules les lignes nouvelles sont ajoutées.
 
-**Paramètres requis :**
-
-* `METEOFRANCE_TOKEN` (clé API)
-* `DUCKDB_PATH` (par défaut `data/warehouse.duckdb`)
-
 ---
 
-### Mesurer la fraîcheur des sources (dbt)
+### Mesurer la fraîcheur des sources dans le datawarehouse DuckDB
 
 ```bash
 make dbt-sources-freshness
@@ -100,27 +113,25 @@ make dbt-sources-freshness
 * dbt lit `loaded_at_field: load_time` (défini dans `sources.yml`)
 * compare `load_time` à l’horloge actuelle, et applique les seuils :
 
-  * ⚠️ **warn** si `load_time` > **2 h**
+  * ⚠️ **warn** si `load_time` > **2 h** 
+    * données en retard (surveillance conseillée)
   * ⛔ **error** si `load_time` > **4 h**
-
-**Lecture des résultats :**
-
-* ✅ **pass** : la source est à jour
-* ⚠️ **warn** : données en retard (surveillance conseillée)
-* ⛔ **error** : pipeline considéré **en échec**
+    * pipeline considéré **en échec**
+  *  ✅ **pass** sinon
+     *  la source est à jour
 
 **Que faire en cas d’alerte/erreur ?**
 
 1. Relancer l’ingestion :
 
    ```bash
-   make dwh-ingest DEPT=09
+   make dwh-ingest DEPT=9
    ```
 2. Vérifier le token API et la connectivité réseau.
 
 ---
 
-### Exécuter les tests de schéma et de données (dbt)
+### Exécuter les tests sources
 
 ```bash
 make dbt-sources-test
@@ -183,6 +194,32 @@ show raw.stations;                     -- affiche le schéma d'une table
 
 ---
 
+## 🧩 Modélisation dbt
+
+### Structure
+
+* `staging` : nettoyage, typage, renommage clair
+* `intermediate` : calculs intermédiaires, features météo
+* `marts` : tables analytiques et dimensionnelles
+
+### Modèles clés
+
+* **`fct_obs_hourly`** (table de faits horaire)
+* **`dim_stations`** (dimension géographique des stations)
+
+### Modèles incrémentaux
+
+Deux modèles utilisent `materialized: incremental` avec stratégie `merge`
+pour éviter un full refresh systématique.
+
+Forcer un rebuild complet :
+
+```bash
+make dbt-rebuild
+```
+
+---
+
 ## ⚙️ dbt — exécution par actions
 
 ### 1) Tester la connexion au DWH
@@ -207,7 +244,7 @@ dbt run --full-refresh -s tag:int # full refresh ciblé
 
 ```bash
 make dbt-test    # tous les tests
-dbt test -s tag:staging  # cibler un tag
+dbt test -s tag:mart  # tous les modèles ayant le tag `mart`
 ```
 
 ### 4) Lancer un rebuild complet
@@ -216,32 +253,9 @@ dbt test -s tag:staging  # cibler un tag
 make dbt-rebuild    # reset + deps + run --full-refresh + test
 ```
 
-### À propos des modèles incrémentaux
-
-Ce projet utilise des modèles **incrémentaux dbt** pour éviter de recalculer l’historique complet à chaque exécution.
-
-Concrètement :
-
-* seules les nouvelles observations météo sont traitées ;
-* l’historique déjà calculé est conservé ;
-* l’exécution est plus rapide et plus économique qu’un *full refresh*.
-
-Les modèles concernés :
-
-* `intermediate.int_obs_features`
-* `intermediate.int_obs_windowing`
-
-Ces modèles sont basés sur la clé `event_id` et utilisent la stratégie `merge`.
-
-Pour forcer un recalcul complet :
-
-```bash
-make dbt-rebuild
-```
-
 ---
 
-## 📚 Documentation dbt (catalogue + lineage)
+## 📚 Documentation dbt
 
 Une fois les modèles exécutés (`make dbt-rebuild`), on peut générer et explorer la
 documentation dbt (modèles, sources, tests, lineage).
@@ -274,62 +288,72 @@ On y retrouve :
 
 ---
 
-## 📊 Visualisation BI (dashboard Streamlit)
+## 📊 Dashboard Streamlit (exposure dbt)
 
 Une fois les données ingérées et les modèles dbt exécutés, on peut explorer les marts via une petite app Streamlit.
 
 ### Lancer le dashboard
 
 ```bash
-# 1) S'assurer que l'environnement est prêt
-make env-setup
-source .venv/bin/activate
-
-# 2) Lancer l'application Streamlit
 streamlit run apps/bi-streamlit/app.py
 ```
 
-Par défaut, le dashboard est disponible sur :
+URL par défaut :
+[http://localhost:8501](http://localhost:8501)
 
-* [http://localhost:8501](http://localhost:8501)
+Ce dashboard s'appuie sur :
+* `fct_obs_hourly`
 
-Le dashboard lit directement dans le fichier DuckDB (`DUCKDB_PATH`, par défaut `data/warehouse.duckdb`)
-et s’appuie sur les modèles marts, notamment :
+### Exposure associé
 
-* `marts.meteofrance.fct_obs_hourly`
-* `marts.meteofrance.dim_stations`
-* `marts.meteofrance.agg_daily_station`
+Le dashboard est déclaré comme **exposure dbt** (`weather_bi_streamlit`), permettant de :
 
-### Models en amont du dashboard (exposure dbt)
+* cibler uniquement les modèles qui l’alimentent :
 
-Ce projet définit un **exposure dbt** nommé `weather_bi_streamlit`, qui représente le dashboard Streamlit comme un consommateur final des données.
+  ```bash
+  dbt ls -s +exposure:weather_bi_streamlit
+  ```
+* exécuter uniquement ce périmètre :
 
-Cet exposure permet d’**identifier explicitement** quels modèles dbt alimentent le dashboard, et donc de **sélectionner, tester ou exécuter uniquement le périmètre réellement utilisé** par la BI.
-
-```bash
-# Voir les modèles qui alimentent le dashboard
-dbt ls -s +exposure:weather_bi_streamlit
-
-# Exécuter uniquement ces modèles
-dbt run -s +exposure:weather_bi_streamlit
-dbt test -s +exposure:weather_bi_streamlit
-```
-
-💡 **Intérêt**
-Si, plus tard, le projet comporte d’autres modèles non utilisés par le dashboard
-(ex. nouveaux marts, analyses, features), ces commandes permettent de :
-
-* ne construire **que** ce qui alimente le dashboard ;
-* réduire le temps d’exécution ;
-* éviter de tester ou builder des modèles hors scope BI.
+  ```bash
+  dbt run -s +exposure:weather_bi_streamlit
+  dbt test -s +exposure:weather_bi_streamlit
+  ```
 
 ---
 
-### 📊 Prochaines étapes
+## 🧰 Makefile
 
-* Configurer CI (`dbt build`, tests, docs)
-* Publier artefacts (docs/lineage)
-* Enrichir l’exposition `weather_bi_streamlit` au fil des évolutions du projet
+Toutes les commandes du projet sont disponibles via **Makefile** :
+
+```bash
+make help
+```
+
+---
+
+## 🧱 Scope & limites
+
+Ce projet :
+
+* ne vise pas à produire une BI métier aboutie,
+* n’embarque pas (encore) d’orchestration ni CI/CD cloud,
+* sert d’exemple pédagogique pour démontrer la maîtrise dbt.
+
+---
+
+## 🔭 Prochaines évolutions
+
+* Snapshots (SCD2 sur `dim_stations`)
+* CI/CD (tests + docs + artefacts)
+* Migration cloud (BigQuery / Snowflake / Postgres managé)
+* Amélioration du dashboard (UX & insights métier)
+
+---
+
+## 👤 Auteur
+
+Coralie Martinez
 
 ---
 
