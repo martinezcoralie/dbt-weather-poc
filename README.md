@@ -78,21 +78,22 @@ export DBT_PROFILES_DIR=./profiles
 
 ## 📥 Ingestion (API → DuckDB)
 
-Voir la documentation détaillée dans [`docs/ingestion.md`](docs/ingestion.md).
-
-Commande principale :
-
 ```bash
 make dwh-ingest DEPT=9
 ```
+
+Résultat attendu :
+- données brutes dans `raw.obs_hourly` et `raw.stations`
+- pas de transformation / typage
+- déduplication automatique
+
+👉 Documentation détaillée : [`docs/ingestion.md`](docs/ingestion.md).
 
 ---
 
 ## 🧩 Modélisation dbt
 
-Vue d’ensemble dans [`docs/dbt.md`](docs/dbt.md).
-
-Commandes clés :
+Commandes principales :
 
 ```bash
 make dbt-build
@@ -100,23 +101,71 @@ make dbt-test
 make dbt-rebuild
 ```
 
+À retenir :
+- `staging` = nettoyage + typage
+- `intermediate` = calculs métier (features météo)
+- `marts` = faits + dimensions
+
+👉 Documentation détaillée : [`docs/dbt.md`](docs/dbt.md).
+
 ---
 
 ## 📚 Documentation dbt
 
-Documentation détaillée dans [`docs/dbt-docs.md`](docs/dbt-docs.md).
+```bash
+make dbt-docs-generate
+make dbt-docs-serve
+```
+
+Accès local : http://localhost:8080
+
+👉 Documentation détaillée : [`docs/dbt-docs.md`](docs/dbt-docs.md).
+
+### Aperçu de la documentation dbt
+
+#### Navigation dans dbt Docs
+L’interface permet d’explorer facilement l’ensemble des modèles, sources, tests et descriptions.
+
+<img src="docs/images/dbt_sidebar.png" width="150">
+
+
+#### Fiche d’un modèle analytique (`fct_obs_hourly`)
+Chaque modèle documenté expose sa description, ses colonnes, ses contraintes et ses tests associés.
+
+<img src="docs/images/dbt_table_extract.png" width="250">
+
+
+#### Lineage complet (raw → staging → intermediate → marts)
+Le lineage graph permet de visualiser le flux de transformation de bout en bout, jusqu’à la consommation BI.
+
+![lineage graph](docs/images/lineage-graph.png)
 
 ---
 
 ## 🔎 Inspection du DataWarehouse (DuckDB)
 
-Détails et commandes dans [`docs/warehouse.md`](docs/warehouse.md).
+Exemples utiles :
+
+```bash
+make dwh-tables
+make dwh-table-info TABLE=raw.stations
+```
+
+👉 Documentation détaillée : [`docs/warehouse.md`](docs/warehouse.md).
 
 ---
 
 ## 📊 Dashboard Streamlit (exposure dbt)
 
-Détails d’usage et exposition dans [`docs/dashboard.md`](docs/dashboard.md).
+Lancer l’app :
+
+```bash
+streamlit run apps/bi-streamlit/app.py
+```
+
+URL : http://localhost:8501
+
+👉 Documentation détaillée : [`docs/dashboard.md`](docs/dashboard.md).
 
 ---
 

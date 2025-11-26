@@ -26,3 +26,15 @@ On y retrouve :
 * les descriptions de tables et de colonnes définies dans les fichiers YAML ;
 * les tests associés ;
 * le **graph de lineage** permettant de visualiser le flux `raw → staging → intermediate → marts`. Accessible via le bouton « Lineage » en bas à droite du panneau dbt Docs : <img src="images/lineage-graph-icon.png" width="50">
+
+
+## Exemples visuels
+
+### Structure des modèles dans dbt Docs
+![dbt sidebar](../docs/images/dbt_sidebar.png)
+
+### Détail d’un modèle (colonnes + tests)
+![dbt table extract](../docs/images/dbt_table_extract.png)
+
+### Lineage du pipeline analytique
+![lineage graph](../docs/images/lineage-graph.png)

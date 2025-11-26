@@ -20,7 +20,7 @@ def main():
     )
     ap.add_argument(
         "--db",
-        default=os.getenv("DUCKDB_PATH", "./warehouse.duckdb")
+        default=os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
     )
     args = ap.parse_args()
 
