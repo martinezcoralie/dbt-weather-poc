@@ -1,0 +1,70 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: "{{ doc('sources_doc') }}"
+    meta:
+      owner: Coralie Martinez
+      source_system: "Météo-France – API Observations Horaire"
+    tables:
+
+      # ───────────── Stations ─────────────
+      - name: stations
+        description: >
+          Métadonnées stations Météo-France (id, nom, lat, lon, altitude, date d’ouverture).
+          Données de référence utilisées pour enrichir les observations.
+        meta:
+          grain: station
+        columns:
+          - name: Id_station
+            description: Identifiant station (clé primaire fournie par la source).
+            tests:
+              - not_null
+              - unique
+
+      # ───────────── Observations horaires ─────────────
+      - name: obs_hourly
+        description: >
+          Observations horaires Météo-France.
+          Schéma brut de la source ; les unités détaillées et contrôlées sont documentées dans le modèle de staging.
+        meta:
+          update_frequency: "TBD"
+          source_retention: "24h"
+          grain: "station_id + validity_time"
+          upstream_doc: "Voir documentation officielle Météo-France."
+          notes:
+            - "Les champs météo bruts sont non documentés ici."
+            - "Voir le modèle stg_obs_hourly pour les définitions, unités et tests."
+        loaded_at_field: load_time
+        freshness:
+          warn_after: {count: 2, period: hour}
+          error_after: {count: 4, period: hour}
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              arguments:
+                combination_of_columns: [validity_time, geo_id_insee, reference_time]
+        columns:
+          # IDs / localisation
+          - name: geo_id_insee
+            description: ID INSEE du point (format ddnnnpp).
+            tests:
+              - not_null
+          - name: lat
+            description: Latitude en degrés (brut source).
+          - name: lon
+            description: Longitude en degrés (brut source)
+
+          # Timestamps
+          - name: reference_time
+            description: Date/heure de production (ISO 8601/UTC)
+            tests:
+              - not_null
+          - name: insert_time
+            description: Date/heure d’insertion en base source (ISO 8601/UTC)
+          - name: validity_time
+            description: Date/heure de validité de la mesure (ISO 8601/UTC)
+            tests:
+              - not_null
+          - name: load_time
+            description: Horodatage d’ingestion (ELT)

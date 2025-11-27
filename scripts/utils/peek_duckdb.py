@@ -3,11 +3,13 @@ import duckdb
 import argparse
 import os
 
+
 def run(con, title, sql):
     print(f"\n=== {title} ===")
     df = con.sql(sql).df()
     print(df)
     return df
+
 
 def main():
     ap = argparse.ArgumentParser(
@@ -16,12 +18,9 @@ def main():
     ap.add_argument(
         "--table",
         required=True,
-        help="table_schema.table_name (ex. 'raw.obs_hourly', 'staging.stg_obs_hourly')."
+        help="table_schema.table_name (ex. 'raw.obs_hourly', 'staging.stg_obs_hourly').",
     )
-    ap.add_argument(
-        "--db",
-        default=os.getenv("DUCKDB_PATH", "./warehouse.duckdb")
-    )
+    ap.add_argument("--db", default=os.getenv("DUCKDB_PATH", "data/warehouse.duckdb"))
     args = ap.parse_args()
 
     con = duckdb.connect(args.db)
@@ -38,6 +37,7 @@ def main():
         LIMIT 5
         """,
     )
+
 
 if __name__ == "__main__":
     main()

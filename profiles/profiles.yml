@@ -1,7 +1,7 @@
-dbt_weather:
+weather_dbt:
   outputs:
     dev:
       type: duckdb
-      path: warehouse.duckdb
+      path: data/warehouse.duckdb
       schema: analytics
   target: dev

@@ -1,0 +1,134 @@
+version: 2
+
+models:
+  - name: int_obs_features
+    description: >
+      Observations horaires enrichies de features météo (vent, visibilité, drapeaux),
+      plus mesures brutes utiles aux fenêtres. 
+      Source : stg_obs_hourly.
+      Modèle incrémental basé sur event_id utilisant merge pour ne recalculer que les dernières observations.
+    meta:
+      materialization: incremental
+      incremental_strategy: merge
+      unique_key: event_id
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          combination_of_columns: ['station_id', 'validity_time_utc']
+    columns:
+      - name: event_id
+        description: Clé de substitution (station_id + validity_time_utc).
+        tests:
+          - not_null
+          - unique
+
+      - name: station_id
+        description: Identifiant station (référence stg_stations).
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_stations')
+                field: station_id
+
+      - name: validity_time_utc
+        description: Horodate de validité (UTC).
+        tests:
+          - not_null
+
+      # --- Vent (features atomiques) ---
+      - name: wind_dir_deg
+        description: Direction moyenne du vent en degrés (0–360).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (wind_dir_deg >= 0 and wind_dir_deg <= 360)"
+
+      - name: wind_sector
+        description: Secteur cardinal (N, NE, E, SE, S, SW, W, NW).
+        tests:
+          - accepted_values:
+              values: ["N","NE","E","SE","S","SW","W","NW"]
+
+      - name: wind_speed_kmh
+        description: Vitesse du vent en km/h (convertie depuis m/s).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or wind_speed_kmh >= 0"
+
+      - name: wind_speed_ms
+        description: Vitesse du vent en m/s.
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or wind_speed_ms >= 0"
+
+
+
+      # --- Visibilité ---
+      - name: visibility_m
+        description: Portée visuelle horizontale (m).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or visibility_m >= 0"
+
+      - name: visibility_cat
+        description: Catégorie de visibilité (dense_fog, fog, haze, good).
+        tests:
+          - accepted_values:
+              values: ["dense_fog","fog","haze","good"]
+
+      # --- Drapeaux ---
+      - name: freezing_flag
+        description: >
+          Indicateur de gel : 1 si température ≤ 0°C, 0 si > 0°C,
+          NULL si la température n’est pas disponible.
+        tests:
+          - accepted_values:
+              values: [0, 1]
+
+      - name: precip_flag
+        description: >
+          Indicateur de pluie : 1 si précipitation horaire > 0 mm, 0 sinon. 
+          NULL si la précipitation n’est pas disponible.
+        tests:
+          - accepted_values:
+              values: [0, 1]
+
+      - name: snow_on_ground_flag
+        description: >
+          Indicateur de neige : 1 si hauteur de neige au sol > 0 sinon.
+          NULL si la hauteur de neige au sol n’est pas disponible.
+        tests:
+          - accepted_values:
+              values: [0, 1]
+
+      # --- Mesures brutes utiles aux fenêtres ---
+      - name: precip_mm_h
+        description: Précipitation horaire (mm).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or precip_mm_h >= 0"
+
+      - name: snow_depth_m
+        description: Hauteur de neige au sol (m).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or snow_depth_m >= 0"
+
+      - name: temperature_c
+        description: Température de l'air en °C (convertie depuis Kelvin).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (temperature_c > -100 and temperature_c < 70)"
+
+      - name: humidity_pct
+        description: Humidité relative en % (0–100).
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "is null or (humidity_pct >= 0 and humidity_pct <= 100)"

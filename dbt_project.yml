@@ -1,17 +1,17 @@
-name: 'dbt_weather'
+name: 'weather_dbt'
 version: '1.0.0'
 config-version: 2
 
 # This setting configures which "profile" dbt uses for this project.
-profile: 'dbt_weather'
+profile: 'weather_dbt'
 
 # These configurations specify where dbt should look for different types of files.
-model-paths: ["dbt_weather/models"]
-analysis-paths: ["dbt_weather/analyses"]
-test-paths: ["dbt_weather/tests"]
-seed-paths: ["dbt_weather/seeds"]
-macro-paths: ["dbt_weather/macros"]
-snapshot-paths: ["dbt_weather/snapshots"]
+model-paths: ["weather_dbt/models"]
+analysis-paths: ["weather_dbt/analyses"]
+test-paths: ["weather_dbt/tests"]
+seed-paths: ["weather_dbt/seeds"]
+macro-paths: ["weather_dbt/macros"]
+snapshot-paths: ["weather_dbt/snapshots"]
 
 clean-targets:         # directories to be removed by `dbt clean`
   - "target"
@@ -21,23 +21,20 @@ dbt-cloud:
     project-id: 70471823521229
 
 models:
-  dbt_weather:                   # dossier racine du projet (== name dans dbt_project.yml)
+  weather_dbt:                   # dossier racine du projet (== name dans dbt_project.yml)
     +materialized: view          # défaut global
     staging:                     # -> dossier models/staging/
       +schema: staging
-      meteofrance:               # -> dossier models/staging/meteofrance/
-        +tags: ["stg","meteofrance"]
+      +tags: ["stg"]
 
     intermediate:                # -> dossier models/intermediate/
       +schema: intermediate
-      meteofrance:               # -> dossier models/intermediate/meteofrance/
-        +tags: ["int","meteofrance"]
+      +tags: ["int"]
 
     marts:                       # -> dossier models/marts/
       +schema: marts  
       +materialized: table        # défaut pour les marts
-      meteofrance:               # -> dossier models/marts/meteofrance/
-        +tags: ["mart","meteofrance"]
+      +tags: ["mart"]
 
 seeds:
   +quote_columns: false

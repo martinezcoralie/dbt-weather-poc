@@ -80,7 +80,7 @@ def main() -> None:
     ap.add_argument(
         "--dept", required=True, help="Code département (ex. '09', '75', '2A', '2B')."
     )
-    ap.add_argument("--db", default=os.getenv("DUCKDB_PATH", "./warehouse.duckdb"))
+    ap.add_argument("--db", default=os.getenv("DUCKDB_PATH", "data/warehouse.duckdb"))
     args = ap.parse_args()
 
     # import du fetcher (DRY)

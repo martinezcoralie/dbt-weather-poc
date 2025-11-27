@@ -1,0 +1,17 @@
+version: 2
+
+seeds:
+  - name: beaufort_scale
+    description: >
+      Table de référence de l’échelle de Beaufort permettant
+      de traduire une vitesse de vent (m/s) en niveau et en label
+      métier (ex: 'Petite brise', 'Coup de vent', etc.).
+    columns:
+      - name: level
+        description: Niveau Beaufort (0 à 12).
+      - name: label
+        description: Intitulé descriptif associé au niveau.
+      - name: ms_min
+        description: Vitesse minimale du vent pour ce niveau (m/s).
+      - name: ms_max
+        description: Vitesse maximale du vent pour ce niveau (m/s).
