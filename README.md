@@ -20,6 +20,7 @@ Ce repository illustre concrètement :
 * **Exposures** (dashboard Streamlit comme consommateur final)
 * **Documentation dbt** (descriptions, docs blocks, lineage graph)
 * **Facteurs métier** : dimensions stations & vent, table de faits horaire
+* **Publication automatique de la documentation dbt** (GitHub Actions + GitHub Pages)
 
 L’objectif n’est pas la BI en tant que produit, mais **la démonstration des bonnes pratiques dbt dans un pipeline réaliste**.
 
@@ -48,6 +49,7 @@ Dashboard Streamlit (exposure)
 - **Streamlit** — exposition BI
 - **Pandas / PyArrow** — manipulation de données
 - **SQLFluff / Ruff** — linting SQL & Python
+- **GitHub Actions** — génération et déploiement automatique des docs dbt (CI)
 
 ---
 
@@ -122,14 +124,23 @@ make dbt-rebuild
 
 ## 📚 Documentation dbt
 
+### Accès local
+
 ```bash
 make dbt-docs-generate
 make dbt-docs-serve
 ```
 
-Accès local : http://localhost:8080
+Accès local : [http://localhost:8080](http://localhost:8080)
 
 👉 Documentation détaillée : [`docs/dbt-docs.md`](docs/dbt-docs.md).
+
+### Documentation en ligne (CI GitHub Actions)
+
+Une GitHub Action génère et déploie automatiquement la documentation dbt sur GitHub Pages à chaque push sur `main` :
+
+👉 [https://martinezcoralie.github.io/dbt-weather-poc/](https://martinezcoralie.github.io/dbt-weather-poc/)
+
 
 ### Aperçu de la documentation dbt
 
@@ -194,14 +205,14 @@ make help
 Ce projet :
 
 * ne vise pas à produire une BI métier aboutie,
-* n’embarque pas (encore) d’orchestration ni CI/CD cloud,
+* embarque une première CI (build + déploiement des docs dbt), mais pas encore d’orchestration ni CI/CD complète du pipeline,
 * sert d’exemple pédagogique pour démontrer la maîtrise dbt.
 
 ---
 
 ## Prochaines évolutions
 
-* CI/CD (tests + docs + artefacts)
+* Étendre la CI/CD au reste du pipeline (tests, artefacts, éventuels déploiements)
 * Amélioration du dashboard (UX & insights métier)
 
 ---
