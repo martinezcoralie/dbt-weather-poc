@@ -32,7 +32,7 @@ jobs:
       - name: Prepare DuckDB and ingest from API
         run: |
           mkdir -p data
-          make dwh-ingest DEPT=9
+          make dwh-ingest DEPT=9 PY=python
 
       - name: dbt deps + build
         run: |
