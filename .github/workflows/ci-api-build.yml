@@ -3,7 +3,10 @@ name: CI - dbt build with API ingestion
 on:
   push:
     branches:
-      - feature/ci-api-build
+      - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch: {}
 
 jobs:
