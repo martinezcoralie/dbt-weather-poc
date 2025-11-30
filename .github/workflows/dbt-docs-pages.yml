@@ -3,7 +3,7 @@ name: Deploy dbt docs to GitHub Pages
 on:
   push:
     branches: 
-        - feature/dbt-docs-pages
+        - main
   workflow_dispatch: {}
 
 permissions:
