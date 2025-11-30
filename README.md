@@ -49,7 +49,7 @@ Dashboard Streamlit (exposure)
 - **Streamlit** — exposition BI
 - **Pandas / PyArrow** — manipulation de données
 - **SQLFluff / Ruff** — linting SQL & Python
-- **GitHub Actions** — génération et déploiement automatique des docs dbt (CI)
+- **GitHub Actions** — génération et déploiement automatique des docs dbt (CI) + build dbt avec ingestion API
 
 ---
 
@@ -197,6 +197,23 @@ Toutes les commandes du projet sont disponibles via **Makefile** :
 ```bash
 make help
 ```
+
+---
+
+## ✅ CI dbt (build + API Météo-France)
+
+Une CI GitHub Actions rejoue une partie du pipeline à chaque push / PR sur `main` :
+
+- ingestion des données brutes depuis l’API Météo-France via `make dwh-ingest DEPT=9`,
+- création d’un warehouse DuckDB local dans l’environnement CI,
+- exécution de `dbt deps` puis `dbt build` avec `DBT_PROFILES_DIR=./profiles`.
+
+La CI s’appuie sur :
+
+- un secret GitHub Actions `METEOFRANCE_TOKEN` (clé API Météo-France),
+- une variable d’environnement `DUCKDB_PATH` pointant vers `data/warehouse.duckdb`.
+
+Ce choix permet de tester les modèles dbt et leurs tests métier sur des données réelles, sans versionner les données Météo-France dans le dépôt.
 
 ---
 
