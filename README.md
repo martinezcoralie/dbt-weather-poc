@@ -21,6 +21,7 @@ Ce repository illustre concrètement :
 * **Documentation dbt** (descriptions, docs blocks, lineage graph)
 * **Facteurs métier** : dimensions stations & vent, table de faits horaire
 * **Publication automatique de la documentation dbt** (GitHub Actions + GitHub Pages)
+* **Orchestration locale** du pipeline ingestion + dbt avec **Prefect** (flow, deployment, schedule horaire)
 
 L’objectif n’est pas la BI en tant que produit, mais **la démonstration des bonnes pratiques dbt dans un pipeline réaliste**.
 
@@ -200,6 +201,46 @@ make help
 
 ---
 
+## ⚙️ Orchestration Prefect (horaire)
+
+Le pipeline est orchestré localement avec **Prefect** :
+
+- un flow Prefect `weather_hourly_pipeline` enchaîne :
+  - l’ingestion des données Météo-France via `make dwh-ingest DEPT=9`,
+  - l’exécution de `dbt` (`dbt deps` puis `dbt build`) sur le projet `weather_dbt`,
+- un **deployment Prefect** est défini avec un **schedule cron horaire** (`0 * * * *`),
+- tant que le serveur Prefect (`prefect server start`) et le process de service du flow tournent,
+  le pipeline est exécuté automatiquement toutes les heures et le warehouse DuckDB est rafraîchi.
+
+En pratique, l’orchestration locale se lance en trois étapes :
+
+```bash
+# 1) Lancer le serveur Prefect (UI disponible sur http://127.0.0.1:4200)
+prefect server start
+```
+
+Dans un autre terminal :
+
+```bash
+# 2) Indiquer au code où se trouve l’API Prefect
+prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
+
+# 3) Démarrer le flow en mode "serve" (deployment + schedule horaire)
+source .venv/bin/activate
+export DBT_PROFILES_DIR=./profiles
+python orchestration/flow_prefect.py --mode serve --dept 9
+```
+
+Ce mode “serve” :
+
+* enregistre un **deployment** `weather-hourly-deployment` dans l’UI Prefect,
+* attache un **schedule horaire**,
+* exécute automatiquement le pipeline selon ce schedule tant que le process est actif.
+
+L’objectif est de montrer comment **orchestrer un pipeline dbt centré sur DuckDB** avec un outil moderne (Prefect), en conservant les mêmes scripts et commandes que pour l’exécution manuelle.
+
+---
+
 ## ✅ CI dbt (build + API Météo-France)
 
 Une CI GitHub Actions rejoue une partie du pipeline à chaque push / PR sur `main` :
@@ -222,9 +263,9 @@ Ce choix permet de tester les modèles dbt et leurs tests métier sur des donné
 Ce projet :
 
 * ne vise pas à produire une BI métier aboutie,
-* embarque une première CI (build + déploiement des docs dbt), mais pas encore d’orchestration ni CI/CD complète du pipeline,
-* sert d’exemple pédagogique pour démontrer la maîtrise dbt.
-
+* embarque une première CI (build + déploiement des docs dbt) et une orchestration locale Prefect,
+  mais pas encore de déploiement 24/7 sur une infra cloud dédiée,
+* sert d’exemple pédagogique pour démontrer la maîtrise dbt et l’intégration avec un orchestrateur moderne.
 ---
 
 ## Prochaines évolutions
