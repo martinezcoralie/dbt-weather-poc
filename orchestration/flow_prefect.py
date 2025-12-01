@@ -54,5 +54,34 @@ def weather_hourly_pipeline(dept: int = 9) -> None:
 
 
 if __name__ == "__main__":
-    # Run manuel du flow pour les premiers tests
-    weather_hourly_pipeline(dept=9)
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Weather pipeline orchestrated with Prefect")
+    parser.add_argument(
+        "--mode",
+        choices=["run", "serve"],
+        default="run",
+        help="run = exécuter une fois ; serve = créer un deployment + schedule et écouter les runs",
+    )
+    parser.add_argument(
+        "--dept",
+        type=int,
+        default=9,
+        help="Code département Météo-France (ex : 9 pour Ariège)",
+    )
+
+    args = parser.parse_args()
+
+    if args.mode == "run":
+        # Exécution simple
+        weather_hourly_pipeline(dept=args.dept)
+
+    elif args.mode == "serve":
+        # Crée un deployment + schedule cron (toutes les heures)
+        # et démarre un process long qui écoute les runs planifiés.
+        weather_hourly_pipeline.serve(
+            name="weather-hourly-deployment",
+            cron="0 * * * *",  # toutes les heures à minute 0
+            tags=["weather", "hourly", "demo"],
+            pause_on_shutdown=True,  # auto-pause le schedule si on stoppe le process
+        )
