@@ -9,3 +9,4 @@ sqlfluff-templater-dbt
 ruff
 streamlit
 pydeck
+prefect
