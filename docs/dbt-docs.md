@@ -1,6 +1,8 @@
 # 📚 Documentation dbt
 
-Une fois les modèles exécutés (`make dbt-build` ou `make dbt-rebuild`), on peut générer et explorer la documentation dbt (modèles, sources, tests, lineage).
+Après exécution des modèles (`make dbt-build` ou `make dbt-rebuild`), il est possible de générer et d’explorer la documentation dbt, qui reflète l’ensemble des **modèles**, **sources**, **tests** et le **graph de lineage** du projet.
+
+---
 
 ## Générer la documentation
 
@@ -8,7 +10,9 @@ Une fois les modèles exécutés (`make dbt-build` ou `make dbt-rebuild`), on pe
 make dbt-docs-generate
 ```
 
-Cela crée les fichiers HTML/JSON de documentation dans le dossier `target/`.
+Cette commande génère les fichiers HTML/JSON de documentation dans le dossier `target/`.
+
+---
 
 ## Servir la documentation en local
 
@@ -16,25 +20,37 @@ Cela crée les fichiers HTML/JSON de documentation dans le dossier `target/`.
 make dbt-docs-serve
 ```
 
-Puis ouvrir le navigateur sur :
+Ensuite, ouvrir le navigateur sur :
 
-* http://localhost:8080
+* [http://localhost:8080](http://localhost:8080)
 
-On y retrouve :
+L’interface dbt Docs permet notamment de consulter :
 
-* la liste des sources et modèles (staging, intermediate, marts) ;
-* les descriptions de tables et de colonnes définies dans les fichiers YAML ;
-* les tests associés ;
-* le **graph de lineage** permettant de visualiser le flux `raw → staging → intermediate → marts`. Accessible via le bouton « Lineage » en bas à droite du panneau dbt Docs : <img src="images/lineage-graph-icon.png" width="50">
+* la liste des **sources** et des **modèles** (`staging`, `intermediate`, `marts`) ;
+* les **descriptions de tables et de colonnes** définies dans les fichiers YAML ;
+* les **tests** associés (unique, not null, accepted values, etc.) ;
+* le **graph de lineage** permettant de visualiser le flux `raw → staging → intermediate → marts`.
 
+Le lineage est accessible via le bouton « Lineage » en bas à droite du panneau dbt Docs : <img src="images/lineage-graph-icon.png" width="50" />
 
-## Exemples visuels
+---
 
-### Structure des modèles dans dbt Docs
-![dbt sidebar](../docs/images/dbt_sidebar.png)
+## Aperçu de la documentation dbt
 
-### Détail d’un modèle (colonnes + tests)
-![dbt table extract](../docs/images/dbt_table_extract.png)
+### Navigation dans dbt Docs
 
-### Lineage du pipeline analytique
-![lineage graph](../docs/images/lineage-graph.png)
+L’interface permet d’explorer facilement l’ensemble des modèles, sources, tests et descriptions.
+
+<img src="images/dbt_sidebar.png" width="150" />
+
+### Fiche d’un modèle analytique (`fct_obs_hourly`)
+
+Chaque modèle documenté expose sa description, ses colonnes, ses contraintes et ses tests associés.
+
+<img src="images/dbt_table_extract.png" width="250" />
+
+### Lineage complet (`raw → staging → intermediate → marts`)
+
+Le lineage graph permet de visualiser le flux de transformation de bout en bout, jusqu’à la consommation BI.
+
+<img src="images/lineage-graph.png" width="350" />

@@ -1,6 +1,6 @@
 # 📊 Dashboard Streamlit (exposure dbt)
 
-Une fois les données ingérées et les modèles dbt exécutés, on peut explorer les marts via une app Streamlit.
+Une fois les données ingérées et les modèles dbt exécutés, on peut explorer les marts via une application Streamlit.
 
 ## Lancer le dashboard
 
@@ -11,11 +11,9 @@ streamlit run apps/bi-streamlit/app.py
 URL par défaut :
 http://localhost:8501
 
-Ce dashboard s'appuie principalement sur :
+Ce dashboard s'appuie principalement sur le modèle `fct_obs_hourly`.
 
-* `fct_obs_hourly`
-
-## Exposure associée
+## Exposure dbt associée
 
 Le dashboard est déclaré comme **exposure dbt** (`weather_bi_streamlit`), permettant de :
 

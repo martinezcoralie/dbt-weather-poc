@@ -1,8 +1,8 @@
 # 🌤️ dbt-weather-poc
 
-Pipeline analytique Météo-France — ingestion, historisation et modélisation de données horaires — basé sur **Python**, **DuckDB**, **dbt** et **Streamlit**.
+Pipeline analytique Météo-France — ingestion, historisation et modélisation de données horaires — basé sur **dbt** et **DuckDB** (avec **Python** pour l’ingestion, **Streamlit** pour l’exposition BI et **Prefect** pour l’orchestration locale).
 
-Ce projet a un objectif simple : **démontrer, de bout en bout, la maîtrise d’un workflow moderne dbt**, depuis la collecte des données jusqu’à leur exposition en BI.
+Objectif : **démontrer, de bout en bout, la maîtrise d’un workflow moderne dbt**, depuis la collecte des données jusqu’à leur exposition en BI (dashboard) et leur orchestration.
 
 ---
 
@@ -21,8 +21,9 @@ Ce repository illustre concrètement :
 * **Documentation dbt** (descriptions, docs blocks, lineage graph)
 * **Facteurs métier** : dimensions stations & vent, table de faits horaire
 * **Publication automatique de la documentation dbt** (GitHub Actions + GitHub Pages)
+* **Orchestration locale** du pipeline ingestion + dbt avec **Prefect** (flow, deployment, schedule horaire)
 
-L’objectif n’est pas la BI en tant que produit, mais **la démonstration des bonnes pratiques dbt dans un pipeline réaliste**.
+L’objectif n’est pas la BI en tant que produit, mais **la démonstration des bonnes pratiques dbt** dans un pipeline réaliste.
 
 ---
 
@@ -39,56 +40,63 @@ dbt (staging → intermediate → marts)
     ↓
 Dashboard Streamlit (exposure)
 ```
+
+👉 Pour plus de détails sur chaque brique, voir la documentation complémentaire ci-dessous.
+
+---
+
+## 📎 Documentation complémentaire
+
+La documentation détaillée du projet est organisée par brique :
+
+- [`docs/ingestion.md`](docs/ingestion.md) — ingestion API Météo-France → DuckDB (`raw.*`)
+- [`docs/warehouse.md`](docs/warehouse.md) — commandes pour explorer le warehouse DuckDB
+- [`docs/dbt.md`](docs/dbt.md) — structure des modèles dbt, layering et incrémental
+- [`docs/dbt-docs.md`](docs/dbt-docs.md) — génération et exploration de dbt Docs (lineage, tests, modèles)
+- [`docs/dashboard.md`](docs/dashboard.md) — dashboard Streamlit (exposure dbt)
+- [`docs/orchestration.md`](docs/orchestration.md) — orchestration locale du pipeline avec Prefect
+
+
 ---
 
 ## Stack technique
 
 - **Python 3.12** — ingestion & utilitaires
-- **dbt-core + dbt-duckdb** — transformation & tests
 - **DuckDB (CLI + lib Python)** — data warehouse local
+- **dbt-core + dbt-duckdb** — transformation & tests
 - **Streamlit** — exposition BI
-- **Pandas / PyArrow** — manipulation de données
 - **SQLFluff / Ruff** — linting SQL & Python
 - **GitHub Actions** — génération et déploiement automatique des docs dbt (CI) + build dbt avec ingestion API
+- **Prefect 3** — orchestration locale *légère* (flow + deployment horaire)
 
 ---
 
 ## 🚀 Mise en route
 
-### 1) Installer l’environnement
+### 1. Installer l’environnement
 
 ```bash
 make env-setup
-```
-
-### 2) Activer l’environnement
-
-```bash
 source .venv/bin/activate
 ```
 
-### 3) Variables d’environnement
+### 2. Variables d’environnement
 
-Créer `.env` :
+Créer un fichier `.env` :
 
 ```bash
 METEOFRANCE_TOKEN=xxxxxxxxxxxx
 DUCKDB_PATH=data/warehouse.duckdb
 ```
+avec `METEOFRANCE_TOKEN` la clé API Météo-France et `DUCKDB_PATH` le chemin du fichier DuckDB.
 
-avec :
-- `METEOFRANCE_TOKEN` : la clé API Météo-France  
-- `DUCKDB_PATH` : le chemin du fichier DuckDB (par défaut `data/warehouse.duckdb`)
-
-### 4) Activer le profil dbt
+### 3. Activer le profil dbt
 
 ```bash
 export DBT_PROFILES_DIR=./profiles
 ```
 
----
-
-## 📥 Ingestion (API → DuckDB)
+### 4. Ingestion brute (API → DuckDB)
 
 ```bash
 make dwh-ingest DEPT=9
@@ -101,22 +109,32 @@ Résultat attendu :
 
 👉 Documentation détaillée : [`docs/ingestion.md`](docs/ingestion.md).
 
----
-
-## 🧩 Modélisation dbt
-
-Commandes principales :
+### 5. Modélisation dbt
 
 ```bash
 make dbt-build
-make dbt-test
-make dbt-rebuild
 ```
 
-À retenir :
-- `staging` = nettoyage + typage
-- `intermediate` = calculs métier (features météo)
-- `marts` = faits + dimensions
+---
+
+## 🧩 Modélisation dbt (vue détaillée)
+
+Points clés du projet dbt :
+
+* **Layering clair** :
+
+  * `staging` = nettoyage + typage,
+  * `intermediate` = calculs métier (features météo, agrégations),
+  * `marts` = tables de faits et dimensions analytiques.
+* **Qualité** :
+
+  * tests génériques (intégrité, clés, relations),
+  * tests métier (plages de valeurs, non-négativité, etc.),
+  * contrats de schéma sur les modèles exposés.
+* **Performance & maintenabilité** :
+
+  * modèles incrémentaux pour limiter les coûts de recalcul,
+  * macros pour mutualiser les conversions, features météo et logiques temporelles.
 
 👉 Documentation détaillée : [`docs/dbt.md`](docs/dbt.md).
 
@@ -124,81 +142,41 @@ make dbt-rebuild
 
 ## 📚 Documentation dbt
 
-### Accès local
+### Local
 
 ```bash
 make dbt-docs-generate
 make dbt-docs-serve
 ```
 
-Accès local : [http://localhost:8080](http://localhost:8080)
+Accès : [http://localhost:8080](http://localhost:8080)
 
-👉 Documentation détaillée : [`docs/dbt-docs.md`](docs/dbt-docs.md).
-
-### Documentation en ligne (CI GitHub Actions)
+### Hébergée (GitHub Pages)
 
 Une GitHub Action génère et déploie automatiquement la documentation dbt sur GitHub Pages à chaque push sur `main` :
 
-👉 [https://martinezcoralie.github.io/dbt-weather-poc/](https://martinezcoralie.github.io/dbt-weather-poc/)
+Accès : [https://martinezcoralie.github.io/dbt-weather-poc/](https://martinezcoralie.github.io/dbt-weather-poc/)
 
-
-### Aperçu de la documentation dbt
-
-#### Navigation dans dbt Docs
-L’interface permet d’explorer facilement l’ensemble des modèles, sources, tests et descriptions.
-
-<img src="docs/images/dbt_sidebar.png" width="150">
-
-
-#### Fiche d’un modèle analytique (`fct_obs_hourly`)
-Chaque modèle documenté expose sa description, ses colonnes, ses contraintes et ses tests associés.
-
-<img src="docs/images/dbt_table_extract.png" width="250">
-
-
-#### Lineage complet (raw → staging → intermediate → marts)
-Le lineage graph permet de visualiser le flux de transformation de bout en bout, jusqu’à la consommation BI.
-
-![lineage graph](docs/images/lineage-graph.png)
-
----
-
-## 🔎 Inspection du DataWarehouse (DuckDB)
-
-Exemples utiles :
-
-```bash
-make dwh-tables
-make dwh-table-info TABLE=raw.stations
-```
-
-👉 Documentation détaillée : [`docs/warehouse.md`](docs/warehouse.md).
+👉 Documentation détaillée : [`docs/dbt-docs.md`](docs/dbt-docs.md).
 
 ---
 
 ## 📊 Dashboard Streamlit (exposure dbt)
 
-Lancer l’app :
+Lancer le dashboard :
 
 ```bash
 streamlit run apps/bi-streamlit/app.py
 ```
 
-URL : http://localhost:8501
+Accès : [http://localhost:8501](http://localhost:8501)
 
-👉 Documentation détaillée : [`docs/dashboard.md`](docs/dashboard.md).
+Le dashboard consomme les marts dbt stockés dans DuckDB (dimensions de stations, échelle de Beaufort, faits horaires).
 
----
-
-## 🧰 Makefile
-
-Toutes les commandes du projet sont disponibles via **Makefile** :
-
-```bash
-make help
-```
+👉 Détails : [`docs/dashboard.md`](docs/dashboard.md).
 
 ---
+
 
 ## ✅ CI dbt (build + API Météo-France)
 
@@ -217,20 +195,51 @@ Ce choix permet de tester les modèles dbt et leurs tests métier sur des donné
 
 ---
 
+
+## ⚙️ Orchestration locale (Prefect — bonus)
+
+Une orchestration locale est mise en place avec **Prefect 3** :
+
+* un flow `weather_hourly_pipeline` orchestre :
+
+  * l’ingestion (API → DuckDB),
+  * puis `dbt build`,
+* un deployment Prefect avec schedule horaire pilote l’exécution régulière du pipeline tant que le serveur Prefect et le process de service tournent.
+
+Cette orchestration est volontairement légère : elle sert à montrer comment **plugger un orchestrateur moderne autour d’un projet dbt existant**, sans complexifier le cœur du repo.
+
+👉 Détails : [`docs/orchestration.md`](docs/orchestration.md).
+
+---
+
+## 🧰 Commandes (Makefile)
+
+Toutes les commandes (ingestion, dbt, docs, utilitaires DuckDB, lint, etc.) sont centralisées dans le **Makefile** :
+
+```bash
+make help
+```
+
+---
+
 ## Scope & limites
 
 Ce projet :
 
-* ne vise pas à produire une BI métier aboutie,
-* embarque une première CI (build + déploiement des docs dbt), mais pas encore d’orchestration ni CI/CD complète du pipeline,
-* sert d’exemple pédagogique pour démontrer la maîtrise dbt.
+* est centré sur la **démonstration de bonnes pratiques dbt** (structure, tests, contrats, docs, exposures),
+* embarque une CI et une orchestration locale pour illustrer l’intégration de dbt dans un pipeline complet,
+* **ne vise pas** (dans cette version) :
+
+  * un déploiement 24/7 sur une infra cloud,
+  * une BI métier aboutie.
 
 ---
 
 ## Prochaines évolutions
 
-* Étendre la CI/CD au reste du pipeline (tests, artefacts, éventuels déploiements)
-* Amélioration du dashboard (UX & insights métier)
+* Étendre la CI/CD (artefacts, checks supplémentaires, éventuels déploiements),
+* Déployer pipeline + dashboard sur une infra cloud (VM / containers),
+* Approfondir l’orchestration (Prefect Cloud / autre orchestrateur) si besoin projet.
 
 ---
 
