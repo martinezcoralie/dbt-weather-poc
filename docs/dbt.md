@@ -1,5 +1,9 @@
 # 🧩 Modélisation dbt
 
+Cette section décrit la structure des modèles dbt du projet `weather_dbt`.
+
+---
+
 ## Structure
 
 * `staging` : nettoyage, typage, renommage clair
@@ -11,6 +15,8 @@ Modèles clés :
 * `fct_obs_hourly` (table de faits horaire)
 * `dim_stations` (dimension géographique des stations)
 
+---
+
 ## Modèles incrémentaux
 
 Deux modèles utilisent `materialized: incremental` avec stratégie `merge`
@@ -21,6 +27,8 @@ Forcer un rebuild complet :
 ```bash
 make dbt-rebuild
 ```
+
+---
 
 ## Exécution dbt
 

@@ -1,6 +1,12 @@
 # 📥 Ingestion des données (API → DuckDB)
 
-Cette étape interroge l’API Météo-France et stocke les données brutes dans DuckDB (`raw.*`).
+Cette étape constitue le point d’entrée du pipeline et alimente le schéma `raw` du warehouse DuckDB, sur lequel se base dbt pour la modélisation.
+
+L’ingestion est assurée par les scripts Python du dossier `scripts/ingestion/`, notamment :
+- `fetch_meteofrance_paquetobs.py` pour la récupération depuis l’API Météo-France,
+- `write_duckdb_raw.py` pour l’écriture des données brutes dans DuckDB.
+
+---
 
 ## Lancer une ingestion départementale
 
@@ -14,14 +20,18 @@ make dwh-ingest DEPT=75
 * interroge l’API Météo-France (dernières **24 h**) pour le département `DEPT` ;
 * écrit en **brut** dans `raw.stations` et `raw.obs_hourly`.
 
-**Garantie de “raw” :**
+---
+
+## Garantie du niveau *raw*
 
 * Noms de colonnes strictement identiques à la source  
 * Types inchangés  
 * Aucune normalisation d’unités / sémantique (fait plus tard en staging dbt)  
 * Champs ajoutés : `load_time` (UTC) et `dept_code`
 
-**Idempotence & déduplication :**
+---
+
+## Idempotence & déduplication
 
 Les doublons sont empêchés via la clé logique :
 
