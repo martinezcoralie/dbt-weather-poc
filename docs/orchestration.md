@@ -127,3 +127,10 @@ Dans l’UI Prefect ([http://127.0.0.1:4200](http://127.0.0.1:4200)) :
   * chaque exécution du pipeline (qu’elle soit déclenchée en `run`
     ou par le schedule en `serve`),
   * détail des tasks (ingestion, dbt), logs, états (Success / Failed).
+
+### Exemple de vue des runs horaires
+
+L’interface permet par exemple de visualiser le prochain run planifié ainsi que
+l’historique des runs automatiques pour le déploiement `weather_hourly_pipeline` :
+
+![Runs du déploiement Prefect](images/prefect-ui.png)
