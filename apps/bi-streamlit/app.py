@@ -229,9 +229,10 @@ all_layer = pdk.Layer(
 )
 
 # Icônes pour les champions chaud/froid 
-HOT_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f525.png"  # 🔥
-COLD_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2744.png"  # ❄️
-RAIN_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2614.png"  # ☔
+HOT_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f525.png"  
+COLD_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f976.png"  
+RAIN_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2614.png"  
+SNOW_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2744.png"
 
 
 # Couche "champions chaud/froid"
@@ -261,6 +262,19 @@ if cold_df is not None and not cold_df.empty:
         "anchorY": 242,
     }
     cold_points["icon_data"] = [icon_data] * len(cold_points)
+
+snow_points = pd.DataFrame()
+if snow_df is not None and not snow_df.empty:
+    snow_points = snow_df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
+        status="Neige 24h"
+    )
+    icon_data = {
+        "url": SNOW_ICON_URL,
+        "width": 242,
+        "height": 242,
+        "anchorY": 242,
+    }
+    snow_points["icon_data"] = [icon_data] * len(snow_points)
 
 wet_points = pd.DataFrame()
 if wet_df is not None and not wet_df.empty:
@@ -303,6 +317,17 @@ cold_icon_layer = pdk.Layer(
     billboard=True,
 ) if not cold_points.empty else None
 
+snow_icon_layer = pdk.Layer(
+    "IconLayer",
+    data=snow_points,
+    get_icon="icon_data",
+    get_size=ICON_SIZE,
+    size_scale=1,
+    get_position=["lon", "lat"],
+    pickable=True,
+    billboard=True,
+) if not snow_points.empty else None
+
 wet_icon_layer = pdk.Layer(
     "IconLayer",
     data=wet_points,
@@ -323,6 +348,7 @@ layers = [
         all_layer,
         warm_icon_layer,
         cold_icon_layer,
+        snow_icon_layer,
         wet_icon_layer,
     ]
     if layer is not None
