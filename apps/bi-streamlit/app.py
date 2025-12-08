@@ -1,4 +1,3 @@
-import base64
 import os
 
 import duckdb
@@ -40,6 +39,8 @@ def load_latest_station_metrics():
                     f.temp_24h_c,
                     f.precip_24h_mm,
                     f.snow_24h_m,
+                    f.precip_intensity_level,
+                    f.precip_intensity_label,
                     row_number() over (
                         partition by f.station_id
                         order by f.validity_time_utc desc
@@ -47,7 +48,7 @@ def load_latest_station_metrics():
                 from marts.fct_obs_hourly f
                 join marts.dim_stations s on s.station_id = f.station_id
             )
-            select station_id, station_name, latitude, longitude, validity_time_utc, temp_24h_c, precip_24h_mm, snow_24h_m
+            select station_id, station_name, latitude, longitude, validity_time_utc, temp_24h_c, precip_24h_mm, snow_24h_m, precip_intensity_level, precip_intensity_label
             from ranked
             where rn = 1
             """
@@ -75,7 +76,7 @@ def load_obs_for(station_id):
 
 stations = load_station_list()
 latest_metrics = load_latest_station_metrics()
-warm_df = cold_df = pd.DataFrame()
+warm_df = cold_df = wet_df = pd.DataFrame()
 
 
 def _champion(df, col, fn):
@@ -90,7 +91,13 @@ def _champion(df, col, fn):
 def _names(df):
     return ", ".join(sorted(df["station_name"].tolist()))
 
-def _icon_layer(data: pd.DataFrame, icon_url: str, size: int = 4, size_scale: int = 12):
+def _icon_layer(
+    data: pd.DataFrame,
+    icon_url: str,
+    size: int | str = 4,
+    size_scale: int = 12,
+    size_field: str | None = None,
+):
     """
     Créer une IconLayer si des points sont disponibles.
 
@@ -98,6 +105,7 @@ def _icon_layer(data: pd.DataFrame, icon_url: str, size: int = 4, size_scale: in
     :param icon_url: URL absolue de l'icône (PNG/SVG)
     :param size: taille “abstraite” (multiplée par size_scale)
     :param size_scale: facteur d'échelle pour la taille effective
+    :param size_field: nom de colonne à utiliser pour la taille (optionnel)
     """
     if data is None or data.empty:
         return None
@@ -120,7 +128,7 @@ def _icon_layer(data: pd.DataFrame, icon_url: str, size: int = 4, size_scale: in
         data=df,
         get_icon="icon_data",
         get_position="[lon, lat]",
-        get_size=size,      # taille relative
+        get_size=size_field or size,      # taille relative ou champ
         size_scale=size_scale,
         pickable=True,
         billboard=True,
@@ -229,6 +237,7 @@ all_layer = pdk.Layer(
 # Icônes pour les champions chaud/froid 
 HOT_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f525.png"  # 🔥
 COLD_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2744.png"  # ❄️
+RAIN_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2614.png"  # ☔
 
 
 # Couche "champions chaud/froid"
@@ -259,6 +268,23 @@ if cold_df is not None and not cold_df.empty:
     }
     cold_points["icon_data"] = [icon_data] * len(cold_points)
 
+wet_points = pd.DataFrame()
+if wet_df is not None and not wet_df.empty:
+    wet_points = (
+        wet_df.rename(columns={"longitude": "lon", "latitude": "lat"})
+        .assign(status="Pluie 24h")
+        .query("precip_intensity_level >= 3")  # on affiche modéré et plus
+    )
+    icon_data = {
+        "url": RAIN_ICON_URL,
+        "width": 242,
+        "height": 242,
+        "anchorY": 242,
+    }
+    wet_points["icon_data"] = [icon_data] * len(wet_points)
+    # Taille proportionnelle à l'intensité (3=modérée -> petit, 5=très forte -> grand)
+    wet_points["icon_size"] = (wet_points["precip_intensity_level"] - 2) * 9
+
 ICON_SIZE = 20
 
 warm_icon_layer = pdk.Layer(
@@ -283,6 +309,17 @@ cold_icon_layer = pdk.Layer(
     billboard=True,
 ) if not cold_points.empty else None
 
+wet_icon_layer = pdk.Layer(
+    "IconLayer",
+    data=wet_points,
+    get_icon="icon_data",
+    get_size="icon_size",
+    size_scale=1,
+    get_position=["lon", "lat"],
+    pickable=True,
+    billboard=True,
+) if not wet_points.empty else None
+
 view_state = pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=7)
 
 st.subheader("Carte des stations")
@@ -290,9 +327,9 @@ layers = [
     layer
     for layer in [
         all_layer,
-        warm_layer,
         warm_icon_layer,
         cold_icon_layer,
+        wet_icon_layer,
     ]
     if layer is not None
 ]
