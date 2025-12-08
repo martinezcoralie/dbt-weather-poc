@@ -12,36 +12,40 @@ st.title("Observations météo – marts DBT")
 
 @st.cache_data(ttl=60)  # 60s de cache = assez pour naviguer sans bloquer dbt
 def load_station_list():
-    """Liste des stations."""
+    """Liste des stations pour lesquelles on a des mesures."""
     with duckdb.connect(DB_PATH, read_only=True) as con:
         return con.execute("""
-            select station_id, station_name, latitude, longitude
-            from marts.dim_stations
-            order by station_name
+            select stations.station_id, stations.station_name, stations.latitude, stations.longitude
+            from marts.dim_stations stations
+            join marts.fct_obs_hourly obs on obs.station_id = stations.station_id
+            order by stations.station_name
         """).df()
 
 
 @st.cache_data(ttl=60)
 def load_latest_station_metrics():
-    """Dernière mesure par station."""
+    """Dernière mesure par station + coord pour la carto."""
     with duckdb.connect(DB_PATH, read_only=True) as con:
         return con.execute(
             """
             with ranked as (
                 select
-                    station_id,
-                    station_name,
-                    validity_time_utc,
-                    temp_24h_c,
-                    precip_24h_mm,
-                    snow_24h_m,
+                    f.station_id,
+                    s.station_name,
+                    s.latitude,
+                    s.longitude,
+                    f.validity_time_utc,
+                    f.temp_24h_c,
+                    f.precip_24h_mm,
+                    f.snow_24h_m,
                     row_number() over (
-                        partition by station_id
-                        order by validity_time_utc desc
+                        partition by f.station_id
+                        order by f.validity_time_utc desc
                     ) as rn
-                from marts.fct_obs_hourly
+                from marts.fct_obs_hourly f
+                join marts.dim_stations s on s.station_id = f.station_id
             )
-            select station_id, station_name, validity_time_utc, temp_24h_c, precip_24h_mm, snow_24h_m
+            select station_id, station_name, latitude, longitude, validity_time_utc, temp_24h_c, precip_24h_mm, snow_24h_m
             from ranked
             where rn = 1
             """
@@ -69,6 +73,7 @@ def load_obs_for(station_id):
 
 stations = load_station_list()
 latest_metrics = load_latest_station_metrics()
+warm_df = cold_df = pd.DataFrame()
 
 
 def _champion(df, col, fn):
@@ -166,15 +171,16 @@ else:
             "#a855f7",
         )
 
-chosen = st.selectbox("Station", stations["station_name"])
-station_id = stations.loc[stations["station_name"] == chosen, "station_id"].iloc[0]
-
-df = load_obs_for(station_id)
 
 import pydeck as pdk
 
-# Carte : toutes les stations + mise en évidence de la station sélectionnée
+# Carte : toutes les stations + champions
 stations_map = stations.rename(columns={"longitude": "lon", "latitude": "lat"})
+stations_map["status"] = "Station"
+
+# vue initiale
+center_lat = stations_map["lat"].mean() if not stations_map.empty else 46.5
+center_lon = stations_map["lon"].mean() if not stations_map.empty else 2.5
 
 # Couche "toutes les stations"
 all_layer = pdk.Layer(
@@ -186,52 +192,44 @@ all_layer = pdk.Layer(
     pickable=True,
 )
 
-# Couche "station sélectionnée"
-selected_station = stations_map[stations_map["station_name"] == chosen]
-selected_layer = pdk.Layer(
-    "ScatterplotLayer",
-    data=selected_station,
-    get_position="[lon, lat]",
-    get_radius=4000,
-    get_color=[255, 60, 60],  # rouge
-    pickable=True,
-)
+# Couche "champions chaud/froid"
+warm_points = pd.DataFrame()
+cold_points = pd.DataFrame()
+if warm_df is not None and not warm_df.empty:
+    warm_points = warm_df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
+        status="Plus doux"
+    )
+if cold_df is not None and not cold_df.empty:
+    cold_points = cold_df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
+        status="Plus froid"
+    )
 
-# Vue initiale centrée sur le barycentre (fallback si vide)
-center_lat = stations_map["lat"].mean() if not stations_map.empty else 46.5
-center_lon = stations_map["lon"].mean() if not stations_map.empty else 2.5
+warm_layer = pdk.Layer(
+    "ScatterplotLayer",
+    data=warm_points,
+    get_position="[lon, lat]",
+    get_radius=5500,
+    get_color=[244, 114, 182],  # rose
+    pickable=True,
+) if not warm_points.empty else None
+
+cold_layer = pdk.Layer(
+    "ScatterplotLayer",
+    data=cold_points,
+    get_position="[lon, lat]",
+    get_radius=5500,
+    get_color=[56, 189, 248],  # bleu clair
+    pickable=True,
+) if not cold_points.empty else None
 
 view_state = pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=5)
 
 st.subheader("Carte des stations")
+layers = [layer for layer in [all_layer, warm_layer, cold_layer] if layer]
 st.pydeck_chart(
     pdk.Deck(
-        layers=[all_layer, selected_layer],
+        layers=layers,
         initial_view_state=view_state,
-        tooltip={"text": "{station_name}\n(lat: {lat}, lon: {lon})"},
+        tooltip={"text": "{station_name}\n{status}\n(lat: {lat}, lon: {lon})"},
     )
 )
-
-
-col1, col2, col3 = st.columns(3)
-if not df.empty:
-    freshness_hours = (
-        pd.Timestamp.utcnow() - pd.to_datetime(df["validity_time_utc"]).max()
-    ).total_seconds() / 3600
-    col1.metric("Fraîcheur (h)", f"{freshness_hours:.1f}")
-    col2.metric(
-        "Température dernière (°C)",
-        f"{df['temperature_c'].iloc[-1]:.1f}"
-        if pd.notna(df["temperature_c"].iloc[-1])
-        else "NA",
-    )
-    col3.metric(
-        "Précip. dernière (mm/h)",
-        f"{df['precip_mm_h'].iloc[-1]:.2f}"
-        if pd.notna(df["precip_mm_h"].iloc[-1])
-        else "NA",
-    )
-
-st.line_chart(df.set_index("validity_time_utc")[["temperature_c"]])
-st.bar_chart(df.set_index("validity_time_utc")[["precip_mm_h"]])
-st.dataframe(df.tail(24))
