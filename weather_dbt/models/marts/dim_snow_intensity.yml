@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: dim_snow_intensity
+    description: >
+      Dimension d’interprétation BI des hauteurs de neige cumulées (m),
+      issue du seed snow_intensity, avec niveaux ordonnés et libellés.
+    columns:
+      - name: snow_intensity_level
+        description: Niveau ordinal (1 = très faible).
+        tests:
+          - not_null
+          - unique
+      - name: min_m
+        description: Borne minimale (incluse) de la hauteur de neige (m).
+        tests:
+          - not_null
+      - name: max_m
+        description: Borne maximale (exclue) de la hauteur de neige (m). Null si borne ouverte.
+      - name: snow_intensity_label
+        description: Libellé descriptif.
+        tests:
+          - not_null

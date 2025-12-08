@@ -103,6 +103,12 @@ models:
           - non_negative:
               config:
                 severity: warn
+      - name: snow_intensity_level
+        description: Niveau ordinal d’intensité neige 24h (jointure dim_snow_intensity).
+        data_type: integer
+      - name: snow_intensity_label
+        description: Libellé descriptif de l’intensité neige 24h.
+        data_type: varchar
 
 
       # --- Fenêtres (température) ---
@@ -176,7 +182,7 @@ models:
 
       # --- Enrichissement Beaufort ---
       - name: wind_beaufort
-        description: Niveau de l’échelle de Beaufort (0–12) dérivé de la vitesse du vent via dim_beaufort.
+        description: Niveau de l’échelle de Beaufort (0–12) dérivé de la vitesse du vent (jointure dim_beaufort).
         data_type: integer
         tests:
           - relationships:
