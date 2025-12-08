@@ -26,6 +26,15 @@ dim_beaufort as (
         ms_min,
         ms_max
     from {{ ref('dim_beaufort') }}
+),
+
+dim_precip as (
+    select
+        intensity_level,
+        min_mm,
+        max_mm,
+        label as precip_intensity_label
+    from {{ ref('dim_precip_intensity') }}
 )
 
 select
@@ -69,7 +78,11 @@ select
     obs_features.precip_mm_h,
     obs_features.snow_depth_m,
     obs_features.temperature_c,
-    obs_features.humidity_pct
+    obs_features.humidity_pct,
+
+    -- interprétation BI des précip 24h
+    dim_precip.intensity_level as precip_intensity_level,
+    dim_precip.precip_intensity_label
 
 from obs_windows
 left join obs_features
@@ -80,3 +93,7 @@ left join dim_stations
 
 left join dim_beaufort
     on obs_features.wind_speed_ms >= dim_beaufort.ms_min and obs_features.wind_speed_ms <  dim_beaufort.ms_max
+
+left join dim_precip
+    on obs_windows.precip_24h_mm >= dim_precip.min_mm
+   and (dim_precip.max_mm is null or obs_windows.precip_24h_mm < dim_precip.max_mm)

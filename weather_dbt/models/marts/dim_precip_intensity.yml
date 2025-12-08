@@ -1,0 +1,23 @@
+version: 2
+
+models:
+  - name: dim_precip_intensity
+    description: >
+      Dimension d’interprétation BI des cumuls de précipitations sur 24h,
+      dérivée du seed precip_intensity (plages en mm et libellés).
+    columns:
+      - name: intensity_level
+        description: Niveau ordinal (1 = plus faible).
+        tests:
+          - not_null
+          - unique
+      - name: min_mm
+        description: Borne minimale (incluse) du cumul 24h (mm).
+        tests:
+          - not_null
+      - name: max_mm
+        description: Borne maximale (exclue) du cumul 24h (mm). Null si borne ouverte.
+      - name: label
+        description: Libellé descriptif associé à la plage (faible, modérée, forte, etc.).
+        tests:
+          - not_null

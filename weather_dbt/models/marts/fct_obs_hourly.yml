@@ -69,6 +69,12 @@ models:
           - non_negative:
               config:
                 severity: warn
+      - name: precip_intensity_level
+        description: Niveau ordinal d’intensité des précipitations 24h (jointure dim_precip_intensity).
+        data_type: integer
+      - name: precip_intensity_label
+        description: Libellé descriptif d’intensité des précipitations 24h (faible, modérée, forte, etc.).
+        data_type: varchar
 
 
       # --- Fenêtres (neige) ---
