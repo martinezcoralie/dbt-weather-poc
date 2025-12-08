@@ -106,9 +106,10 @@ dbt-build: ## Exécute dbt deps puis dbt run sur le projet
 dbt-test: ## Exécute la suite de tests dbt
 	$(DBT) test
 
-dbt-rebuild: ## Full refresh (reset + deps + run --full-refresh + test)
+dbt-rebuild: ## Full refresh (reset + deps + seed + run --full-refresh + test)
 	@$(MAKE) dwh-reset
 	$(DBT) deps
+	$(DBT) seed
 	$(DBT) run --full-refresh
 	$(DBT) test
 	@echo "✅ DBT full refresh complete."
