@@ -1,5 +1,8 @@
-import duckdb, pandas as pd, streamlit as st
 import os
+
+import duckdb
+import pandas as pd
+import streamlit as st
 
 DB_PATH = os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
 
@@ -9,21 +12,53 @@ st.title("Observations météo – marts DBT")
 
 @st.cache_data(ttl=60)  # 60s de cache = assez pour naviguer sans bloquer dbt
 def load_station_list():
+    """Liste des stations."""
     with duckdb.connect(DB_PATH, read_only=True) as con:
         return con.execute("""
-            select distinct s.station_id, s.station_name, s.latitude, s.longitude
-            from marts.dim_stations s
-            join marts.fct_obs_hourly f on f.station_id = s.station_id
-            order by s.station_name
+            select station_id, station_name, latitude, longitude
+            from marts.dim_stations
+            order by station_name
         """).df()
 
 
 @st.cache_data(ttl=60)
-def load_obs_for(station_id):
+def load_latest_station_metrics():
+    """Dernière mesure par station."""
     with duckdb.connect(DB_PATH, read_only=True) as con:
         return con.execute(
             """
-            select validity_time_utc, temperature_c, wind_speed_kmh, precip_mm_h
+            with ranked as (
+                select
+                    station_id,
+                    station_name,
+                    validity_time_utc,
+                    temp_24h_c,
+                    precip_24h_mm,
+                    snow_24h_m,
+                    row_number() over (
+                        partition by station_id
+                        order by validity_time_utc desc
+                    ) as rn
+                from marts.fct_obs_hourly
+            )
+            select station_id, station_name, validity_time_utc, temp_24h_c, precip_24h_mm, snow_24h_m
+            from ranked
+            where rn = 1
+            """
+        ).df()
+
+
+@st.cache_data(ttl=60)
+def load_obs_for(station_id):
+    """
+    Toutes les mesures pour une station.
+    
+    :param station_id: id de la station
+    """
+    with duckdb.connect(DB_PATH, read_only=True) as con:
+        return con.execute(
+            """
+            select *
             from marts.fct_obs_hourly
             where station_id = ?
             order by validity_time_utc
@@ -33,6 +68,87 @@ def load_obs_for(station_id):
 
 
 stations = load_station_list()
+latest_metrics = load_latest_station_metrics()
+
+
+def _champion(df, col, fn):
+    df_valid = df[pd.notna(df[col])]
+    if df_valid.empty:
+        return None, pd.DataFrame()
+    value = fn(df_valid[col])
+    champs = df_valid[df_valid[col] == value]
+    return value, champs
+
+
+def _names(df):
+    return ", ".join(sorted(df["station_name"].tolist()))
+
+
+def metric_card(title, value, detail, accent):
+    st.markdown(
+        f"""
+        <div style="
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, {accent} 0%, #0f172a 120%);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+            color: #f8fafc;
+            ">
+            <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8;">
+                {title}
+            </div>
+            <div style="font-size: 28px; font-weight: 700; margin: 6px 0;">
+                {value}
+            </div>
+            <div style="font-size: 14px; opacity: 0.9;">
+                {detail}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+st.subheader("Les champions (dernières 24h)")
+if latest_metrics.empty:
+    st.info("Aucune donnée disponible pour calculer les champions.")
+else:
+    warm_val, warm_df = _champion(latest_metrics, "temp_24h_c", pd.Series.max)
+    cold_val, cold_df = _champion(latest_metrics, "temp_24h_c", pd.Series.min)
+    dry_df = latest_metrics[latest_metrics["precip_24h_mm"].fillna(0) == 0]
+    snow_df_all = latest_metrics[latest_metrics["snow_24h_m"].fillna(0) > 0]
+    snow_val, snow_df = _champion(snow_df_all, "snow_24h_m", pd.Series.max)
+
+    c1, c2, c3, c4 = st.columns(4)
+
+    with c1:
+        metric_card(
+            "Plus doux",
+            f"{warm_val:.1f} °C" if warm_val is not None else "N/A",
+            _names(warm_df) if not warm_df.empty else "Pas de mesure",
+            "#2563eb",
+        )
+    with c2:
+        metric_card(
+            "Plus froid",
+            f"{cold_val:.1f} °C" if cold_val is not None else "N/A",
+            _names(cold_df) if not cold_df.empty else "Pas de mesure",
+            "#0ea5e9",
+        )
+    with c3:
+        metric_card(
+            "Au sec (24h)",
+            f"{len(dry_df)} station(s)",
+            _names(dry_df) if not dry_df.empty else "Aucune station au sec",
+            "#22c55e",
+        )
+    with c4:
+        metric_card(
+            "Neige (24h)",
+            f"{snow_val:.2f} m" if snow_val is not None else "N/A",
+            _names(snow_df) if not snow_df.empty else "Pas de neige mesurée",
+            "#f97316",
+        )
 
 chosen = st.selectbox("Station", stations["station_name"])
 station_id = stations.loc[stations["station_name"] == chosen, "station_id"].iloc[0]
