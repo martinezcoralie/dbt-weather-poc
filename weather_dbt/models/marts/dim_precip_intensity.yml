@@ -12,11 +12,11 @@ models:
           - not_null
           - unique
       - name: min_mm
-        description: Borne minimale (incluse) du cumul 24h (mm).
+        description: Borne minimale (exclue) du cumul 24h (mm).
         tests:
           - not_null
       - name: max_mm
-        description: Borne maximale (exclue) du cumul 24h (mm). Null si borne ouverte.
+        description: Borne maximale (incluse) du cumul 24h (mm). Null si borne ouverte.
       - name: label
         description: Libellé descriptif associé à la plage (faible, modérée, forte, etc.).
         tests:

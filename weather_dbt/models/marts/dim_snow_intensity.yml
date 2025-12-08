@@ -12,11 +12,11 @@ models:
           - not_null
           - unique
       - name: min_m
-        description: Borne minimale (incluse) de la hauteur de neige (m).
+        description: Borne minimale (exclue) de la hauteur de neige (m).
         tests:
           - not_null
       - name: max_m
-        description: Borne maximale (exclue) de la hauteur de neige (m). Null si borne ouverte.
+        description: Borne maximale (incluse) de la hauteur de neige (m). Null si borne ouverte.
       - name: snow_intensity_label
         description: Libellé descriptif.
         tests:

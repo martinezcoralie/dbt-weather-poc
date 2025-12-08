@@ -108,9 +108,9 @@ left join dim_beaufort
     on obs_features.wind_speed_ms >= dim_beaufort.ms_min and obs_features.wind_speed_ms <  dim_beaufort.ms_max
 
 left join dim_precip
-    on obs_windows.precip_24h_mm >= dim_precip.min_mm
-   and (dim_precip.max_mm is null or obs_windows.precip_24h_mm < dim_precip.max_mm)
+    on obs_windows.precip_24h_mm > dim_precip.min_mm
+   and (dim_precip.max_mm is null or obs_windows.precip_24h_mm <= dim_precip.max_mm)
 
 left join dim_snow
-    on obs_windows.snow_24h_m >= dim_snow.min_m
-   and (dim_snow.max_m is null or obs_windows.snow_24h_m < dim_snow.max_m)
+    on obs_windows.snow_24h_m > dim_snow.min_m
+   and (dim_snow.max_m is null or obs_windows.snow_24h_m <= dim_snow.max_m)
