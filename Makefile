@@ -34,6 +34,7 @@ TABLE   ?= raw.obs_hourly
 		dbt-build dbt-test dbt-rebuild \
 		dbt-sources-test dbt-sources-freshness dbt-sources-check \
 		dbt-docs-generate dbt-docs-serve dbt-docs \
+		prefect-server prefect-config prefect-ui flow-run flow-serve flow-status \
 		py-lint py-fmt sql-lint sql-fmt
 
 # ========== Default / Help ==========
@@ -129,6 +130,26 @@ dbt-docs-serve: ## Sert la doc dbt en local (http://localhost:8080)
 	$(DBT) docs serve --port 8080
 
 dbt-docs: dbt-docs-generate dbt-docs-serve ## Génère puis sert la doc dbt en local (http://localhost:8080)
+
+# ========== Orchestration Prefect ==========
+prefect-server: ## Démarre le serveur Prefect (UI http://127.0.0.1:4200)
+	prefect server start
+
+prefect-config: ## Pointe l'API Prefect locale (127.0.0.1:4200)
+	prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
+
+prefect-ui: ## Ouvre l'UI Prefect locale dans le navigateur
+	open http://127.0.0.1:4200
+
+flow-run: ## Exécute le flow Prefect une fois (ingestion + dbt) pour DEPT=<code>
+	$(PY) orchestration/flow_prefect.py --mode run --dept $(DEPT)
+
+flow-serve: ## Lance le deployment Prefect horaire (cron) pour DEPT=<code>
+	$(PY) orchestration/flow_prefect.py --mode serve --dept $(DEPT)
+
+flow-status: ## Liste les deployments et les 5 derniers flow runs
+	prefect deployment ls
+	prefect flow-run ls --limit 5
 
 # ========== Lint ==========
 py-lint: ## Lint Python

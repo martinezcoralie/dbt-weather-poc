@@ -8,13 +8,20 @@ comment brancher un orchestrateur moderne autour d’un projet dbt existant.
 
 ---
 
+## 0. Raccourcis Make utiles
+
+* `make prefect-server` — démarre le serveur Prefect (UI : http://127.0.0.1:4200)
+* `make prefect-config` — pointe l’API locale (PREFECT_API_URL)
+* `make prefect-ui` — ouvre l’UI Prefect locale dans le navigateur
+* `make flow-run DEPT=9` — exécute le pipeline une fois (ingestion + dbt)
+* `make flow-serve DEPT=9` — lance le deployment horaire (cron) du pipeline
+* `make flow-status` — liste les deployments et derniers flow runs
+
+---
+
 ## 1. Vue d’ensemble
 
-L’orchestration repose sur le script :
-
-```text
-orchestration/flow_prefect.py
-```
+L’orchestration repose sur le script `orchestration/flow_prefect.py`.
 
 Il définit un flow Prefect :
 
@@ -43,10 +50,11 @@ Le script supporte deux modes principaux via l’argument `--mode` :
 Exécute le flow **une seule fois**, sans deployment ni schedule.
 
 ```bash
-source .venv/bin/activate
-export DBT_PROFILES_DIR=./profiles
-
-python orchestration/flow_prefect.py --mode run --dept 9
+make flow-run DEPT=9
+# équivalent manuel :
+# source .venv/bin/activate
+# export DBT_PROFILES_DIR=./profiles
+# python orchestration/flow_prefect.py --mode run --dept 9
 ```
 
 Ce mode est utile pour :
@@ -61,7 +69,9 @@ avec un **schedule horaire**, puis démarre un process long qui exécute les run
 planifiés tant qu’il reste actif.
 
 ```bash
-python orchestration/flow_prefect.py --mode serve --dept 9
+make flow-serve DEPT=9
+# équivalent manuel :
+# python orchestration/flow_prefect.py --mode serve --dept 9
 ```
 
 ---
@@ -73,7 +83,8 @@ python orchestration/flow_prefect.py --mode serve --dept 9
 Dans un premier terminal :
 
 ```bash
-prefect server start
+make prefect-server
+# équivalent manuel : prefect server start
 ```
 
 * UI disponible sur : [http://127.0.0.1:4200](http://127.0.0.1:4200)
@@ -84,7 +95,9 @@ prefect server start
 Dans un second terminal :
 
 ```bash
-prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
+make prefect-config
+# équivalent manuel :
+# prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
 ```
 
 Puis activer l’environnement pour le projet :
