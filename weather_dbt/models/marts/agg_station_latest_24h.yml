@@ -28,6 +28,10 @@ models:
         description: Cumul 24h des précipitations (mm).
       - name: snow_24h_m
         description: Cumul 24h de neige (m).
+      - name: snow_intensity_level
+        description: Niveau ordinal d’intensité de neige 24h (dim_snow_intensity).
+      - name: snow_intensity_label
+        description: Libellé d’intensité de neige 24h.
       - name: precip_intensity_level
         description: Niveau ordinal d’intensité des précipitations 24h (dim_precip_intensity).
       - name: precip_intensity_label
