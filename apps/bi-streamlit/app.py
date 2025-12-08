@@ -1,363 +1,48 @@
-import os
-
-import duckdb
-import pandas as pd
 import pydeck as pdk
 import streamlit as st
 
-DB_PATH = os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
-
-st.set_page_config(page_title="Météo – Observations horaires", layout="wide")
-st.title("Observations météo – marts DBT")
-
-
-@st.cache_data(ttl=60)  # 60s de cache = assez pour naviguer sans bloquer dbt
-def load_station_list():
-    """Liste des stations pour lesquelles on a des mesures."""
-    with duckdb.connect(DB_PATH, read_only=True) as con:
-        return con.execute("""
-            select station_id, station_name, latitude, longitude
-            from marts.agg_station_latest_24h
-            order by station_name
-        """).df()
-
-@st.cache_data(ttl=60)
-def load_latest_station_metrics():
-    """Dernière mesure par station + coord pour la carto."""
-    with duckdb.connect(DB_PATH, read_only=True) as con:
-        return con.execute(
-            """
-            select
-                station_id,
-                station_name,
-                latitude,
-                longitude,
-                validity_time_utc,
-                temp_24h_c,
-                precip_24h_mm,
-                snow_24h_m,
-                precip_intensity_level,
-                precip_intensity_label,
-                snow_intensity_level,
-                snow_intensity_label,
-            from marts.agg_station_latest_24h
-            """
-        ).df()
-
-stations = load_station_list()
-latest_metrics = load_latest_station_metrics()
-
-warm_df = cold_df = wet_df = pd.DataFrame()
+from champions import compute_champions, metric_card
+from data import load_latest_station_metrics, load_station_list
+from layers import build_map_layers, compute_view_state
 
 
-def _champion(df, col, fn):
-    """Retourne la valeur extrême (fn) d'une colonne et le sous-ensemble de lignes correspondantes."""
-    df_valid = df[pd.notna(df[col])]
-    if df_valid.empty:
-        return None, pd.DataFrame()
-    value = fn(df_valid[col])
-    champs = df_valid[df_valid[col] == value]
-    return value, champs
+def main() -> None:
+    st.set_page_config(page_title="Météo – Observations horaires", layout="wide")
+    st.title("Observations météo – marts DBT")
 
+    stations = load_station_list()
+    latest_metrics = load_latest_station_metrics()
 
-def _names(df):
-    return ", ".join(sorted(df["station_name"].tolist()))
+    st.subheader("Les champions (dernières 24h)")
+    if latest_metrics.empty:
+        st.info("Aucune donnée disponible pour calculer les champions.")
+        return
 
-
-def _top_by_level(df: pd.DataFrame, level_col: str):
-    """Retourne (max_level, champions_df, lower_df) sur une colonne de niveau."""
-    df_valid = df[pd.notna(df[level_col])]
-    if df_valid.empty:
-        return None, pd.DataFrame(), pd.DataFrame()
-    max_level = df_valid[level_col].max()
-    champs = df_valid[df_valid[level_col] == max_level]
-    lower = df_valid[df_valid[level_col] < max_level]
-    return max_level, champs, lower
-
-
-def _icon_layer(
-    data: pd.DataFrame,
-    icon_url: str,
-    size: int | str = 4,
-    size_scale: int = 12,
-    size_field: str | None = None,
-):
-    """
-    Créer une IconLayer si des points sont disponibles.
-
-    :param data: DataFrame contenant au moins les colonnes lat, lon
-    :param icon_url: URL absolue de l'icône (PNG)
-    :param size: taille “abstraite” (multiplée par size_scale)
-    :param size_scale: facteur d'échelle pour la taille effective
-    :param size_field: nom de colonne à utiliser pour la taille (optionnel)
-    """
-    if data is None or data.empty:
-        return None
-
-    # On fait une copie pour ne pas modifier le DF d'origine
-    df = data.copy()
-
-    icon_data = {
-        "url": icon_url,
-        "width": 128,
-        "height": 128,
-        "anchorY": 128,   # ancrage au bas de l’icône
-    }
-
-    df["icon_data"] = [icon_data] * len(df)
-
-    return pdk.Layer(
-        "IconLayer",
-        data=df,
-        get_icon="icon_data",
-        get_position="[lon, lat]",
-        get_size=size_field or size,      # taille relative ou champ
-        size_scale=size_scale,
-        pickable=True,
-        billboard=True,
-    )
-
-def metric_card(title, value, detail, accent):
-    st.markdown(
-        f"""
-        <div style="
-            padding: 14px 16px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, {accent} 0%, #0f172a 120%);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
-            color: #f8fafc;
-            ">
-            <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8;">
-                {title}
-            </div>
-            <div style="font-size: 28px; font-weight: 700; margin: 6px 0;">
-                {value}
-            </div>
-            <div style="font-size: 14px; opacity: 0.9;">
-                {detail}
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-st.subheader("Les champions (dernières 24h)")
-if latest_metrics.empty:
-    st.info("Aucune donnée disponible pour calculer les champions.")
-else:
-    warm_val, warm_df = _champion(latest_metrics, "temp_24h_c", pd.Series.max)
-    cold_val, cold_df = _champion(latest_metrics, "temp_24h_c", pd.Series.min)
-    dry_df = latest_metrics[latest_metrics["precip_intensity_level"].fillna(0) <= 1]
-
-    wet_level, wet_df, wet_lower = _top_by_level(
-        latest_metrics[pd.notna(latest_metrics["precip_intensity_level"])],
-        "precip_intensity_level",
-    )
-    wet_label = wet_df["precip_intensity_label"].iloc[0] if not wet_df.empty else None
-    wet_other_detail = (
-        f"Autres niveaux pluie : {', '.join(str(int(x)) for x in sorted(wet_lower['precip_intensity_level'].unique()))}"
-        if not wet_lower.empty
-        else "Pas d'autres stations avec pluie"
-    )
-
-    snow_filtered = latest_metrics[latest_metrics["snow_intensity_level"].fillna(0) >= 3]
-    snow_level, snow_df, snow_lower = _top_by_level(snow_filtered, "snow_intensity_level")
-    snow_label = snow_df["snow_intensity_label"].iloc[0] if not snow_df.empty else None
-    snow_other_detail = (
-        f"Autres niveaux neige : {', '.join(str(int(x)) for x in sorted(snow_lower['snow_intensity_level'].unique()))}"
-        if not snow_lower.empty
-        else "Pas d'autres stations enneigées"
-    )
+    champs = compute_champions(latest_metrics)
 
     c1, c2, c3, c4, c5 = st.columns(5)
-
     with c1:
-        metric_card(
-            "Plus doux",
-            f"{warm_val:.1f} °C" if warm_val is not None else "N/A",
-            _names(warm_df) if not warm_df.empty else "Pas de mesure",
-            "#eba625",
-        )
+        metric_card("Plus doux", champs.warm_value, champs.warm_names, "#eba625")
     with c2:
-        metric_card(
-            "Plus froid",
-            f"{cold_val:.1f} °C" if cold_val is not None else "N/A",
-            _names(cold_df) if not cold_df.empty else "Pas de mesure",
-            "#0ea5e9",
-        )
+        metric_card("Plus froid", champs.cold_value, champs.cold_names, "#0ea5e9")
     with c3:
-        metric_card(
-            "Au sec (24h)",
-            f"{len(dry_df)} station(s)",
-            _names(dry_df) if not dry_df.empty else "Aucune station au sec (niveau 1)",
-            "#22c55e",
-        )
+        metric_card("Au sec (24h)", champs.dry_value, champs.dry_names, "#22c55e")
     with c4:
-        metric_card(
-            "Neige (24h)",
-            f"Niveau {int(snow_level)} ({snow_label})" if snow_level is not None else "N/A",
-            (_names(snow_df) + f" · {snow_other_detail}") if not snow_df.empty else "Pas de neige mesurée",
-            "#f97316",
-        )
+        metric_card("Neige (24h)", champs.snow_value, champs.snow_names, "#f97316")
     with c5:
-        metric_card(
-            "Plus arrosé (24h)",
-            f"Niveau {int(wet_level)} ({wet_label})" if wet_level is not None else "N/A",
-            (_names(wet_df) + f" · {wet_other_detail}") if not wet_df.empty else "Aucune station avec pluie",
-            "#a855f7",
+        metric_card("Plus arrosé (24h)", champs.wet_value, champs.wet_names, "#a855f7")
+
+    st.subheader("Carte des stations")
+    view_state = compute_view_state(stations)
+    layers = build_map_layers(stations, champs)
+    st.pydeck_chart(
+        pdk.Deck(
+            layers=layers,
+            initial_view_state=view_state,
+            tooltip={"text": "{station_name}\n{status}\n(lat: {lat}, lon: {lon})"},
         )
-
-# Carte : toutes les stations + champions
-stations_map = stations.rename(columns={"longitude": "lon", "latitude": "lat"})
-stations_map["status"] = "Station"
-
-# vue initiale
-center_lat = stations_map["lat"].mean() if not stations_map.empty else 46.5
-center_lon = stations_map["lon"].mean() if not stations_map.empty else 2.5
-
-# Couche "toutes les stations"
-all_layer = pdk.Layer(
-    "ScatterplotLayer",
-    data=stations_map,
-    get_position="[lon, lat]",
-    get_radius=1000,  # ajuste selon l’échelle
-    get_color=[128, 128, 128],  # gris
-    pickable=True,
-)
-
-# Icônes pour les champions chaud/froid 
-HOT_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f525.png"  
-COLD_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f976.png"  
-RAIN_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2614.png"  
-SNOW_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2744.png"
-
-
-# Couche "champions chaud/froid"
-warm_points = pd.DataFrame()
-if warm_df is not None and not warm_df.empty:
-    warm_points = warm_df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
-        status="Plus doux"
     )
-    icon_data = {
-        "url": HOT_ICON_URL,
-        "width": 242,
-        "height": 242,
-        "anchorY": 242,
-    }
-    warm_points["icon_data"] = [icon_data] * len(warm_points)
 
 
-cold_points = pd.DataFrame()
-if cold_df is not None and not cold_df.empty:
-    cold_points = cold_df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
-        status="Plus froid"
-    )
-    icon_data = {
-        "url": COLD_ICON_URL,
-        "width": 242,
-        "height": 242,
-        "anchorY": 242,
-    }
-    cold_points["icon_data"] = [icon_data] * len(cold_points)
-
-snow_points = pd.DataFrame()
-if snow_df is not None and not snow_df.empty:
-    snow_points = snow_df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
-        status="Neige 24h"
-    )
-    snow_points = snow_points[snow_points["snow_intensity_level"].fillna(0) >= 2]
-    icon_data = {
-        "url": SNOW_ICON_URL,
-        "width": 242,
-        "height": 242,
-        "anchorY": 242,
-    }
-    snow_points["icon_data"] = [icon_data] * len(snow_points)
-    snow_points["icon_size"] = (snow_points["snow_intensity_level"] - 1) * 9
-
-wet_points = pd.DataFrame()
-if wet_df is not None and not wet_df.empty:
-    wet_points = (
-        wet_df.rename(columns={"longitude": "lon", "latitude": "lat"})
-        .assign(status="Pluie 24h")
-        .query("precip_intensity_level >= 3")  # on affiche modéré et plus
-    )
-    icon_data = {
-        "url": RAIN_ICON_URL,
-        "width": 242,
-        "height": 242,
-        "anchorY": 242,
-    }
-    wet_points["icon_data"] = [icon_data] * len(wet_points)
-    # Taille proportionnelle à l'intensité (3=modérée -> petit, 5=très forte -> grand)
-    wet_points["icon_size"] = (wet_points["precip_intensity_level"] - 2) * 9
-
-ICON_SIZE = 20
-
-warm_icon_layer = pdk.Layer(
-    "IconLayer",
-    data=warm_points,
-    get_icon="icon_data",
-    get_size=ICON_SIZE,
-    size_scale=1,
-    get_position=["lon", "lat"],
-    pickable=True,
-    billboard=True,
-) if not warm_points.empty else None
-
-cold_icon_layer = pdk.Layer(
-    "IconLayer",
-    data=cold_points,
-    get_icon="icon_data",
-    get_size=ICON_SIZE,
-    size_scale=1,
-    get_position=["lon", "lat"],
-    pickable=True,
-    billboard=True,
-) if not cold_points.empty else None
-
-snow_icon_layer = pdk.Layer(
-    "IconLayer",
-    data=snow_points,
-    get_icon="icon_data",
-    get_size="icon_size",
-    size_scale=1,
-    get_position=["lon", "lat"],
-    pickable=True,
-    billboard=True,
-) if not snow_points.empty else None
-
-wet_icon_layer = pdk.Layer(
-    "IconLayer",
-    data=wet_points,
-    get_icon="icon_data",
-    get_size="icon_size",
-    size_scale=1,
-    get_position=["lon", "lat"],
-    pickable=True,
-    billboard=True,
-) if not wet_points.empty else None
-
-view_state = pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=7)
-
-st.subheader("Carte des stations")
-layers = [
-    layer
-    for layer in [
-        all_layer,
-        warm_icon_layer,
-        cold_icon_layer,
-        snow_icon_layer,
-        wet_icon_layer,
-    ]
-    if layer is not None
-]
-
-st.pydeck_chart(
-    pdk.Deck(
-        layers=layers,
-        initial_view_state=view_state,
-        tooltip={"text": "{station_name}\n{status}\n(lat: {lat}, lon: {lon})"},
-    )
-)
+if __name__ == "__main__":
+    main()
