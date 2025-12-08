@@ -30,7 +30,7 @@ models:
                 expression: "between -180 and 180"
 
       - name: altitude
-        description: Altitude de la station en mètres (-500 à 9000 m).
+        description: Altitude de la station en mètres.
         tests:
           - dbt_utils.expression_is_true:
               arguments:
