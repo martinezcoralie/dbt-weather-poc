@@ -118,8 +118,17 @@ else:
     dry_df = latest_metrics[latest_metrics["precip_24h_mm"].fillna(0) == 0]
     snow_df_all = latest_metrics[latest_metrics["snow_24h_m"].fillna(0) > 0]
     snow_val, snow_df = _champion(snow_df_all, "snow_24h_m", pd.Series.max)
+    wet_df_all = latest_metrics[latest_metrics["precip_24h_mm"].fillna(0) > 0]
+    wet_val, wet_df = _champion(wet_df_all, "precip_24h_mm", pd.Series.max)
 
-    c1, c2, c3, c4 = st.columns(4)
+    snow_others = snow_df_all[snow_df_all["snow_24h_m"] < (snow_val or 0)]
+    snow_other_detail = (
+        f"Autres neige : {len(snow_others)} station(s) (≤ {snow_others['snow_24h_m'].max():.2f} m)"
+        if not snow_others.empty
+        else "Pas d'autres stations enneigées"
+    )
+
+    c1, c2, c3, c4, c5 = st.columns(5)
 
     with c1:
         metric_card(
@@ -146,8 +155,15 @@ else:
         metric_card(
             "Neige (24h)",
             f"{snow_val:.2f} m" if snow_val is not None else "N/A",
-            _names(snow_df) if not snow_df.empty else "Pas de neige mesurée",
+            _names(snow_df) + f" · {snow_other_detail}" if not snow_df.empty else "Pas de neige mesurée",
             "#f97316",
+        )
+    with c5:
+        metric_card(
+            "Plus arrosé (24h)",
+            f"{wet_val:.2f} mm" if wet_val is not None else "N/A",
+            _names(wet_df) if not wet_df.empty else "Aucune station avec pluie",
+            "#a855f7",
         )
 
 chosen = st.selectbox("Station", stations["station_name"])
