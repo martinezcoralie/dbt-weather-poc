@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: agg_station_latest_24h
+    description: >
+      Vue “dernières 24h” par station : dernière observation disponible enrichie avec
+      les cumuls 24h et les labels BI (intensité précipitations, Beaufort), plus coordonnées.
+      Sert de source directe au dashboard pour les classements et la cartographie.
+    columns:
+      - name: station_id
+        description: Identifiant station (clé vers dim_stations).
+        tests:
+          - not_null
+          - unique
+      - name: station_name
+        description: Nom de la station.
+      - name: latitude
+        description: Latitude de la station.
+      - name: longitude
+        description: Longitude de la station.
+      - name: validity_time_utc
+        description: Horodate la plus récente disponible pour la station (UTC).
+        tests:
+          - not_null
+      - name: temp_24h_c
+        description: Moyenne glissante 24h de la température (°C).
+      - name: precip_24h_mm
+        description: Cumul 24h des précipitations (mm).
+      - name: snow_24h_m
+        description: Cumul 24h de neige (m).
+      - name: precip_intensity_level
+        description: Niveau ordinal d’intensité des précipitations 24h (dim_precip_intensity).
+      - name: precip_intensity_label
+        description: Libellé d’intensité des précipitations 24h.
+      - name: wind_beaufort
+        description: Niveau Beaufort du vent le plus récent.
+      - name: wind_beaufort_label
+        description: Libellé Beaufort du vent le plus récent.
+      - name: temperature_c
+        description: Température la plus récente (°C).
+      - name: precip_mm_h
+        description: Précipitation horaire la plus récente (mm/h).
+      - name: wind_speed_kmh
+        description: Vitesse du vent la plus récente (km/h).
+      - name: wind_sector
+        description: Secteur du vent la plus récent.
+      - name: visibility_cat
+        description: Catégorie de visibilité la plus récente.
