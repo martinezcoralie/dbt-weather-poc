@@ -18,6 +18,7 @@ with ranked as (
         f.wind_speed_kmh,
         f.wind_sector,
         f.visibility_cat,
+        f.humidity_pct,
         s.station_name,
         s.latitude,
         s.longitude,
@@ -46,6 +47,7 @@ select
     wind_beaufort_label,
     temperature_c,
     precip_mm_h,
+    humidity_pct,
     wind_speed_kmh,
     wind_sector,
     visibility_cat

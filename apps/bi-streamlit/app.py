@@ -36,7 +36,7 @@ def main() -> None:
     st.markdown(
         """
         <div class="app-hero">
-            <h1>Où fait-il bon vivre en Ariège ? (24h)</h1>
+            <h1>Ariège – Radar des spots météo</h1>
             <p style="margin: 6px 0 0; opacity: 0.85;">Lecture BI des marts dbt : confort thermique, neige, pluie — basé sur agg_station_latest_24h.</p>
         </div>
         """,
@@ -44,8 +44,7 @@ def main() -> None:
     )
 
     if latest_metrics.empty:
-        st.subheader("Les champions (dernières 24h)")
-        st.info("Aucune donnée disponible pour calculer les champions.")
+        st.info("Aucune donnée disponible pour calculer le radar météo.")
         return
 
     champs = compute_champions(latest_metrics)
@@ -55,9 +54,9 @@ def main() -> None:
     st.markdown('<div class="section-title">Tu cherches le confort thermique</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     with c1:
-        metric_card("Coin cocooning", champs.warm_value, champs.warm_names, "#eba625")
+        metric_card("Coin cocooning", champs.warm_value, champs.warm_names, "#90ffa0")
     with c2:
-        metric_card("Pas fait pour toi", champs.cold_value, champs.cold_names, "#0ea5e9")
+        metric_card("Pas fait pour toi", champs.cold_value, champs.cold_names, "#e90e0e")
 
     # Section B: neige par niveau (modérée/forte/très forte)
     st.markdown('<div class="section-title">Tu cherches la neige</div>', unsafe_allow_html=True)
@@ -82,19 +81,61 @@ def main() -> None:
         cols = st.columns(len(snow_cards))
         for col, (title, val, detail) in zip(cols, snow_cards):
             with col:
-                metric_card(title, val, detail, "#f97316")
+                metric_card(title, val, detail, "#16dbf94a")
     else:
-        st.info("Pas de neige modérée ou plus (levels >= 3).")
+        st.info("Pas de neige modérée ou plus.")
 
-    # Section C: pluie niveau 1
+    # Section Vent (catégories Beaufort)
+    st.markdown('<div class="section-title">Le vent, ça t’intéresse ?</div>', unsafe_allow_html=True)
+    wind_buckets = [
+        ("Brise légère à modérée", 0, 3),
+        ("Vent soutenu", 4, 6),
+        ("Coup de vent", 7, 9),
+        ("Tempête", 10, 12),
+    ]
+    wind_cards = []
+    for title, lo, hi in wind_buckets:
+        df_lvl = latest_metrics[
+            (latest_metrics["wind_beaufort"].fillna(-1) >= lo)
+            & (latest_metrics["wind_beaufort"].fillna(-1) <= hi)
+        ]
+        if df_lvl.empty:
+            continue
+        wind_cards.append(
+            (
+                title,
+                f"{df_lvl['wind_speed_kmh'].max():.1f} km/h",
+                f"{join_names(df_lvl)}",
+            )
+        )
+    if wind_cards:
+        cols = st.columns(len(wind_cards))
+        for col, (title, val, detail) in zip(cols, wind_cards):
+            with col:
+                metric_card(title, val, detail, "#7dd3fc")
+    else:
+        st.info("Pas de vent notable sur les dernières 24h.")
+
+    # Section C: pluie 
     st.markdown('<div class="section-title">Tu fuis la pluie</div>', unsafe_allow_html=True)
-    rain_df = latest_metrics[latest_metrics["precip_24h_intensity_level"] == 1]
-    metric_card(
-        "Au sec",
-        f"{len(rain_df)} station(s)",
-        join_names(rain_df) if not rain_df.empty else "Aucune station à ce niveau",
-        "#22c55e",
-    )
+    dry_df = latest_metrics[latest_metrics["precip_24h_intensity_level"] == 1]
+    rain_df = latest_metrics[latest_metrics["precip_24h_intensity_level"] > 1]
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        metric_card(
+            "au sec",
+            f"{len(dry_df)} station(s)",
+            join_names(dry_df) if not dry_df.empty else "Aucune station à ce niveau",
+            "#90ffa0",
+        )
+    with c2:
+        metric_card(
+            "pas fait pour toi",
+            f"{len(rain_df)} station(s)",
+            join_names(rain_df) if not rain_df.empty else "Aucune station à ce niveau",
+            "#e90e0e",
+        )
 
     # Carte & table
     st.markdown('<div class="section-title">Carte & détails</div>', unsafe_allow_html=True)
@@ -126,6 +167,7 @@ def main() -> None:
                     "precip_24h_intensity_label",
                     "snow_24h_m",
                     "snow_24h_intensity_label",
+                    "humidity_pct"
                 ]
             ].rename(
                 columns={

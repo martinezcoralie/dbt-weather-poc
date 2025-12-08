@@ -45,6 +45,7 @@ def load_latest_station_metrics() -> pd.DataFrame:
                 wind_sector,
                 wind_beaufort,
                 wind_beaufort_label,
+                humidity_pct,
                 visibility_cat
             from marts.agg_station_latest_24h
             """

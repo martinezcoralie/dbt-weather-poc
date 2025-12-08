@@ -42,6 +42,8 @@ models:
         description: Libellé Beaufort du vent le plus récent.
       - name: temperature_c
         description: Température la plus récente (°C).
+      - name: humidity_pct
+        description: Humidité relative la plus récente (%)
       - name: precip_mm_h
         description: Précipitation horaire la plus récente (mm/h).
       - name: wind_speed_kmh
