@@ -5,16 +5,16 @@ from champions import ChampionSet
 
 
 HOT_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f525.png"
-COLD_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f976.png"
-RAIN_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2614.png"
-SNOW_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/26c4.png"
+COLD_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1F9CA.png"
+RAIN_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1F4A7.png"
+SNOW_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2744.png"
 
 
 def compute_view_state(stations: pd.DataFrame) -> pdk.ViewState:
     """Center map on barycenter of stations (fallback to France-ish)."""
     center_lat = stations["latitude"].mean() if not stations.empty else 46.5
     center_lon = stations["longitude"].mean() if not stations.empty else 2.5
-    return pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=7)
+    return pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=8)
 
 
 def _base_layer(stations: pd.DataFrame) -> pdk.Layer:
