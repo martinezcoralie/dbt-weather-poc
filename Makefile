@@ -60,6 +60,7 @@ env-clean: ## Supprime complètement le virtualenv (.venv)
 env-activate: ## Affiche la commande à exécuter pour activer le virtualenv
 	@echo "To activate:"
 	@echo "  source $(VENV)/bin/activate"
+	@echo "  export DBT_PROFILES_DIR=./profiles"
 
 # ========== API & Ingestion ==========
 api-check: ## Teste l’API Météo-France et les scripts de fetch (arguments : DEPT=<code>)
