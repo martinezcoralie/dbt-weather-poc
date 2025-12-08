@@ -13,7 +13,7 @@ st.title("Observations météo – marts DBT")
 
 @st.cache_data(ttl=60)  # 60s de cache = assez pour naviguer sans bloquer dbt
 def load_station_list():
-    """Liste des stations pour lesquelles on a des mesures (depuis la vue latest)."""
+    """Liste des stations pour lesquelles on a des mesures."""
     with duckdb.connect(DB_PATH, read_only=True) as con:
         return con.execute("""
             select station_id, station_name, latitude, longitude
@@ -21,10 +21,9 @@ def load_station_list():
             order by station_name
         """).df()
 
-
 @st.cache_data(ttl=60)
 def load_latest_station_metrics():
-    """Dernière mesure par station + coord pour la carto (via agg_station_latest_24h)."""
+    """Dernière mesure par station + coord pour la carto."""
     with duckdb.connect(DB_PATH, read_only=True) as con:
         return con.execute(
             """
@@ -39,41 +38,20 @@ def load_latest_station_metrics():
                 snow_24h_m,
                 precip_intensity_level,
                 precip_intensity_label,
-                temperature_c,
-                precip_mm_h,
-                wind_speed_kmh,
-                wind_sector,
-                visibility_cat
+                snow_intensity_level,
+                snow_intensity_label,
             from marts.agg_station_latest_24h
             """
         ).df()
 
-
-@st.cache_data(ttl=60)
-def load_obs_for(station_id):
-    """
-    Toutes les mesures pour une station.
-    
-    :param station_id: id de la station
-    """
-    with duckdb.connect(DB_PATH, read_only=True) as con:
-        return con.execute(
-            """
-            select *
-            from marts.fct_obs_hourly
-            where station_id = ?
-            order by validity_time_utc
-        """,
-            [station_id],
-        ).df()
-
-
 stations = load_station_list()
 latest_metrics = load_latest_station_metrics()
+
 warm_df = cold_df = wet_df = pd.DataFrame()
 
 
 def _champion(df, col, fn):
+    """Retourne la valeur extrême (fn) d'une colonne et le sous-ensemble de lignes correspondantes."""
     df_valid = df[pd.notna(df[col])]
     if df_valid.empty:
         return None, pd.DataFrame()
@@ -96,7 +74,7 @@ def _icon_layer(
     Créer une IconLayer si des points sont disponibles.
 
     :param data: DataFrame contenant au moins les colonnes lat, lon
-    :param icon_url: URL absolue de l'icône (PNG/SVG)
+    :param icon_url: URL absolue de l'icône (PNG)
     :param size: taille “abstraite” (multiplée par size_scale)
     :param size_scale: facteur d'échelle pour la taille effective
     :param size_field: nom de colonne à utiliser pour la taille (optionnel)
@@ -104,17 +82,16 @@ def _icon_layer(
     if data is None or data.empty:
         return None
 
-    # On fait une copie pour ne pas modifier le DF d'origine “par surprise”
+    # On fait une copie pour ne pas modifier le DF d'origine
     df = data.copy()
 
     icon_data = {
         "url": icon_url,
-        "width": 128,     # adapter aux dimensions réelles de l’image
+        "width": 128,
         "height": 128,
         "anchorY": 128,   # ancrage au bas de l’icône
     }
 
-    # Même icône pour toutes les lignes de ce DataFrame
     df["icon_data"] = [icon_data] * len(df)
 
     return pdk.Layer(
@@ -179,7 +156,7 @@ else:
             "Plus doux",
             f"{warm_val:.1f} °C" if warm_val is not None else "N/A",
             _names(warm_df) if not warm_df.empty else "Pas de mesure",
-            "#2563eb",
+            "#eba625",
         )
     with c2:
         metric_card(
@@ -268,6 +245,7 @@ if snow_df is not None and not snow_df.empty:
     snow_points = snow_df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
         status="Neige 24h"
     )
+    snow_points = snow_points[snow_points["snow_intensity_level"].fillna(0) >= 2]
     icon_data = {
         "url": SNOW_ICON_URL,
         "width": 242,
@@ -275,6 +253,7 @@ if snow_df is not None and not snow_df.empty:
         "anchorY": 242,
     }
     snow_points["icon_data"] = [icon_data] * len(snow_points)
+    snow_points["icon_size"] = (snow_points["snow_intensity_level"] - 1) * 9
 
 wet_points = pd.DataFrame()
 if wet_df is not None and not wet_df.empty:
@@ -321,7 +300,7 @@ snow_icon_layer = pdk.Layer(
     "IconLayer",
     data=snow_points,
     get_icon="icon_data",
-    get_size=ICON_SIZE,
+    get_size="icon_size",
     size_scale=1,
     get_position=["lon", "lat"],
     pickable=True,
