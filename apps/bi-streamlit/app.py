@@ -1,7 +1,9 @@
+import base64
 import os
 
 import duckdb
 import pandas as pd
+import pydeck as pdk
 import streamlit as st
 
 DB_PATH = os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
@@ -88,6 +90,41 @@ def _champion(df, col, fn):
 def _names(df):
     return ", ".join(sorted(df["station_name"].tolist()))
 
+def _icon_layer(data: pd.DataFrame, icon_url: str, size: int = 4, size_scale: int = 12):
+    """
+    Créer une IconLayer si des points sont disponibles.
+
+    :param data: DataFrame contenant au moins les colonnes lat, lon
+    :param icon_url: URL absolue de l'icône (PNG/SVG)
+    :param size: taille “abstraite” (multiplée par size_scale)
+    :param size_scale: facteur d'échelle pour la taille effective
+    """
+    if data is None or data.empty:
+        return None
+
+    # On fait une copie pour ne pas modifier le DF d'origine “par surprise”
+    df = data.copy()
+
+    icon_data = {
+        "url": icon_url,
+        "width": 128,     # adapter aux dimensions réelles de l’image
+        "height": 128,
+        "anchorY": 128,   # ancrage au bas de l’icône
+    }
+
+    # Même icône pour toutes les lignes de ce DataFrame
+    df["icon_data"] = [icon_data] * len(df)
+
+    return pdk.Layer(
+        "IconLayer",
+        data=df,
+        get_icon="icon_data",
+        get_position="[lon, lat]",
+        get_size=size,      # taille relative
+        size_scale=size_scale,
+        pickable=True,
+        billboard=True,
+    )
 
 def metric_card(title, value, detail, accent):
     st.markdown(
@@ -171,9 +208,6 @@ else:
             "#a855f7",
         )
 
-
-import pydeck as pdk
-
 # Carte : toutes les stations + champions
 stations_map = stations.rename(columns={"longitude": "lon", "latitude": "lat"})
 stations_map["status"] = "Station"
@@ -187,45 +221,82 @@ all_layer = pdk.Layer(
     "ScatterplotLayer",
     data=stations_map,
     get_position="[lon, lat]",
-    get_radius=2000,  # ajuste selon l’échelle
-    get_color=[0, 122, 255],  # bleu
+    get_radius=1000,  # ajuste selon l’échelle
+    get_color=[128, 128, 128],  # gris
     pickable=True,
 )
 
+# Icônes pour les champions chaud/froid 
+HOT_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f525.png"  # 🔥
+COLD_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2744.png"  # ❄️
+
+
 # Couche "champions chaud/froid"
 warm_points = pd.DataFrame()
-cold_points = pd.DataFrame()
 if warm_df is not None and not warm_df.empty:
     warm_points = warm_df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
         status="Plus doux"
     )
+    icon_data = {
+        "url": HOT_ICON_URL,
+        "width": 242,
+        "height": 242,
+        "anchorY": 242,
+    }
+    warm_points["icon_data"] = [icon_data] * len(warm_points)
+
+
+cold_points = pd.DataFrame()
 if cold_df is not None and not cold_df.empty:
     cold_points = cold_df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
         status="Plus froid"
     )
+    icon_data = {
+        "url": COLD_ICON_URL,
+        "width": 242,
+        "height": 242,
+        "anchorY": 242,
+    }
+    cold_points["icon_data"] = [icon_data] * len(cold_points)
 
-warm_layer = pdk.Layer(
-    "ScatterplotLayer",
+ICON_SIZE = 20
+
+warm_icon_layer = pdk.Layer(
+    "IconLayer",
     data=warm_points,
-    get_position="[lon, lat]",
-    get_radius=5500,
-    get_color=[244, 114, 182],  # rose
+    get_icon="icon_data",
+    get_size=ICON_SIZE,
+    size_scale=1,
+    get_position=["lon", "lat"],
     pickable=True,
+    billboard=True,
 ) if not warm_points.empty else None
 
-cold_layer = pdk.Layer(
-    "ScatterplotLayer",
+cold_icon_layer = pdk.Layer(
+    "IconLayer",
     data=cold_points,
-    get_position="[lon, lat]",
-    get_radius=5500,
-    get_color=[56, 189, 248],  # bleu clair
+    get_icon="icon_data",
+    get_size=ICON_SIZE,
+    size_scale=1,
+    get_position=["lon", "lat"],
     pickable=True,
+    billboard=True,
 ) if not cold_points.empty else None
 
-view_state = pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=5)
+view_state = pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=7)
 
 st.subheader("Carte des stations")
-layers = [layer for layer in [all_layer, warm_layer, cold_layer] if layer]
+layers = [
+    layer
+    for layer in [
+        all_layer,
+        warm_layer,
+        warm_icon_layer,
+        cold_icon_layer,
+    ]
+    if layer is not None
+]
+
 st.pydeck_chart(
     pdk.Deck(
         layers=layers,
