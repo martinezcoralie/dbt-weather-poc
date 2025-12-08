@@ -63,6 +63,18 @@ def _champion(df, col, fn):
 def _names(df):
     return ", ".join(sorted(df["station_name"].tolist()))
 
+
+def _top_by_level(df: pd.DataFrame, level_col: str):
+    """Retourne (max_level, champions_df, lower_df) sur une colonne de niveau."""
+    df_valid = df[pd.notna(df[level_col])]
+    if df_valid.empty:
+        return None, pd.DataFrame(), pd.DataFrame()
+    max_level = df_valid[level_col].max()
+    champs = df_valid[df_valid[level_col] == max_level]
+    lower = df_valid[df_valid[level_col] < max_level]
+    return max_level, champs, lower
+
+
 def _icon_layer(
     data: pd.DataFrame,
     icon_url: str,
@@ -136,16 +148,25 @@ if latest_metrics.empty:
 else:
     warm_val, warm_df = _champion(latest_metrics, "temp_24h_c", pd.Series.max)
     cold_val, cold_df = _champion(latest_metrics, "temp_24h_c", pd.Series.min)
-    dry_df = latest_metrics[latest_metrics["precip_24h_mm"].fillna(0) == 0]
-    snow_df_all = latest_metrics[latest_metrics["snow_24h_m"].fillna(0) > 0]
-    snow_val, snow_df = _champion(snow_df_all, "snow_24h_m", pd.Series.max)
-    wet_df_all = latest_metrics[latest_metrics["precip_24h_mm"].fillna(0) > 0]
-    wet_val, wet_df = _champion(wet_df_all, "precip_24h_mm", pd.Series.max)
+    dry_df = latest_metrics[latest_metrics["precip_intensity_level"].fillna(0) <= 1]
 
-    snow_others = snow_df_all[snow_df_all["snow_24h_m"] < (snow_val or 0)]
+    wet_level, wet_df, wet_lower = _top_by_level(
+        latest_metrics[pd.notna(latest_metrics["precip_intensity_level"])],
+        "precip_intensity_level",
+    )
+    wet_label = wet_df["precip_intensity_label"].iloc[0] if not wet_df.empty else None
+    wet_other_detail = (
+        f"Autres niveaux pluie : {', '.join(str(int(x)) for x in sorted(wet_lower['precip_intensity_level'].unique()))}"
+        if not wet_lower.empty
+        else "Pas d'autres stations avec pluie"
+    )
+
+    snow_filtered = latest_metrics[latest_metrics["snow_intensity_level"].fillna(0) >= 3]
+    snow_level, snow_df, snow_lower = _top_by_level(snow_filtered, "snow_intensity_level")
+    snow_label = snow_df["snow_intensity_label"].iloc[0] if not snow_df.empty else None
     snow_other_detail = (
-        f"Autres neige : {len(snow_others)} station(s) (≤ {snow_others['snow_24h_m'].max():.2f} m)"
-        if not snow_others.empty
+        f"Autres niveaux neige : {', '.join(str(int(x)) for x in sorted(snow_lower['snow_intensity_level'].unique()))}"
+        if not snow_lower.empty
         else "Pas d'autres stations enneigées"
     )
 
@@ -169,21 +190,21 @@ else:
         metric_card(
             "Au sec (24h)",
             f"{len(dry_df)} station(s)",
-            _names(dry_df) if not dry_df.empty else "Aucune station au sec",
+            _names(dry_df) if not dry_df.empty else "Aucune station au sec (niveau 1)",
             "#22c55e",
         )
     with c4:
         metric_card(
             "Neige (24h)",
-            f"{snow_val:.2f} m" if snow_val is not None else "N/A",
-            _names(snow_df) + f" · {snow_other_detail}" if not snow_df.empty else "Pas de neige mesurée",
+            f"Niveau {int(snow_level)} ({snow_label})" if snow_level is not None else "N/A",
+            (_names(snow_df) + f" · {snow_other_detail}") if not snow_df.empty else "Pas de neige mesurée",
             "#f97316",
         )
     with c5:
         metric_card(
             "Plus arrosé (24h)",
-            f"{wet_val:.2f} mm" if wet_val is not None else "N/A",
-            _names(wet_df) if not wet_df.empty else "Aucune station avec pluie",
+            f"Niveau {int(wet_level)} ({wet_label})" if wet_level is not None else "N/A",
+            (_names(wet_df) + f" · {wet_other_detail}") if not wet_df.empty else "Aucune station avec pluie",
             "#a855f7",
         )
 
