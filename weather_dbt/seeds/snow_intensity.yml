@@ -1,0 +1,18 @@
+version: 2
+
+seeds:
+  - name: snow_intensity
+    description: >
+      Interprétation BI de la hauteur de neige cumulée (en mètres), avec plages et libellés métiers
+      pour qualifier l’intensité .
+    columns:
+      - name: min_m
+        description: Borne minimale (incluse) de la hauteur de neige (m).
+        tests:
+          - not_null
+      - name: max_m
+        description: Borne maximale (exclue) de la hauteur de neige (m). Null si borne ouverte.
+      - name: label
+        description: Libellé descriptif (très faible, faible, modérée, forte, très forte).
+        tests:
+          - not_null
