@@ -14,5 +14,5 @@ exposures:
       email: comartinez.pro@gmail.com
     depends_on:
       - ref('fct_obs_hourly')
-      - ref('agg_daily_station')
+      - ref('agg_station_latest_24h')
       - ref('dim_stations')

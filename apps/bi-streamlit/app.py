@@ -13,44 +13,38 @@ st.title("Observations météo – marts DBT")
 
 @st.cache_data(ttl=60)  # 60s de cache = assez pour naviguer sans bloquer dbt
 def load_station_list():
-    """Liste des stations pour lesquelles on a des mesures."""
+    """Liste des stations pour lesquelles on a des mesures (depuis la vue latest)."""
     with duckdb.connect(DB_PATH, read_only=True) as con:
         return con.execute("""
-            select stations.station_id, stations.station_name, stations.latitude, stations.longitude
-            from marts.dim_stations stations
-            join marts.fct_obs_hourly obs on obs.station_id = stations.station_id
-            order by stations.station_name
+            select station_id, station_name, latitude, longitude
+            from marts.agg_station_latest_24h
+            order by station_name
         """).df()
 
 
 @st.cache_data(ttl=60)
 def load_latest_station_metrics():
-    """Dernière mesure par station + coord pour la carto."""
+    """Dernière mesure par station + coord pour la carto (via agg_station_latest_24h)."""
     with duckdb.connect(DB_PATH, read_only=True) as con:
         return con.execute(
             """
-            with ranked as (
-                select
-                    f.station_id,
-                    s.station_name,
-                    s.latitude,
-                    s.longitude,
-                    f.validity_time_utc,
-                    f.temp_24h_c,
-                    f.precip_24h_mm,
-                    f.snow_24h_m,
-                    f.precip_intensity_level,
-                    f.precip_intensity_label,
-                    row_number() over (
-                        partition by f.station_id
-                        order by f.validity_time_utc desc
-                    ) as rn
-                from marts.fct_obs_hourly f
-                join marts.dim_stations s on s.station_id = f.station_id
-            )
-            select station_id, station_name, latitude, longitude, validity_time_utc, temp_24h_c, precip_24h_mm, snow_24h_m, precip_intensity_level, precip_intensity_label
-            from ranked
-            where rn = 1
+            select
+                station_id,
+                station_name,
+                latitude,
+                longitude,
+                validity_time_utc,
+                temp_24h_c,
+                precip_24h_mm,
+                snow_24h_m,
+                precip_intensity_level,
+                precip_intensity_label,
+                temperature_c,
+                precip_mm_h,
+                wind_speed_kmh,
+                wind_sector,
+                visibility_cat
+            from marts.agg_station_latest_24h
             """
         ).df()
 
