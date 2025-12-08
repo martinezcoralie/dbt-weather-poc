@@ -33,16 +33,16 @@ dim_precip as (
         intensity_level,
         min_mm,
         max_mm,
-        label as precip_intensity_label
+        intensity_label
     from {{ ref('dim_precip_intensity') }}
 ),
 
 dim_snow as (
     select
-        snow_intensity_level,
+        intensity_level,
         min_m,
         max_m,
-        snow_intensity_label
+        intensity_label
     from {{ ref('dim_snow_intensity') }}
 )
 
@@ -90,12 +90,12 @@ select
     dim_beaufort.beaufort_label as wind_beaufort_label,
 
     -- interprétation BI des précip 24h
-    dim_precip.intensity_level as precip_intensity_level,
-    dim_precip.precip_intensity_label,
+    dim_precip.intensity_level as precip_24h_intensity_level,
+    dim_precip.intensity_label as precip_24h_intensity_label,
 
     -- interprétation BI de la neige 24h
-    dim_snow.snow_intensity_level,
-    dim_snow.snow_intensity_label
+    dim_snow.intensity_level as snow_24h_intensity_level,
+    dim_snow.intensity_label as snow_24h_intensity_label
 
 from obs_windows
 left join obs_features

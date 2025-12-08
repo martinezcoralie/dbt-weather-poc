@@ -52,25 +52,25 @@ def compute_champions(latest_metrics: pd.DataFrame) -> ChampionSet:
     warm_val, warm_df = _champion_extreme(latest_metrics, "temp_24h_c", pd.Series.max)
     cold_val, cold_df = _champion_extreme(latest_metrics, "temp_24h_c", pd.Series.min)
 
-    dry_df = latest_metrics[latest_metrics["precip_intensity_level"].fillna(0) <= 1]
+    dry_df = latest_metrics[latest_metrics["precip_24h_intensity_level"].fillna(0) <= 1]
 
     wet_level, wet_df, wet_lower = _top_by_level(
-        latest_metrics[latest_metrics["precip_intensity_level"].fillna(0) > 0],
-        "precip_intensity_level",
+        latest_metrics[latest_metrics["precip_24h_intensity_level"].fillna(0) > 0],
+        "precip_24h_intensity_level",
     )
-    wet_label = wet_df["precip_intensity_label"].iloc[0] if not wet_df.empty else None
+    wet_label = wet_df["precip_24h_intensity_label"].iloc[0] if not wet_df.empty else None
 
-    snow_filtered = latest_metrics[latest_metrics["snow_intensity_level"].fillna(0) >= 3]
-    snow_level, snow_df, snow_lower = _top_by_level(snow_filtered, "snow_intensity_level")
-    snow_label = snow_df["snow_intensity_label"].iloc[0] if not snow_df.empty else None
+    snow_filtered = latest_metrics[latest_metrics["snow_24h_intensity_level"].fillna(0) >= 3]
+    snow_level, snow_df, snow_lower = _top_by_level(snow_filtered, "snow_24h_intensity_level")
+    snow_label = snow_df["snow_24h_intensity_label"].iloc[0] if not snow_df.empty else None
 
     wet_other_levels = (
-        ", ".join(str(int(x)) for x in sorted(wet_lower["precip_intensity_level"].unique()))
+        ", ".join(str(int(x)) for x in sorted(wet_lower["precip_24h_intensity_level"].unique()))
         if not wet_lower.empty
         else "none"
     )
     snow_other_levels = (
-        ", ".join(str(int(x)) for x in sorted(snow_lower["snow_intensity_level"].unique()))
+        ", ".join(str(int(x)) for x in sorted(snow_lower["snow_24h_intensity_level"].unique()))
         if not snow_lower.empty
         else "none"
     )
@@ -88,7 +88,7 @@ def compute_champions(latest_metrics: pd.DataFrame) -> ChampionSet:
     )
     snow_points = (
         snow_df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
-            status="Neige 24h", icon_size=(snow_df["snow_intensity_level"] - 1) * 9
+            status="Neige 24h", icon_size=(snow_df["snow_24h_intensity_level"] - 1) * 9
         )
         if not snow_df.empty
         else pd.DataFrame()
@@ -96,7 +96,7 @@ def compute_champions(latest_metrics: pd.DataFrame) -> ChampionSet:
     wet_points = (
         wet_df.rename(columns={"longitude": "lon", "latitude": "lat"})
         .assign(status="Pluie 24h")
-        .assign(icon_size=(wet_df["precip_intensity_level"].clip(lower=2) - 1) * 9)
+        .assign(icon_size=(wet_df["precip_24h_intensity_level"].clip(lower=2) - 1) * 9)
         if not wet_df.empty
         else pd.DataFrame()
     )
