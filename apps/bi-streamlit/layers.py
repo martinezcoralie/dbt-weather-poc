@@ -3,6 +3,8 @@ from datetime import datetime, timezone
 import pandas as pd
 import pydeck as pdk
 
+from config import FLAG_DICT
+
 
 def compute_view_state(stations: pd.DataFrame) -> pdk.ViewState:
     """Center map on barycenter of stations (fallback to France-ish)."""
@@ -25,6 +27,7 @@ def freshness_badge(max_ts: datetime | None) -> tuple[str, str]:
     if delay_hours <= 6:
         return ("En retard", "#f97316")
     return ("Stale", "#ef4444")
+
 
 def _base_layer(stations: pd.DataFrame) -> pdk.Layer:
     stations_map = stations.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
@@ -61,36 +64,20 @@ def _icon_layer(data: pd.DataFrame, icon_url: str, size) -> pdk.Layer | None:
     )
 
 
-def list_card_html(title: str, station_text: str, count_text: str, accent: str, icon: str = "") -> str:
+def list_card_html(title: str, station_text: str, count_text: str, accent: str, icon_html: str = "") -> str:
     """Return the HTML for a list-style card (for use inside flex containers)."""
     import textwrap
 
     html = textwrap.dedent(
         f"""\
         <div class="focus-card" style="--card-accent: {accent};">
-            <div class="focus-card-title">{icon}{title}</div>
+            <div class="focus-card-title">{icon_html}{title}</div>
             <div class="focus-card-body">{station_text}</div>
             <div class="focus-card-count">{count_text}</div>
         </div>
         """
     ).strip()
     return html
-
-# Placeholder icon URLs (Twemoji). Replace with your own PNGs if desired.
-ICON_URLS = {
-    "🔥": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f525.png",
-    "🍃": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f343.png",
-    "🥶": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f976.png",
-    "🌧️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f327.png",
-    "💧💧": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a7.png",
-    "💧": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a7.png",
-    "🌤️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f324.png",
-    "❄️❄️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2744.png",
-    "🌨️🌨️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f328.png",
-    "💨": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a8.png",
-    "💨💨": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a8.png",
-    "😌": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f60c.png",
-}
 
 
 def build_focus_cards(latest: pd.DataFrame) -> tuple[str, list[tuple[str, pd.DataFrame, str]]]:
@@ -107,102 +94,27 @@ def build_focus_cards(latest: pd.DataFrame) -> tuple[str, list[tuple[str, pd.Dat
             raise KeyError(f"Flag column missing: {flag}")
         return df[df[flag].fillna(False)]
 
-    def add_focus(df: pd.DataFrame, title: str, icon: str, accent: str) -> None:
+    def add_focus(df: pd.DataFrame, title: str, icon_url: str, accent: str) -> None:
         nonlocal cards_html, map_options
         if df.empty:
             return
         df_points = df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status=title)
         count = len(df_points)
         names = ", ".join(sorted(df_points["station_name"].tolist()))
-        cards_html += list_card_html(title, names, f"{count} station(s)", accent, icon=f"{icon} ")
-        icon_url = ICON_URLS.get(icon.strip())
-        if icon_url:
-            map_options.append((icon, df_points, icon_url))
+        icon_html = (
+            f'<img src="{icon_url}" alt="{title}" width="18" height="18" '
+            'style="vertical-align:middle; margin-right:6px;" />'
+        )
+        cards_html += list_card_html(title, names, f"{count} station(s)", accent, icon_html=icon_html)
+        map_options.append((title, df_points, icon_url))
 
-    # Temp focus
-    add_focus(
-        pick_with_flag(latest, "is_temp_comfort"),
-        "Confort thermique",
-        "🔥",
-        "#ef4444",
-    )
-    add_focus(
-        pick_with_flag(latest, "is_temp_cool"),
-        "Frais",
-        "🍃",
-        "#0ea5e9",
-    )
-    add_focus(
-        pick_with_flag(latest, "is_temp_cold"),
-        "Grand froid",
-        "🥶",
-        "#0ea5e9",
-    )
-
-    # Rain focus
-    add_focus(
-        pick_with_flag(latest, "is_rain_heavy"),
-        "Pluie soutenue",
-        "🌧️",
-        "#0ea5e9",
-    )
-    add_focus(
-        pick_with_flag(latest, "is_rain_moderate"),
-        "Pluie modérée",
-        "💧💧",
-        "#38bdf8",
-    )
-    add_focus(
-        pick_with_flag(latest, "is_rain_drops"),
-        "Quelques gouttes",
-        "💧",
-        "#60a5fa",
-    )
-    add_focus(
-        pick_with_flag(latest, "is_rain_dry"),
-        "Au sec",
-        "🌤️",
-        "#22c55e",
-    )
-
-    # Snow focus
-    add_focus(
-        pick_with_flag(latest, "is_snow_light"),
-        "Neige faible",
-        "❄️❄️",
-        "#38bdf8",
-    )
-    add_focus(
-        pick_with_flag(latest, "is_snow_heavy"),
-        "Neige forte",
-        "🌨️🌨️",
-        "#0ea5e9",
-    )
-
-    # Wind focus
-    add_focus(
-        pick_with_flag(latest, "is_wind_breeze"),
-        "Brise",
-        "🍃",
-        "#38bdf8",
-    )
-    add_focus(
-        pick_with_flag(latest, "is_wind_strong"),
-        "Vent fort",
-        "💨",
-        "#0ea5e9",
-    )
-    add_focus(
-        pick_with_flag(latest, "is_wind_very_strong"),
-        "Vent très fort",
-        "💨💨",
-        "#0b7a9b",
-    )
-    add_focus(
-        pick_with_flag(latest, "is_wind_calm"),
-        "Pas de vent",
-        "😌",
-        "#22c55e",
-    )
+    for flag, meta in FLAG_DICT.items():
+        df_flag = pick_with_flag(latest, flag)
+        add_focus(
+            df_flag,
+            meta["title"],
+            meta["icon_url"],
+            meta["accent"],
+        )
 
     return cards_html, map_options
