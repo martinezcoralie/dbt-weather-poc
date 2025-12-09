@@ -170,6 +170,58 @@ def main() -> None:
             icon="🌨️🌨️ "
         )
 
+    # Vent brise (levels 2 ou 3)
+    wind_breeze = latest[latest["wind_beaufort"].fillna(-1).isin([2, 3])] if not latest.empty else latest
+    nb_wind_breeze = len(wind_breeze)
+    names_wind_breeze = sorted(wind_breeze["station_name"].tolist()) if nb_wind_breeze > 0 else []
+    if nb_wind_breeze > 0:
+        cards_html += list_card_html(
+            "Brise",
+            ", ".join(names_wind_breeze),
+            f"{nb_wind_breeze} station(s)",
+            "#38bdf8",
+            icon="🍃 "
+        )
+
+    # Vent fort (level 4)
+    wind_strong = latest[latest["wind_beaufort"].fillna(-1) == 4] if not latest.empty else latest
+    nb_wind_strong = len(wind_strong)
+    names_wind_strong = sorted(wind_strong["station_name"].tolist()) if nb_wind_strong > 0 else []
+    if nb_wind_strong > 0:
+        cards_html += list_card_html(
+            "Vent fort",
+            ", ".join(names_wind_strong),
+            f"{nb_wind_strong} station(s)",
+            "#0ea5e9",
+            icon="💨 "
+        )
+
+    # Vent très fort (level 5)
+    wind_very_strong = latest[latest["wind_beaufort"].fillna(-1) == 5] if not latest.empty else latest
+    nb_wind_very_strong = len(wind_very_strong)
+    names_wind_very_strong = sorted(wind_very_strong["station_name"].tolist()) if nb_wind_very_strong > 0 else []
+    if nb_wind_very_strong > 0:
+        cards_html += list_card_html(
+            "Vent très fort",
+            ", ".join(names_wind_very_strong),
+            f"{nb_wind_very_strong} station(s)",
+            "#0b7a9b",
+            icon="💨💨 "
+        )
+
+    # Pas de vent (level 1)
+    wind_calm = latest[latest["wind_beaufort"].fillna(-1) == 1] if not latest.empty else latest
+    nb_wind_calm = len(wind_calm)
+    names_wind_calm = sorted(wind_calm["station_name"].tolist()) if nb_wind_calm > 0 else []
+    if nb_wind_calm > 0:
+        cards_html += list_card_html(
+            "Pas de vent",
+            ", ".join(names_wind_calm),
+            f"{nb_wind_calm} station(s)",
+            "#22c55e",
+            icon="😌 "
+        )
+
     if cards_html:
         st.markdown(
             f"""
