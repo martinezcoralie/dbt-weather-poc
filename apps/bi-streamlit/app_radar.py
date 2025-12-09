@@ -96,6 +96,32 @@ def main() -> None:
             with col:
                 metric_card(label_txt, val, names, accent)
 
+    # SECTION 3 : pluie
+    st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu fuis la pluie</div>', unsafe_allow_html=True)
+    rain_df = latest.dropna(subset=["precip_24h_intensity_level", "precip_24h_intensity_label"]) if not latest.empty else latest
+
+    if rain_df.empty:
+        st.info("Aucune donnée pluie disponible.")
+    else:
+        rain_levels = (
+            rain_df[["precip_24h_intensity_level", "precip_24h_intensity_label"]]
+            .drop_duplicates()
+            .sort_values(by="precip_24h_intensity_level", ascending=False)
+        )
+
+        palette_rain = ["#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0ea5e9"]
+
+        cols = st.columns(len(rain_levels))
+        for col, (_, row) in zip(cols, rain_levels.iterrows()):
+            lvl = row["precip_24h_intensity_level"]
+            label_txt = row["precip_24h_intensity_label"]
+            subset = rain_df[rain_df["precip_24h_intensity_level"] == lvl]
+            names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
+            val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
+            accent = palette_rain[min(int(lvl) - 1, len(palette_rain) - 1)] if lvl is not None else "#475569"
+            with col:
+                metric_card(label_txt, val, names, accent)
+
 
 if __name__ == "__main__":
     main()
