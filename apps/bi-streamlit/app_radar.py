@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from champions import metric_card
+from champions import list_card, list_card_html, metric_card
 from data import (
     format_last_update,
     load_latest_station_metrics,
@@ -56,84 +56,129 @@ def main() -> None:
     # )
     st.caption(subtitle)
 
-    # SECTION 1 : confort thermique
-    st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu cherches le confort thermique</div>', unsafe_allow_html=True)
-    temp_df = latest.dropna(subset=["temp_24h_intensity_label", "temp_24h_intensity_level"]) if not latest.empty else latest
+    # Focus card : stations les plus douces (temp_24h_intensity_level 4 ou 5)
+    high_temp = latest[latest["temp_24h_intensity_level"].fillna(0) >= 4] if not latest.empty else latest
+    nb_high = len(high_temp)
+    names_high = sorted(high_temp["station_name"].tolist()) if nb_high > 0 else []
 
-    if temp_df.empty:
-        st.info("Aucune donnée température disponible.")
-    else:
-        levels = (
-            temp_df[["temp_24h_intensity_level", "temp_24h_intensity_label"]]
-            .drop_duplicates()
-            .sort_values(by="temp_24h_intensity_level", ascending=False)
+    cold_temp = latest[latest["temp_24h_intensity_level"].fillna(0).isin([1, 2])] if not latest.empty else latest
+    nb_cold = len(cold_temp)
+    names_cold = sorted(cold_temp["station_name"].tolist()) if nb_cold > 0 else []
+
+    cool_temp = latest[latest["temp_24h_intensity_level"].fillna(0) == 3] if not latest.empty else latest
+    nb_cool = len(cool_temp)
+    names_cool = sorted(cool_temp["station_name"].tolist()) if nb_cool > 0 else []
+
+    cards_html = ""
+    if nb_high > 0:
+        cards_html += list_card_html(
+            "Confort thermique",
+            ", ".join(names_high),
+            f"{nb_high} station(s)",
+            "#ef4444",
+            icon="🔥 ",
+        )
+    if nb_cool > 0:
+        cards_html += list_card_html(
+            "Frais",
+            ", ".join(names_cool),
+            f"{nb_cool} station(s)",
+            "#0ea5e9",
+            icon="🍃 ",
+        )
+    if nb_cold > 0:
+        cards_html += list_card_html(
+            "Grand froid",
+            ", ".join(names_cold),
+            f"{nb_cold} station(s)",
+            "#0ea5e9",
+            icon="❄️ ",
         )
 
-        # Palette du froid (1) vers le chaud (max)
-        palette = ["#0369a1", "#0ea5e9", "#22c55e", "#f59e0b", "#f97316", "#ef4444", "#b91c1c"]
-
-        cols = st.columns(len(levels), gap="small")
-        for col, (_, row) in zip(cols, levels.iterrows()):
-            lvl = row["temp_24h_intensity_level"]
-            label_txt = row["temp_24h_intensity_label"]
-            subset = temp_df[temp_df["temp_24h_intensity_level"] == lvl]
-            names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
-            val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
-            accent = palette[int(lvl) - 1] if lvl is not None else "#475569"
-            with col:
-                metric_card(label_txt, val, names, accent, emoji=intensity_emoji('temp', int(lvl)) if lvl is not None else None)
-
-    # SECTION 2 : neige
-    st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu cherches la neige</div>', unsafe_allow_html=True)
-    snow_df = latest.dropna(subset=["snow_24h_intensity_level", "snow_24h_intensity_label"]) if not latest.empty else latest
-
-    if snow_df.empty:
-        st.info("Aucune donnée neige disponible.")
-    else:
-        snow_levels = (
-            snow_df[["snow_24h_intensity_level", "snow_24h_intensity_label"]]
-            .drop_duplicates()
-            .sort_values(by="snow_24h_intensity_level", ascending=False)
+    # Highlight pluie & sec as focus cards (wrap) appended to same container
+    heavy_rain = latest[latest["precip_24h_intensity_level"].fillna(0).isin([4, 5])] if not latest.empty else latest
+    nb_heavy_rain = len(heavy_rain)
+    names_heavy_rain = sorted(heavy_rain["station_name"].tolist()) if nb_heavy_rain > 0 else []
+    if nb_heavy_rain > 0:
+        cards_html += list_card_html(
+            "Pluie soutenue",
+            ", ".join(names_heavy_rain),
+            f"{nb_heavy_rain} station(s)",
+            "#0ea5e9",
+            icon="🌧️ "
         )
 
-        palette_snow = ["#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0ea5e9"]
-
-        cols = st.columns(len(snow_levels), gap="small")
-        for col, (_, row) in zip(cols, snow_levels.iterrows()):
-            lvl = row["snow_24h_intensity_level"]
-            label_txt = row["snow_24h_intensity_label"]
-            subset = snow_df[snow_df["snow_24h_intensity_level"] == lvl]
-            names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
-            val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
-            accent = palette_snow[min(int(lvl) - 1, len(palette_snow) - 1)] if lvl is not None else "#475569"
-            with col:
-                metric_card(label_txt, val, names, accent, emoji=intensity_emoji('snow', int(lvl)) if lvl is not None else None)
-
-    # SECTION 3 : pluie
-    st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu fuis la pluie</div>', unsafe_allow_html=True)
-    rain_df = latest.dropna(subset=["precip_24h_intensity_level", "precip_24h_intensity_label"]) if not latest.empty else latest
-
-    if rain_df.empty:
-        st.info("Aucune donnée pluie disponible.")
-    else:
-        rain_levels = (
-            rain_df[["precip_24h_intensity_level", "precip_24h_intensity_label"]]
-            .drop_duplicates()
-            .sort_values(by="precip_24h_intensity_level", ascending=False)
+    moderate_rain = latest[latest["precip_24h_intensity_level"].fillna(0) == 3] if not latest.empty else latest
+    nb_moderate_rain = len(moderate_rain)
+    names_moderate_rain = sorted(moderate_rain["station_name"].tolist()) if nb_moderate_rain > 0 else []
+    if nb_moderate_rain > 0:
+        cards_html += list_card_html(
+            "Pluie modérée",
+            ", ".join(names_moderate_rain),
+            f"{nb_moderate_rain} station(s)",
+            "#38bdf8",
+            icon="💧 "
         )
 
-        palette_rain = ["#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0ea5e9"]
+    few_drops = latest[(latest["precip_24h_intensity_level"].fillna(0) == 1) & (latest["precip_24h_mm"].fillna(0) > 0)] if not latest.empty else latest
+    nb_few_drops = len(few_drops)
+    names_few_drops = sorted(few_drops["station_name"].tolist()) if nb_few_drops > 0 else []
+    if nb_few_drops > 0:
+        cards_html += list_card_html(
+            "Quelques gouttes",
+            ", ".join(names_few_drops),
+            f"{nb_few_drops} station(s)",
+            "#60a5fa",
+            icon="💧 "
+        )
 
-        cols = st.columns(len(rain_levels), gap="small")
-        for col, (_, row) in zip(cols, rain_levels.iterrows()):
-            lvl = row["precip_24h_intensity_level"]
-            label_txt = row["precip_24h_intensity_label"]
-            subset = rain_df[rain_df["precip_24h_intensity_level"] == lvl]
-            names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
-            val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
-            accent = palette_rain[min(int(lvl) - 1, len(palette_rain) - 1)] if lvl is not None else "#475569"
-            with col:
-                metric_card(label_txt, val, names, accent, emoji=intensity_emoji('rain', int(lvl)) if lvl is not None else None)
+    dry_rain = latest[latest["precip_24h_mm"].fillna(0) == 0] if not latest.empty else latest
+    nb_dry = len(dry_rain)
+    names_dry = sorted(dry_rain["station_name"].tolist()) if nb_dry > 0 else []
+    if nb_dry > 0:
+        cards_html += list_card_html(
+            "Au sec",
+            ", ".join(names_dry),
+            f"{nb_dry} station(s)",
+            "#22c55e",
+            icon="🌤️ "
+        )
+
+    # Neige faible (levels 2 ou 3)
+    snow_light = latest[latest["snow_24h_intensity_level"].fillna(0).isin([2, 3])] if not latest.empty else latest
+    nb_snow_light = len(snow_light)
+    names_snow_light = sorted(snow_light["station_name"].tolist()) if nb_snow_light > 0 else []
+    if nb_snow_light > 0:
+        cards_html += list_card_html(
+            "Neige faible",
+            ", ".join(names_snow_light),
+            f"{nb_snow_light} station(s)",
+            "#38bdf8",
+            icon="❄️❄️ "
+        )
+
+    # Neige forte (levels 4 ou 5)
+    snow_heavy = latest[latest["snow_24h_intensity_level"].fillna(0).isin([4, 5])] if not latest.empty else latest
+    nb_snow_heavy = len(snow_heavy)
+    names_snow_heavy = sorted(snow_heavy["station_name"].tolist()) if nb_snow_heavy > 0 else []
+    if nb_snow_heavy > 0:
+        cards_html += list_card_html(
+            "Neige forte",
+            ", ".join(names_snow_heavy),
+            f"{nb_snow_heavy} station(s)",
+            "#0ea5e9",
+            icon="🌨️🌨️ "
+        )
+
+    if cards_html:
+        st.markdown(
+            f"""
+            <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:stretch; margin:12px 0 4px;">
+                {cards_html}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     # SECTION 4 : vent
     st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu veux éviter le vent fort</div>', unsafe_allow_html=True)

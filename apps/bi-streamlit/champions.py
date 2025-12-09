@@ -130,33 +130,66 @@ def compute_champions(latest_metrics: pd.DataFrame) -> ChampionSet:
 def metric_card(title: str, value: str, detail: str, accent: str, emoji: str | None = None) -> None:
     """Render a small stat card with optional emoji row."""
     import streamlit as st  # local import to avoid circularity
+    import textwrap
 
-    st.markdown(
-        f"""
-        <div style="
-            width: 240px;
-            max-width: 260px;
-            min-height: 170px;
-            padding: 14px 16px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, {accent} 0%, #0f172a 120%);
-            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
-            color: #f8fafc;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            ">
-            <div style="font-size: 18px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8;">
-                {title}
-            </div>
-            {f'<div style="font-size:18px; margin:4px 0;">{emoji}</div>' if emoji else ''}
-            <div style="font-size: 24px; font-weight: 700; margin: 6px 0;">
-                {value}
-            </div>
-            <div style="font-size: 14px; opacity: 0.9;">
-                {detail}
-            </div>
+    emoji_row = f'<div style="font-size:18px; margin:4px 0;">{emoji}</div>' if emoji else ""
+    html = textwrap.dedent(
+        f"""\
+        <div style="width: 240px; max-width: 260px; min-height: 170px; padding: 14px 16px;
+                   border-radius: 14px;
+                   background: linear-gradient(135deg, {accent} 0%, #0f172a 120%);
+                   box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+                   color: #f8fafc;
+                   display: flex;
+                   flex-direction: column;
+                   justify-content: space-between;
+                   gap: 4px;">
+            <div style="font-size: 18px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8;">{title}</div>
+            {emoji_row}
+            <div style="font-size: 24px; font-weight: 700; margin: 6px 0;">{value}</div>
+            <div style="font-size: 14px; opacity: 0.9;">{detail}</div>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
+        """
+    ).strip()
+
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def list_card(title: str, stations: list[str] | str, count: int, accent: str, emoji: str | None = None) -> None:
+    """Render a compact card showing a list of stations and a count at the bottom."""
+    import streamlit as st  # local import to avoid circularity
+    import textwrap
+
+    if isinstance(stations, str):
+        station_text = stations or "Aucune station"
+    else:
+        station_text = ", ".join(sorted([s for s in stations if s])) or "Aucune station"
+
+    count_text = f"{count} station{'s' if count != 1 else ''}"
+    icon = f"{emoji} " if emoji else ""
+
+    html = list_card_html(title, station_text, count_text, accent, icon)
+    st.markdown(html, unsafe_allow_html=True)
+
+
+def list_card_html(title: str, station_text: str, count_text: str, accent: str, icon: str = "") -> str:
+    """Return the HTML for a list-style card (for use inside flex containers)."""
+    import textwrap
+
+    html = textwrap.dedent(
+        f"""\
+        <div style="width: 240px; max-width: 260px; min-height: 150px; padding: 14px 16px;
+                   border-radius: 14px;
+                   background: linear-gradient(135deg, {accent} 0%, #0f172a 120%);
+                   box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+                   color: #f8fafc;
+                   display: flex;
+                   flex-direction: column;
+                   gap: 8px;">
+            <div style="font-size: 18px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8;">{icon}{title}</div>
+            <div style="font-size: 13px; line-height: 1.4; opacity: 0.9;">{station_text}</div>
+            <div style="font-size: 12px; font-weight: 700; opacity: 0.92; align-self: flex-end;">{count_text}</div>
+        </div>
+        """
+    ).strip()
+    return html
