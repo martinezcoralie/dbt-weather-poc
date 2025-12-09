@@ -122,6 +122,33 @@ def main() -> None:
             with col:
                 metric_card(label_txt, val, names, accent)
 
+    # SECTION 4 : vent
+    st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu veux éviter le vent fort</div>', unsafe_allow_html=True)
+    wind_df = latest.dropna(subset=["wind_beaufort", "wind_beaufort_label"]) if not latest.empty else latest
+
+    if wind_df.empty:
+        st.info("Aucune donnée vent disponible.")
+    else:
+        wind_levels = (
+            wind_df[["wind_beaufort", "wind_beaufort_label"]]
+            .drop_duplicates()
+            .sort_values(by="wind_beaufort", ascending=False)
+        )
+
+        palette_wind = ["#cffafe", "#a5f3fc", "#67e8f9", "#22d3ee", "#06b6d4", "#0891b2", "#0e7490", "#155e75", "#164e63"]
+
+        cols = st.columns(len(wind_levels))
+        for col, (_, row) in zip(cols, wind_levels.iterrows()):
+            lvl = row["wind_beaufort"]
+            label_txt = row["wind_beaufort_label"]
+            subset = wind_df[wind_df["wind_beaufort"] == lvl]
+            names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
+            val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
+            idx = min(int(lvl), len(palette_wind) - 1) if lvl is not None else 0
+            accent = palette_wind[idx]
+            with col:
+                metric_card(label_txt, val, names, accent)
+
 
 if __name__ == "__main__":
     main()
