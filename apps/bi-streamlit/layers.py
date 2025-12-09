@@ -1,3 +1,5 @@
+"""UI/pydeck helpers for the map and focus cards."""
+
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -29,7 +31,8 @@ def freshness_badge(max_ts: datetime | None) -> tuple[str, str]:
     return ("Stale", "#ef4444")
 
 
-def _base_layer(stations: pd.DataFrame) -> pdk.Layer:
+def build_station_scatter_layer(stations: pd.DataFrame) -> pdk.Layer:
+    """Grey scatter layer for all stations (map background)."""
     stations_map = stations.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
         status="Station"
     )
@@ -43,7 +46,8 @@ def _base_layer(stations: pd.DataFrame) -> pdk.Layer:
     )
 
 
-def _icon_layer(data: pd.DataFrame, icon_url: str, size) -> pdk.Layer | None:
+def build_icon_layer(data: pd.DataFrame, icon_url: str, size) -> pdk.Layer | None:
+    """Icon layer for a given category; returns None when no points to display."""
     if data is None or data.empty:
         return None
 
@@ -64,8 +68,8 @@ def _icon_layer(data: pd.DataFrame, icon_url: str, size) -> pdk.Layer | None:
     )
 
 
-def list_card_html(title: str, station_text: str, count_text: str, accent: str, icon_html: str = "") -> str:
-    """Return the HTML for a list-style card (for use inside flex containers)."""
+def render_focus_card_html(title: str, station_text: str, count_text: str, accent: str, icon_html: str = "") -> str:
+    """Render the HTML for a focus card (used inside the flex container)."""
     import textwrap
 
     html = textwrap.dedent(
@@ -105,7 +109,7 @@ def build_focus_cards(latest: pd.DataFrame) -> tuple[str, list[tuple[str, pd.Dat
             f'<img src="{icon_url}" alt="{title}" width="18" height="18" '
             'style="vertical-align:middle; margin-right:6px;" />'
         )
-        cards_html += list_card_html(title, names, f"{count} station(s)", accent, icon_html=icon_html)
+        cards_html += render_focus_card_html(title, names, f"{count} station(s)", accent, icon_html=icon_html)
         map_options.append((title, df_points, icon_url))
 
     for flag, meta in FLAG_DICT.items():

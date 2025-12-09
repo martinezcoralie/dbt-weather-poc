@@ -1,13 +1,16 @@
+"""Main Streamlit page (map + focus cards for Ariège weather)."""
+
 from __future__ import annotations
 
 import streamlit as st
 import pydeck as pdk
 
-from layers import _base_layer, _icon_layer, compute_view_state, freshness_badge, build_focus_cards
+from layers import build_station_scatter_layer, build_icon_layer, compute_view_state, freshness_badge, build_focus_cards
 from data import format_last_update, load_latest_station_metrics, load_latest_timestamp
 
 
 def main() -> None:
+    """Render the main page: freshness header, focus cards, PyDeck map."""
     st.set_page_config(page_title="Radar des spots météo en Ariège", layout="wide")
 
     st.markdown(
@@ -145,10 +148,10 @@ def main() -> None:
             label_visibility="collapsed",
         )
 
-        layers = [_base_layer(stations)]
+        layers = [build_station_scatter_layer(stations)]
         for label, df_points, icon_url in map_options:
             if label in selected:
-                layer = _icon_layer(df_points, icon_url, 28)
+                layer = build_icon_layer(df_points, icon_url, 28)
                 if layer:
                     layers.append(layer)
         st.pydeck_chart(

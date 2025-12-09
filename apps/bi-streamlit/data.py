@@ -1,3 +1,5 @@
+"""Read marts from DuckDB for the Streamlit dashboard."""
+
 import os
 from datetime import datetime
 
