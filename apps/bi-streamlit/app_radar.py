@@ -7,7 +7,16 @@ import streamlit as st
 import pydeck as pdk
 
 from champions import list_card, list_card_html
-from layers import HOT_ICON_URL, _base_layer, _icon_layer, compute_view_state, freshness_badge
+from layers import (
+    COLD_ICON_URL,
+    HOT_ICON_URL,
+    RAIN_ICON_URL,
+    SNOW_ICON_URL,
+    _base_layer,
+    _icon_layer,
+    compute_view_state,
+    freshness_badge,
+)
 from data import (
     format_last_update,
     load_latest_station_metrics,
@@ -17,21 +26,6 @@ from data import (
 
 def main() -> None:
     st.set_page_config(page_title="Radar des spots météo en Ariège", layout="wide")
-
-    def intensity_emoji(kind: str, level: int | None) -> str:
-        """Quick visual cue by intensity."""
-        if level is None:
-            return ""
-        if kind == "temp":
-            # 1 = froid, max = très chaud
-            return "🧊" * max(1, min(3, 4 - min(level, 4))) if level <= 3 else "🔥" * max(1, min(3, level - 2))
-        if kind == "snow":
-            return "❄️" * max(1, min(4, level))
-        if kind == "rain":
-            return "💧" * max(1, min(4, level))
-        if kind == "wind":
-            return "💨" * max(1, min(4, level // 3 + 1))
-        return ""
 
     # Chargement des données
     max_ts = load_latest_timestamp()
@@ -49,12 +43,6 @@ def main() -> None:
         f'</div>',
         unsafe_allow_html=True,
     )
-    # st.markdown(
-    #     '<div style="font-size:16px; color:#475569;">'
-    #     'Classement des stations météo sur les dernières 24h : confort thermique, neige, pluie, vent.'
-    #     '</div>',
-    #     unsafe_allow_html=True,
-    # )
     st.caption(subtitle)
 
     # Focus card : stations les plus douces (temp_24h_intensity_level 4 ou 5)
@@ -183,30 +171,17 @@ def main() -> None:
             "#38bdf8",
             icon="🍃 "
         )
-    # Vent modéré (level 3)
-    wind_strong = latest[latest["wind_beaufort"].fillna(-1) == 3] if not latest.empty else latest
-    nb_wind_strong = len(wind_strong)
-    names_wind_strong = sorted(wind_strong["station_name"].tolist()) if nb_wind_strong > 0 else []
-    if nb_wind_strong > 0:
-        cards_html += list_card_html(
-            "Vent modéré",
-            ", ".join(names_wind_strong),
-            f"{nb_wind_strong} station(s)",
-            "#0ea5e9",
-            icon="💨 "
-        )
-
     # Vent fort (level 4)
-    wind_strong = latest[latest["wind_beaufort"].fillna(-1) == 4] if not latest.empty else latest
-    nb_wind_strong = len(wind_strong)
-    names_wind_strong = sorted(wind_strong["station_name"].tolist()) if nb_wind_strong > 0 else []
-    if nb_wind_strong > 0:
+    wind_strong4 = latest[latest["wind_beaufort"].fillna(-1) == 4] if not latest.empty else latest
+    nb_wind_strong4 = len(wind_strong4)
+    names_wind_strong4 = sorted(wind_strong4["station_name"].tolist()) if nb_wind_strong4 > 0 else []
+    if nb_wind_strong4 > 0:
         cards_html += list_card_html(
             "Vent fort",
-            ", ".join(names_wind_strong),
-            f"{nb_wind_strong} station(s)",
+            ", ".join(names_wind_strong4),
+            f"{nb_wind_strong4} station(s)",
             "#0ea5e9",
-            icon="💨💨 "
+            icon="💨 "
         )
 
     # Vent très fort (level 5)
@@ -219,8 +194,50 @@ def main() -> None:
             ", ".join(names_wind_very_strong),
             f"{nb_wind_very_strong} station(s)",
             "#0b7a9b",
-            icon="💨💨💨 "
+            icon="💨💨 "
         )
+
+    # Pas de vent (level 1)
+    wind_calm = latest[latest["wind_beaufort"].fillna(-1) == 1] if not latest.empty else latest
+    nb_wind_calm = len(wind_calm)
+    names_wind_calm = sorted(wind_calm["station_name"].tolist()) if nb_wind_calm > 0 else []
+    if nb_wind_calm > 0:
+        cards_html += list_card_html(
+            "Pas de vent",
+            ", ".join(names_wind_calm),
+            f"{nb_wind_calm} station(s)",
+            "#22c55e",
+            icon="😌 "
+        )
+
+    # Options de couches pour la carte
+    map_options = []
+    if nb_high > 0:
+        map_options.append(("🔥", high_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Confort thermique"), HOT_ICON_URL))
+    if nb_cool > 0:
+        map_options.append(("🍃", cool_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Frais"), COLD_ICON_URL))
+    if nb_cold > 0:
+        map_options.append(("❄️❄️", cold_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Grand froid"), COLD_ICON_URL))
+    if nb_heavy_rain > 0:
+        map_options.append(("🌧️", heavy_rain.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Pluie soutenue"), RAIN_ICON_URL))
+    if nb_moderate_rain > 0:
+        map_options.append(("💧💧", moderate_rain.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Pluie modérée"), RAIN_ICON_URL))
+    if nb_few_drops > 0:
+        map_options.append(("💧", few_drops.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Quelques gouttes"), RAIN_ICON_URL))
+    if nb_dry > 0:
+        map_options.append(("🌤️", dry_rain.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Au sec"), RAIN_ICON_URL))
+    if nb_snow_light > 0:
+        map_options.append(("❄️❄️", snow_light.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Neige faible"), SNOW_ICON_URL))
+    if nb_snow_heavy > 0:
+        map_options.append(("🌨️🌨️", snow_heavy.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Neige forte"), SNOW_ICON_URL))
+    if nb_wind_breeze > 0:
+        map_options.append(("🍃 ", wind_breeze.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Brise"), COLD_ICON_URL))
+    if nb_wind_strong4 > 0:
+        map_options.append(("💨", wind_strong4.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Vent fort"), RAIN_ICON_URL))
+    if nb_wind_very_strong > 0:
+        map_options.append(("💨💨", wind_very_strong.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Vent très fort"), RAIN_ICON_URL))
+    if nb_wind_calm > 0:
+        map_options.append(("😌", wind_calm.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Pas de vent"), COLD_ICON_URL))
 
     tabs = st.tabs(["Focus stations", "Carte"])
     with tabs[0]:
@@ -241,22 +258,21 @@ def main() -> None:
             unsafe_allow_html=True,
         )
         stations = latest[["station_id", "station_name", "latitude", "longitude"]].drop_duplicates() if not latest.empty else latest
+        options_labels = [label for label, _, _ in map_options]
         selected = st.pills(
             "Spots à afficher",
-            ["🔥"],
+            options_labels,
             selection_mode="multi",
-            default=["🔥"],
+            default=options_labels,
             label_visibility="collapsed",
         )
-        show_hot = "🔥" in selected
+
         layers = [_base_layer(stations)]
-        if show_hot and nb_high > 0:
-            hot_points = high_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
-                status="Confort thermique"
-            )
-            hot_layer = _icon_layer(hot_points, HOT_ICON_URL, 28)
-            if hot_layer:
-                layers.append(hot_layer)
+        for label, df_points, icon_url in map_options:
+            if label in selected:
+                layer = _icon_layer(df_points, icon_url, 28)
+                if layer:
+                    layers.append(layer)
         st.pydeck_chart(
             pdk.Deck(
                 layers=layers,
