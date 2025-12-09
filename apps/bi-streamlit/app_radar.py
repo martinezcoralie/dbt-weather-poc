@@ -7,13 +7,12 @@ import streamlit as st
 import pydeck as pdk
 
 from champions import list_card, list_card_html
-from layers import _base_layer, compute_view_state
+from layers import HOT_ICON_URL, _base_layer, _icon_layer, compute_view_state, freshness_badge
 from data import (
     format_last_update,
     load_latest_station_metrics,
     load_latest_timestamp,
 )
-from layers import freshness_badge
 
 
 def main() -> None:
@@ -242,11 +241,27 @@ def main() -> None:
             unsafe_allow_html=True,
         )
         stations = latest[["station_id", "station_name", "latitude", "longitude"]].drop_duplicates() if not latest.empty else latest
+        selected = st.pills(
+            "Spots à afficher",
+            ["🔥"],
+            selection_mode="multi",
+            default=["🔥"],
+            label_visibility="collapsed",
+        )
+        show_hot = "🔥" in selected
+        layers = [_base_layer(stations)]
+        if show_hot and nb_high > 0:
+            hot_points = high_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
+                status="Confort thermique"
+            )
+            hot_layer = _icon_layer(hot_points, HOT_ICON_URL, 28)
+            if hot_layer:
+                layers.append(hot_layer)
         st.pydeck_chart(
             pdk.Deck(
-                layers=[_base_layer(stations)],
+                layers=layers,
                 initial_view_state=compute_view_state(stations),
-                tooltip={"text": "{station_name}\n(lat: {latitude}, lon: {longitude})"},
+                tooltip={"text": "{station_name}\n{status}\n(lat: {lat}, lon: {lon})"},
             )
         )
 
