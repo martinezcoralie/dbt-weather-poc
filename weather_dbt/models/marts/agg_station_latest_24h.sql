@@ -24,6 +24,21 @@ with ranked as (
         s.station_name,
         s.latitude,
         s.longitude,
+        /* Pre-calculated focus flags for BI/dashboard */
+        coalesce(f.temp_24h_intensity_level, 0) >= 4 as is_temp_comfort,
+        coalesce(f.temp_24h_intensity_level, 0) = 3 as is_temp_cool,
+        coalesce(f.temp_24h_intensity_level, 0) in (1, 2) as is_temp_cold,
+        coalesce(f.precip_24h_intensity_level, 0) in (4, 5) as is_rain_heavy,
+        coalesce(f.precip_24h_intensity_level, 0) = 3 as is_rain_moderate,
+        coalesce(f.precip_24h_intensity_level, 0) = 1
+            and coalesce(f.precip_24h_mm, 0) > 0 as is_rain_drops,
+        coalesce(f.precip_24h_mm, 0) = 0 as is_rain_dry,
+        coalesce(f.snow_24h_intensity_level, 0) in (2, 3) as is_snow_light,
+        coalesce(f.snow_24h_intensity_level, 0) in (4, 5) as is_snow_heavy,
+        coalesce(f.wind_beaufort, -1) in (2, 3) as is_wind_breeze,
+        coalesce(f.wind_beaufort, -1) = 4 as is_wind_strong,
+        coalesce(f.wind_beaufort, -1) = 5 as is_wind_very_strong,
+        coalesce(f.wind_beaufort, -1) = 1 as is_wind_calm,
         row_number() over (
             partition by f.station_id
             order by f.validity_time_utc desc
@@ -54,6 +69,19 @@ select
     humidity_pct,
     wind_speed_kmh,
     wind_sector,
-    visibility_cat
+    visibility_cat,
+    is_temp_comfort,
+    is_temp_cool,
+    is_temp_cold,
+    is_rain_heavy,
+    is_rain_moderate,
+    is_rain_drops,
+    is_rain_dry,
+    is_snow_light,
+    is_snow_heavy,
+    is_wind_breeze,
+    is_wind_strong,
+    is_wind_very_strong,
+    is_wind_calm
 from ranked
 where rn = 1

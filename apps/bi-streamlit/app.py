@@ -117,7 +117,7 @@ def main() -> None:
 
     cards_html, map_options = build_focus_cards(latest)
 
-    tabs = st.tabs(["Focus stations", "Carte"])
+    tabs = st.tabs(["Synthèse", "Carte"])
     with tabs[0]:
         if cards_html:
             st.markdown(

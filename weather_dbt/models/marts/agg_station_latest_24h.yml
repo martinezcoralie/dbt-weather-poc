@@ -56,3 +56,29 @@ models:
         description: Secteur du vent la plus récent.
       - name: visibility_cat
         description: Catégorie de visibilité la plus récente.
+      - name: is_temp_comfort
+        description: Flag BI — station en confort thermique (temp_24h_intensity_level >= 4).
+      - name: is_temp_cool
+        description: Flag BI — station fraîche (temp_24h_intensity_level = 3).
+      - name: is_temp_cold
+        description: Flag BI — station en froid marqué (temp_24h_intensity_level in (1,2)).
+      - name: is_rain_heavy
+        description: Flag BI — pluie soutenue (precip_24h_intensity_level in (4,5)).
+      - name: is_rain_moderate
+        description: Flag BI — pluie modérée (precip_24h_intensity_level = 3).
+      - name: is_rain_drops
+        description: Flag BI — quelques gouttes (precip_24h_intensity_level = 1 et precip_24h_mm > 0).
+      - name: is_rain_dry
+        description: Flag BI — au sec (precip_24h_mm = 0).
+      - name: is_snow_light
+        description: Flag BI — neige faible (snow_24h_intensity_level in (2,3)).
+      - name: is_snow_heavy
+        description: Flag BI — neige forte (snow_24h_intensity_level in (4,5)).
+      - name: is_wind_breeze
+        description: Flag BI — brise (wind_beaufort in (2,3)).
+      - name: is_wind_strong
+        description: Flag BI — vent fort (wind_beaufort = 4).
+      - name: is_wind_very_strong
+        description: Flag BI — vent très fort (wind_beaufort = 5).
+      - name: is_wind_calm
+        description: Flag BI — pas de vent (wind_beaufort = 1).

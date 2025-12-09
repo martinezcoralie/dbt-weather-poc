@@ -115,12 +115,18 @@ ICON_URLS = {
 
 
 def build_focus_cards(latest: pd.DataFrame) -> tuple[str, list[tuple[str, pd.DataFrame, str]]]:
-    """Return (cards_html, map_options) for the focus section."""
+    """Return (cards_html, map_options) for the focus section; requires is_* flags in data."""
     cards_html = ""
     map_options: list[tuple[str, pd.DataFrame, str]] = []
 
     if latest.empty:
         return cards_html, map_options
+
+    def pick_with_flag(df: pd.DataFrame, flag: str) -> pd.DataFrame:
+        """Select rows where a boolean flag is true; raises if flag is missing."""
+        if flag not in df.columns:
+            raise KeyError(f"Flag column missing: {flag}")
+        return df[df[flag].fillna(False)]
 
     def add_focus(df: pd.DataFrame, title: str, icon: str, accent: str) -> None:
         nonlocal cards_html, map_options
@@ -135,29 +141,89 @@ def build_focus_cards(latest: pd.DataFrame) -> tuple[str, list[tuple[str, pd.Dat
             map_options.append((icon, df_points, icon_url))
 
     # Temp focus
-    add_focus(latest[latest["temp_24h_intensity_level"].fillna(0) >= 4], "Confort thermique", "🔥", "#ef4444")
-    add_focus(latest[latest["temp_24h_intensity_level"].fillna(0) == 3], "Frais", "🍃", "#0ea5e9")
-    add_focus(latest[latest["temp_24h_intensity_level"].fillna(0).isin([1, 2])], "Grand froid", "🥶", "#0ea5e9")
+    add_focus(
+        pick_with_flag(latest, "is_temp_comfort"),
+        "Confort thermique",
+        "🔥",
+        "#ef4444",
+    )
+    add_focus(
+        pick_with_flag(latest, "is_temp_cool"),
+        "Frais",
+        "🍃",
+        "#0ea5e9",
+    )
+    add_focus(
+        pick_with_flag(latest, "is_temp_cold"),
+        "Grand froid",
+        "🥶",
+        "#0ea5e9",
+    )
 
     # Rain focus
-    add_focus(latest[latest["precip_24h_intensity_level"].fillna(0).isin([4, 5])], "Pluie soutenue", "🌧️", "#0ea5e9")
-    add_focus(latest[latest["precip_24h_intensity_level"].fillna(0) == 3], "Pluie modérée", "💧💧", "#38bdf8")
     add_focus(
-        latest[(latest["precip_24h_intensity_level"].fillna(0) == 1) & (latest["precip_24h_mm"].fillna(0) > 0)],
+        pick_with_flag(latest, "is_rain_heavy"),
+        "Pluie soutenue",
+        "🌧️",
+        "#0ea5e9",
+    )
+    add_focus(
+        pick_with_flag(latest, "is_rain_moderate"),
+        "Pluie modérée",
+        "💧💧",
+        "#38bdf8",
+    )
+    add_focus(
+        pick_with_flag(latest, "is_rain_drops"),
         "Quelques gouttes",
         "💧",
         "#60a5fa",
     )
-    add_focus(latest[latest["precip_24h_mm"].fillna(0) == 0], "Au sec", "🌤️", "#22c55e")
+    add_focus(
+        pick_with_flag(latest, "is_rain_dry"),
+        "Au sec",
+        "🌤️",
+        "#22c55e",
+    )
 
     # Snow focus
-    add_focus(latest[latest["snow_24h_intensity_level"].fillna(0).isin([2, 3])], "Neige faible", "❄️❄️", "#38bdf8")
-    add_focus(latest[latest["snow_24h_intensity_level"].fillna(0).isin([4, 5])], "Neige forte", "🌨️🌨️", "#0ea5e9")
+    add_focus(
+        pick_with_flag(latest, "is_snow_light"),
+        "Neige faible",
+        "❄️❄️",
+        "#38bdf8",
+    )
+    add_focus(
+        pick_with_flag(latest, "is_snow_heavy"),
+        "Neige forte",
+        "🌨️🌨️",
+        "#0ea5e9",
+    )
 
     # Wind focus
-    add_focus(latest[latest["wind_beaufort"].fillna(-1).isin([2, 3])], "Brise", "🍃", "#38bdf8")
-    add_focus(latest[latest["wind_beaufort"].fillna(-1) == 4], "Vent fort", "💨", "#0ea5e9")
-    add_focus(latest[latest["wind_beaufort"].fillna(-1) == 5], "Vent très fort", "💨💨", "#0b7a9b")
-    add_focus(latest[latest["wind_beaufort"].fillna(-1) == 1], "Pas de vent", "😌", "#22c55e")
+    add_focus(
+        pick_with_flag(latest, "is_wind_breeze"),
+        "Brise",
+        "🍃",
+        "#38bdf8",
+    )
+    add_focus(
+        pick_with_flag(latest, "is_wind_strong"),
+        "Vent fort",
+        "💨",
+        "#0ea5e9",
+    )
+    add_focus(
+        pick_with_flag(latest, "is_wind_very_strong"),
+        "Vent très fort",
+        "💨💨",
+        "#0b7a9b",
+    )
+    add_focus(
+        pick_with_flag(latest, "is_wind_calm"),
+        "Pas de vent",
+        "😌",
+        "#22c55e",
+    )
 
     return cards_html, map_options
