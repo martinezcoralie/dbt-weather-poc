@@ -3,16 +3,15 @@ version: 2
 exposures:
   - name: weather_bi_streamlit
     type: dashboard
-    maturity: low
+    maturity: medium
     url: http://localhost:8501
     description: >
-      Dashboard Streamlit explorant les observations horaires Météo-France
-      par station (température, précipitations, vent) et leurs agrégats
-      quotidiens. Utilisé comme vitrine BI du data product météo dbt.
+      Application Streamlit permettant aux habitant(e)s de l’Ariège
+      d’identifier les stations les plus adaptées à leur balade du jour, à
+      partir des observations horaires Météo-France des dernières 24 h. 
+      Sert de vitrine BI au data product météo construit avec dbt.
     owner:
       name: Coralie Martinez
       email: comartinez.pro@gmail.com
     depends_on:
-      - ref('fct_obs_hourly')
       - ref('agg_station_latest_24h')
-      - ref('dim_stations')
