@@ -9,19 +9,6 @@ DB_PATH = os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
 
 
 @st.cache_data(ttl=60)
-def load_station_list() -> pd.DataFrame:
-    """Stations ayant des mesures (via la vue agg_station_latest_24h)."""
-    with duckdb.connect(DB_PATH, read_only=True) as con:
-        return con.execute(
-            """
-            select station_id, station_name, latitude, longitude
-            from marts.agg_station_latest_24h
-            order by station_name
-            """
-        ).df()
-
-
-@st.cache_data(ttl=60)
 def load_latest_station_metrics() -> pd.DataFrame:
     """Dernière observation par station, enrichie des labels BI (vue agg_station_latest_24h)."""
     with duckdb.connect(DB_PATH, read_only=True) as con:

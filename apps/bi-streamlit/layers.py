@@ -2,9 +2,6 @@ from datetime import datetime, timezone
 
 import pandas as pd
 import pydeck as pdk
-import streamlit as st
-
-from data import format_last_update
 
 
 def compute_view_state(stations: pd.DataFrame) -> pdk.ViewState:
@@ -28,22 +25,6 @@ def freshness_badge(max_ts: datetime | None) -> tuple[str, str]:
     if delay_hours <= 6:
         return ("En retard", "#f97316")
     return ("Stale", "#ef4444")
-
-
-def render_freshness(max_ts: datetime | None) -> None:
-    """Render the freshness line (last update + badge) with consistent styling."""
-    subtitle = format_last_update(max_ts)
-    label, color = freshness_badge(max_ts)
-
-    st.markdown(
-        f'<div style="display:flex; gap:8px; align-items:center; font-size:13px; color:#475569;">'
-        f'<span>{subtitle}</span>'
-        f'<span style="background:{color}; color:white; padding:6px 10px; '
-        f'border-radius:12px; font-size:12px; font-weight:600;">{label}</span>'
-        f'</div>',
-        unsafe_allow_html=True,
-    )
-
 
 def _base_layer(stations: pd.DataFrame) -> pdk.Layer:
     stations_map = stations.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
@@ -79,8 +60,6 @@ def _icon_layer(data: pd.DataFrame, icon_url: str, size) -> pdk.Layer | None:
         billboard=True,
     )
 
-from dataclasses import dataclass
-from typing import Optional
 
 def list_card_html(title: str, station_text: str, count_text: str, accent: str, icon: str = "") -> str:
     """Return the HTML for a list-style card (for use inside flex containers)."""
