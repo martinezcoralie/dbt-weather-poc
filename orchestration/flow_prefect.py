@@ -1,3 +1,5 @@
+"""Local Prefect flow: Météo-France ingestion → dbt build (DuckDB)."""
+
 from pathlib import Path
 import subprocess
 
