@@ -6,9 +6,9 @@ Cette section décrit la structure des modèles dbt du projet `weather_dbt`.
 
 ## Structure
 
-- `staging` (schéma `staging`) : nettoyage, typage, renommage clair
-- `intermediate` (schéma `intermediate`) : calculs intermédiaires, features météo + fenêtres glissantes
-- `marts` (schéma `marts`) : tables analytiques et dimensionnelles prêtes BI
+- `staging` : nettoyage, typage, renommage clair
+- `intermediate` : calculs intermédiaires, features météo + fenêtres glissantes
+- `marts` : tables analytiques et dimensionnelles prêtes BI
 
 Modèles clés :
 
@@ -65,7 +65,7 @@ dbt seed --select beaufort_scale  # seed ciblé
 
 ---
 
-## Macros utiles
+## Macros utiles (sélection)
 
 - Conversions : `kelvin_to_c`, `ms_to_kmh`
 - Safe casts : `safe_double`, `safe_int`

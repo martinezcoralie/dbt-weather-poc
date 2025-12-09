@@ -2,7 +2,7 @@
 
 Cette étape constitue le point d’entrée du pipeline et alimente le schéma `raw` du warehouse DuckDB, sur lequel se base dbt pour la modélisation.
 
-L’ingestion est assurée par les scripts Python du dossier `scripts/ingestion/`, notamment :
+L’ingestion est assurée par les scripts Python du dossier `scripts/ingestion/` :
 - `fetch_meteofrance_paquetobs.py` pour la récupération depuis l’API Météo-France,
 - `write_duckdb_raw.py` pour l’écriture des données brutes dans DuckDB.
 
@@ -32,7 +32,7 @@ make dwh-ingest DEPT=75
 
 ---
 
-## Garantie du niveau *raw*
+## Garanties du niveau *raw*
 
 * Noms de colonnes strictement identiques à la source  
 * Types inchangés  

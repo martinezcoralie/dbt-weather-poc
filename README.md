@@ -7,7 +7,7 @@ Objectif : **démontrer, de bout en bout, la maîtrise d’un workflow moderne d
 Pourquoi cela compte pour un·e client·e ou recruteur·e :
 - données réelles (API Météo-France) avec ingestion maîtrisée,
 - bonnes pratiques dbt (layering, tests, contrats, macros, incrémental),
-- exposition BI concrète (Streamlit) et déclaration en exposure,
+- exposition BI concrète (Streamlit + exposure déclarée),
 - orchestration légère (Prefect) + CI double : build dbt sur données fraîches et génération/déploiement automatique de la doc.
 
 ---
