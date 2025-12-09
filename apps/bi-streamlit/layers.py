@@ -4,14 +4,7 @@ import pandas as pd
 import pydeck as pdk
 import streamlit as st
 
-from champions import ChampionSet
 from data import format_last_update
-
-
-HOT_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f525.png"
-COLD_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1F9CA.png"
-RAIN_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1F4A7.png"
-SNOW_ICON_URL = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2744.png"
 
 
 def compute_view_state(stations: pd.DataFrame) -> pdk.ViewState:
@@ -87,40 +80,10 @@ def _icon_layer(data: pd.DataFrame, icon_url: str, size) -> pdk.Layer | None:
     )
 
 
-def emoji_layer(data: pd.DataFrame, emoji: str, size: int = 28) -> pdk.Layer | None:
-    """TextLayer with an emoji marker."""
-    if data is None or data.empty:
-        return None
-    df = data.copy()
-    df["text"] = emoji
-    return pdk.Layer(
-        "TextLayer",
-        data=df,
-        get_position=["lon", "lat"],
-        get_text="text",
-        get_size=size,
-        get_color=[0, 0, 0, 255],
-        get_angle=0,
-        get_text_anchor="middle",
-        get_alignment_baseline="center",
-        size_units="pixels",
-        billboard=True,
-        pickable=True,
-    )
-
-
-def build_map_layers(stations: pd.DataFrame, champs: ChampionSet) -> list[pdk.Layer]:
-    """Build all map layers (base + champions)."""
-    warm_layer = _icon_layer(champs.warm_points, HOT_ICON_URL, 20)
-    cold_layer = _icon_layer(champs.cold_points, COLD_ICON_URL, 20)
-    snow_layer = _icon_layer(champs.snow_points, SNOW_ICON_URL, "icon_size")
-    wet_layer = _icon_layer(champs.wet_points, RAIN_ICON_URL, "icon_size")
-
-    layers = [
-        _base_layer(stations),
-        warm_layer,
-        cold_layer,
-        snow_layer,
-        wet_layer,
-    ]
-    return [l for l in layers if l is not None]
+__all__ = [
+    "compute_view_state",
+    "freshness_badge",
+    "render_freshness",
+    "_base_layer",
+    "_icon_layer",
+]
