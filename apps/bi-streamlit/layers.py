@@ -71,11 +71,11 @@ def list_card_html(title: str, station_text: str, count_text: str, accent: str, 
     html = textwrap.dedent(
         f"""\
         <div class="focus-card" style="--card-accent: {accent};">
-            <div class="focus-card-title" style="display:flex; gap:10px; align-items:center; justify-content:center;">
+            <div class="focus-card-title" style="display:flex; gap:12px; align-items:center; justify-content:flex-start;">
                 <div style="display:flex; align-items:center; justify-content:center;">
                     {icon_html}
                 </div>
-                <div style="text-align:center;">{title}</div>
+                <div style="text-align:left;">{title}</div>
             </div>
             <div class="focus-card-body">{station_text}</div>
             <div class="focus-card-count" style="margin-top:auto; align-self:flex-start;">{count_text}</div>
