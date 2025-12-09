@@ -44,6 +44,15 @@ dim_snow as (
         max_m,
         intensity_label
     from {{ ref('dim_snow_intensity') }}
+),
+
+dim_temp as (
+    select
+        intensity_level,
+        min_c,
+        max_c,
+        intensity_label
+    from {{ ref('dim_temp_intensity') }}
 )
 
 select
@@ -95,7 +104,11 @@ select
 
     -- interprétation BI de la neige 24h
     dim_snow.intensity_level as snow_24h_intensity_level,
-    dim_snow.intensity_label as snow_24h_intensity_label
+    dim_snow.intensity_label as snow_24h_intensity_label,
+
+    -- interprétation BI de la température moyenne 24h
+    dim_temp.intensity_level as temp_24h_intensity_level,
+    dim_temp.intensity_label as temp_24h_intensity_label
 
 from obs_windows
 left join obs_features
@@ -114,3 +127,7 @@ left join dim_precip
 left join dim_snow
     on obs_windows.snow_24h_m > dim_snow.min_m
    and (dim_snow.max_m is null or obs_windows.snow_24h_m <= dim_snow.max_m)
+
+left join dim_temp
+    on obs_windows.temp_24h_c >= coalesce(dim_temp.min_c, obs_windows.temp_24h_c)
+   and (dim_temp.max_c is null or obs_windows.temp_24h_c < dim_temp.max_c)

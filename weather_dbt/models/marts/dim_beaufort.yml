@@ -19,11 +19,11 @@ models:
           - unique
 
       - name: ms_min
-        description: Vitesse minimale du vent (m/s) pour ce niveau.
+        description: Borne minimale (incluse) de la vitesse du vent (m/s).
         tests:
           - not_null
 
       - name: ms_max
-        description: Vitesse maximale du vent (m/s) pour ce niveau.
+        description: Borne maximale (exclue) de la vitesse du vent (m/s).
         tests:
           - not_null
