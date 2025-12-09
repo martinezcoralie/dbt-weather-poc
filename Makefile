@@ -101,6 +101,7 @@ dwh-reset: ## Réinitialise les schémas calculés (staging, intermediate, marts
 # ========== DBT ==========
 dbt-build: ## Exécute dbt deps puis dbt run sur le projet
 	$(DBT) deps
+	$(DBT) seed
 	$(DBT) run
 
 dbt-test: ## Exécute la suite de tests dbt
