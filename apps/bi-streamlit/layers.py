@@ -71,9 +71,14 @@ def list_card_html(title: str, station_text: str, count_text: str, accent: str, 
     html = textwrap.dedent(
         f"""\
         <div class="focus-card" style="--card-accent: {accent};">
-            <div class="focus-card-title">{icon_html}{title}</div>
+            <div class="focus-card-title" style="display:flex; gap:10px; align-items:center; justify-content:center;">
+                <div style="display:flex; align-items:center; justify-content:center;">
+                    {icon_html}
+                </div>
+                <div style="text-align:center;">{title}</div>
+            </div>
             <div class="focus-card-body">{station_text}</div>
-            <div class="focus-card-count">{count_text}</div>
+            <div class="focus-card-count" style="margin-top:auto; align-self:flex-start;">{count_text}</div>
         </div>
         """
     ).strip()
@@ -101,10 +106,7 @@ def build_focus_cards(latest: pd.DataFrame) -> tuple[str, list[tuple[str, pd.Dat
         df_points = df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status=title)
         count = len(df_points)
         names = ", ".join(sorted(df_points["station_name"].tolist()))
-        icon_html = (
-            f'<img src="{icon_url}" alt="{title}" width="18" height="18" '
-            'style="vertical-align:middle; margin-right:6px;" />'
-        )
+        icon_html = f'<img src="{icon_url}" alt="{title}" width="48" height="48" style="display:block;" />'
         cards_html += list_card_html(title, names, f"{count} station(s)", accent, icon_html=icon_html)
         map_options.append((title, df_points, icon_url))
 
