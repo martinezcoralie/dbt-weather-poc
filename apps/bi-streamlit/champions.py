@@ -127,8 +127,8 @@ def compute_champions(latest_metrics: pd.DataFrame) -> ChampionSet:
     )
 
 
-def metric_card(title: str, value: str, detail: str, accent: str) -> None:
-    """Render a small stat card."""
+def metric_card(title: str, value: str, detail: str, accent: str, emoji: str | None = None) -> None:
+    """Render a small stat card with optional emoji row."""
     import streamlit as st  # local import to avoid circularity
 
     st.markdown(
@@ -140,10 +140,11 @@ def metric_card(title: str, value: str, detail: str, accent: str) -> None:
             box-shadow: 0 12px 24px rgba(0,0,0,0.12);
             color: #f8fafc;
             ">
-            <div style="font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8;">
+            <div style="font-size: 18px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8;">
                 {title}
             </div>
-            <div style="font-size: 28px; font-weight: 700; margin: 6px 0;">
+            {f'<div style="font-size:18px; margin:6px 0; ">{emoji}</div>' if emoji else ''}
+            <div style="font-size: 24px; font-weight: 700; margin: 6px 0;">
                 {value}
             </div>
             <div style="font-size: 14px; opacity: 0.9;">
