@@ -13,7 +13,7 @@ models:
           - unique
 
       - name: beaufort_label
-        description: Libellé descriptif du niveau (Calme, Très légère brise, etc.).
+        description: Libellé descriptif.
         tests:
           - not_null
           - unique

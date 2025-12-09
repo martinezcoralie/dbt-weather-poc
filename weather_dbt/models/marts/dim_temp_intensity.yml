@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: dim_temp_intensity
+    description: >
+      Dimension d’interprétation BI de la température moyenne glissante sur 24h
+      (°C), dérivée du seed temp_intensity.
+    columns:
+      - name: intensity_level
+        description: Niveau ordinal (1 = le plus faible).
+        tests:
+          - not_null
+          - unique
+      - name: min_c
+        description: Borne minimale (incluse) de la plage de température 24h (°C). Null si borne ouverte.
+      - name: max_c
+        description: Borne maximale (exclue) de la plage de température 24h (°C). Null si borne ouverte.
+      - name: intensity_label
+        description: Libellé descriptif.
+        tests:
+          - not_null

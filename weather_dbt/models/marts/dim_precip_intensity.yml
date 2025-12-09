@@ -7,7 +7,7 @@ models:
       dérivée du seed precip_intensity (plages en mm et libellés).
     columns:
       - name: intensity_level
-        description: Niveau ordinal (1 = plus faible).
+        description: Niveau ordinal (1 = le plus faible).
         tests:
           - not_null
           - unique
@@ -18,6 +18,6 @@ models:
       - name: max_mm
         description: Borne maximale (incluse) du cumul 24h (mm). Null si borne ouverte.
       - name: intensity_label
-        description: Libellé descriptif associé à la plage (faible, modérée, forte, etc.).
+        description: Libellé descriptif.
         tests:
           - not_null

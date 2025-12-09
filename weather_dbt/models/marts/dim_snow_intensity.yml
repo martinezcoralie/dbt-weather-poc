@@ -7,16 +7,16 @@ models:
       issue du seed snow_intensity, avec niveaux ordonnés et libellés.
     columns:
       - name: intensity_level
-        description: Niveau ordinal (1 = très faible).
+        description: Niveau ordinal (1 = le plus faible).
         tests:
           - not_null
           - unique
       - name: min_m
-        description: Borne minimale (exclue) de la hauteur de neige (m).
+        description: Borne minimale (exclue) de la hauteur de neige 24h (m).
         tests:
           - not_null
       - name: max_m
-        description: Borne maximale (incluse) de la hauteur de neige (m). Null si borne ouverte.
+        description: Borne maximale (incluse) de la hauteur de neige 24h (m). Null si borne ouverte.
       - name: intensity_label
         description: Libellé descriptif.
         tests:
