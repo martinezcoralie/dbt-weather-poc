@@ -1,105 +1,166 @@
-import duckdb, pandas as pd, streamlit as st
-import os
+"""Main Streamlit page (map + focus cards for Ariège weather)."""
 
-DB_PATH = os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
+from __future__ import annotations
 
-st.set_page_config(page_title="Météo – Observations horaires", layout="wide")
-st.title("Observations météo – marts DBT")
-
-
-@st.cache_data(ttl=60)  # 60s de cache = assez pour naviguer sans bloquer dbt
-def load_station_list():
-    with duckdb.connect(DB_PATH, read_only=True) as con:
-        return con.execute("""
-            select distinct s.station_id, s.station_name, s.latitude, s.longitude
-            from marts.dim_stations s
-            join marts.fct_obs_hourly f on f.station_id = s.station_id
-            order by s.station_name
-        """).df()
-
-
-@st.cache_data(ttl=60)
-def load_obs_for(station_id):
-    with duckdb.connect(DB_PATH, read_only=True) as con:
-        return con.execute(
-            """
-            select validity_time_utc, temperature_c, wind_speed_kmh, precip_mm_h
-            from marts.fct_obs_hourly
-            where station_id = ?
-            order by validity_time_utc
-        """,
-            [station_id],
-        ).df()
-
-
-stations = load_station_list()
-
-chosen = st.selectbox("Station", stations["station_name"])
-station_id = stations.loc[stations["station_name"] == chosen, "station_id"].iloc[0]
-
-df = load_obs_for(station_id)
-
+import streamlit as st
 import pydeck as pdk
 
-# Carte : toutes les stations + mise en évidence de la station sélectionnée
-stations_map = stations.rename(columns={"longitude": "lon", "latitude": "lat"})
+from layers import build_station_scatter_layer, build_icon_layer, compute_view_state, freshness_badge, build_focus_cards
+from data import format_last_update, load_latest_station_metrics, load_latest_timestamp
 
-# Couche "toutes les stations"
-all_layer = pdk.Layer(
-    "ScatterplotLayer",
-    data=stations_map,
-    get_position="[lon, lat]",
-    get_radius=2000,  # ajuste selon l’échelle
-    get_color=[0, 122, 255],  # bleu
-    pickable=True,
-)
 
-# Couche "station sélectionnée"
-selected_station = stations_map[stations_map["station_name"] == chosen]
-selected_layer = pdk.Layer(
-    "ScatterplotLayer",
-    data=selected_station,
-    get_position="[lon, lat]",
-    get_radius=4000,
-    get_color=[255, 60, 60],  # rouge
-    pickable=True,
-)
+def main() -> None:
+    """Render the main page: freshness header, focus cards, PyDeck map."""
+    st.set_page_config(page_title="Radar des spots météo en Ariège", layout="wide")
 
-# Vue initiale centrée sur le barycentre (fallback si vide)
-center_lat = stations_map["lat"].mean() if not stations_map.empty else 46.5
-center_lon = stations_map["lon"].mean() if not stations_map.empty else 2.5
-
-view_state = pdk.ViewState(latitude=center_lat, longitude=center_lon, zoom=5)
-
-st.subheader("Carte des stations")
-st.pydeck_chart(
-    pdk.Deck(
-        layers=[all_layer, selected_layer],
-        initial_view_state=view_state,
-        tooltip={"text": "{station_name}\n(lat: {lat}, lon: {lon})"},
+    st.markdown(
+        """
+        <style>
+        .hero-header {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .hero-title {
+            font-size: 48px;
+            line-height: 1.1;
+            font-weight: 700;
+            color: #0f172a;
+            margin-right: 24px;
+        }
+        .hero-badge {
+            background: #0ea5e9;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 22px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+        }
+        .cards-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: stretch;
+            margin: 12px 0 4px;
+        }
+        .focus-card {
+            flex: 1 1 calc(50% - 12px);
+            min-width: 150px;
+            max-width: 260px;
+            min-height: 150px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--card-accent, #0ea5e9) 0%, #0f172a 120%);
+            box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .focus-card-title {
+            font-size: 18px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+        .focus-card-body {
+            font-size: 13px;
+            line-height: 1.4;
+            opacity: 0.9;
+        }
+        .focus-card-count {
+            font-size: 12px;
+            font-weight: 700;
+            opacity: 0.92;
+            align-self: flex-end;
+        }
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 28px;
+                line-height: 1.2;
+                margin-right: 12px;
+            }
+            .hero-badge {
+                font-size: 16px;
+                padding: 6px 8px;
+            }
+            .cards-wrap {
+                gap: 10px;
+            }
+            .focus-card {
+                flex: 1 1 calc(50% - 10px);
+                min-width: 0;
+                max-width: none;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
     )
-)
 
+    # Chargement des données
+    max_ts = load_latest_timestamp()
+    subtitle = format_last_update(max_ts)
+    latest = load_latest_station_metrics()
 
-col1, col2, col3 = st.columns(3)
-if not df.empty:
-    freshness_hours = (
-        pd.Timestamp.utcnow() - pd.to_datetime(df["validity_time_utc"]).max()
-    ).total_seconds() / 3600
-    col1.metric("Fraîcheur (h)", f"{freshness_hours:.1f}")
-    col2.metric(
-        "Température dernière (°C)",
-        f"{df['temperature_c'].iloc[-1]:.1f}"
-        if pd.notna(df["temperature_c"].iloc[-1])
-        else "NA",
+    # HEADER
+    label, color = freshness_badge(max_ts)
+
+    st.markdown(
+        f'<div class="hero-header">'
+        f'<div class="hero-title">Radar des spots météo en Ariège</div>'
+        f'<span class="hero-badge" style="background:{color};">{label}</span>'
+        f'</div>',
+        unsafe_allow_html=True,
     )
-    col3.metric(
-        "Précip. dernière (mm/h)",
-        f"{df['precip_mm_h'].iloc[-1]:.2f}"
-        if pd.notna(df["precip_mm_h"].iloc[-1])
-        else "NA",
-    )
+    st.caption(subtitle)
 
-st.line_chart(df.set_index("validity_time_utc")[["temperature_c"]])
-st.bar_chart(df.set_index("validity_time_utc")[["precip_mm_h"]])
-st.dataframe(df.tail(24))
+    cards_html, map_options = build_focus_cards(latest)
+
+    tabs = st.tabs(["Synthèse", "Carte"])
+    with tabs[0]:
+        if cards_html:
+            st.markdown(
+                f"""
+                <div class="cards-wrap">
+                    {cards_html}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("Aucune station à mettre en avant pour le moment.")
+    with tabs[1]:
+        st.markdown(
+            '<div style="font-size:16px; font-weight:700; margin:12px 0 8px;">Carte des stations</div>',
+            unsafe_allow_html=True,
+        )
+        stations = latest[["station_id", "station_name", "latitude", "longitude"]].drop_duplicates() if not latest.empty else latest
+        options_labels = [label for label, _, _ in map_options]
+        selected = st.pills(
+            "Spots à afficher",
+            options_labels,
+            selection_mode="multi",
+            default=options_labels,
+            label_visibility="collapsed",
+        )
+
+        layers = [build_station_scatter_layer(stations)]
+        for label, df_points, icon_url in map_options:
+            if label in selected:
+                layer = build_icon_layer(df_points, icon_url, 28)
+                if layer:
+                    layers.append(layer)
+        st.pydeck_chart(
+            pdk.Deck(
+                layers=layers,
+                initial_view_state=compute_view_state(stations),
+                tooltip={"text": "{station_name}\n{status}\n(lat: {lat}, lon: {lon})"},
+            )
+        )
+
+if __name__ == "__main__":
+    main()

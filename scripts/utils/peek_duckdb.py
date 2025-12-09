@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
+"""Print a small sample of a DuckDB table (quick debug helper)."""
+
 import duckdb
 import argparse
 import os
 
 
-def run(con, title, sql):
+def print_sample(con, title, sql):
+    """Run a DuckDB query and print the resulting DataFrame."""
     print(f"\n=== {title} ===")
     df = con.sql(sql).df()
     print(df)
@@ -12,6 +15,7 @@ def run(con, title, sql):
 
 
 def main():
+    """CLI: print 5 rows of a given table."""
     ap = argparse.ArgumentParser(
         description="Show a sample of a table from DuckDB warehouse"
     )
@@ -28,7 +32,7 @@ def main():
     table = args.table
 
     # Échantillon de données
-    run(
+    print_sample(
         con,
         "Extrait de 5 lignes",
         f"""

@@ -124,6 +124,7 @@ def fetch_hourly_for_dept(session: requests.Session, dept: str) -> pd.DataFrame:
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
+    """Build the CLI parser (stations list and/or hourly by dept)."""
     ap = argparse.ArgumentParser(
         description="Client fetch-only Météo-France DPPaquetObs"
     )

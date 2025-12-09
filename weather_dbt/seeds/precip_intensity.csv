@@ -1,0 +1,6 @@
+min_mm,max_mm,label
+0,1,Pratiquement nulle
+1,5,Faible
+5,20,Modérée
+20,40,Forte
+40,,Très forte

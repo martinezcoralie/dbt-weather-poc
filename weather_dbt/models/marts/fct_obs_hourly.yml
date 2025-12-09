@@ -70,7 +70,6 @@ models:
               config:
                 severity: warn
 
-
       # --- Fenêtres (neige) ---
       - name: snow_1h_m
         description: Neige cumulée sur 1h (m).
@@ -80,7 +79,6 @@ models:
               config:
                 severity: warn
 
-
       - name: snow_3h_m
         description: Neige cumulée sur 3h (m).
         data_type: double
@@ -89,7 +87,6 @@ models:
               config:
                 severity: warn
 
-
       - name: snow_24h_m
         description: Neige cumulée sur 24h (m).
         data_type: double
@@ -97,7 +94,6 @@ models:
           - non_negative:
               config:
                 severity: warn
-
 
       # --- Fenêtres (température) ---
       - name: temp_1h_c
@@ -110,7 +106,6 @@ models:
                 max_value: 60
               config:
                 severity: warn
-
 
       - name: temp_3h_c
         description: Moyenne glissante de température sur 3h (°C).
@@ -168,9 +163,50 @@ models:
               config:
                 severity: warn
 
+      # --- Enrichissement pluie & neige ---
+      - name: snow_24h_intensity_level
+        description: Niveau ordinal d’intensité neige 24h (jointure dim_snow_intensity).
+        data_type: integer
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_snow_intensity')
+                field: intensity_level
+
+      - name: snow_24h_intensity_label
+        description: Libellé descriptif de l’intensité neige 24h.
+        data_type: varchar
+
+      - name: precip_24h_intensity_level
+        description: Niveau ordinal d’intensité des précipitations 24h (jointure dim_precip_intensity).
+        data_type: integer
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_precip_intensity')
+                field: intensity_level
+
+      - name: precip_24h_intensity_label
+        description: Libellé descriptif d’intensité des précipitations 24h.
+        data_type: varchar
+
+      # --- Enrichissement température 24h ---
+      - name: temp_24h_intensity_level
+        description: Niveau ordinal d’intensité thermique 24h (jointure dim_temp_intensity).
+        data_type: integer
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_temp_intensity')
+                field: intensity_level
+
+      - name: temp_24h_intensity_label
+        description: Libellé descriptif de l’intensité thermique 24h.
+        data_type: varchar
+
       # --- Enrichissement Beaufort ---
       - name: wind_beaufort
-        description: Niveau de l’échelle de Beaufort (0–12) dérivé de la vitesse du vent via dim_beaufort.
+        description: Niveau de l’échelle de Beaufort (0–12) dérivé de la vitesse du vent (jointure dim_beaufort).
         data_type: integer
         tests:
           - relationships:

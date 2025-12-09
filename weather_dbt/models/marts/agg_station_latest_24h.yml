@@ -1,0 +1,249 @@
+version: 2
+
+models:
+  - name: agg_station_latest_24h
+    description: >
+      Vue “dernières 24h” par station : dernière observation disponible enrichie avec
+      les cumuls 24h et les labels BI (intensité précipitations, Beaufort), plus coordonnées.
+      Sert de source directe au dashboard pour les classements et la cartographie.
+    config:
+      contract:
+        enforced: true
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns: ['station_id', 'validity_time_utc']
+    columns:
+      - name: station_id
+        description: Identifiant station (clé vers dim_stations).
+        data_type: varchar
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              arguments:
+                to: ref('dim_stations')
+                field: station_id
+      - name: station_name
+        description: Nom de la station.
+        data_type: varchar
+      - name: latitude
+        description: Latitude de la station.
+        data_type: double
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "between -90 and 90"
+      - name: longitude
+        description: Longitude de la station.
+        data_type: double
+        tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: "between -180 and 180"
+      - name: validity_time_utc
+        description: Horodate la plus récente disponible pour la station (UTC).
+        data_type: timestamptz
+        tests:
+          - not_null
+      - name: temp_24h_c
+        description: Moyenne glissante 24h de la température (°C).
+        data_type: double
+        tests:
+          - between_range:
+              arguments:
+                min_value: -50
+                max_value: 60
+      - name: precip_24h_mm
+        description: Cumul 24h des précipitations (mm).
+        data_type: double
+        tests:
+          - non_negative:
+              config:
+                severity: warn
+      - name: snow_24h_m
+        description: Cumul 24h de neige (m).
+        data_type: double
+        tests:
+          - non_negative:
+              config:
+                severity: warn
+      - name: snow_24h_intensity_level
+        description: Niveau ordinal d’intensité de neige 24h (dim_snow_intensity).
+        data_type: integer
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_snow_intensity')
+                field: intensity_level
+      - name: snow_24h_intensity_label
+        description: Libellé d’intensité de neige 24h.
+        data_type: varchar
+      - name: precip_24h_intensity_level
+        description: Niveau ordinal d’intensité des précipitations 24h (dim_precip_intensity).
+        data_type: integer
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_precip_intensity')
+                field: intensity_level
+      - name: precip_24h_intensity_label
+        description: Libellé d’intensité des précipitations 24h.
+        data_type: varchar
+      - name: wind_beaufort
+        description: Niveau Beaufort du vent le plus récent.
+        data_type: integer
+        tests:
+          - between_range:
+              arguments:
+                min_value: 0
+                max_value: 12
+          - relationships:
+              arguments:
+                to: ref('dim_beaufort')
+                field: beaufort_level
+      - name: wind_beaufort_label
+        description: Libellé Beaufort du vent le plus récent.
+        data_type: varchar
+      - name: temp_24h_intensity_level
+        description: Niveau ordinal d’intensité thermique 24h (dim_temp_intensity).
+        data_type: integer
+        tests:
+          - relationships:
+              arguments:
+                to: ref('dim_temp_intensity')
+                field: intensity_level
+      - name: temp_24h_intensity_label
+        description: Libellé descriptif d’intensité thermique 24h.
+        data_type: varchar
+      - name: temperature_c
+        description: Température la plus récente (°C).
+        data_type: double
+        tests:
+          - between_range:
+              arguments:
+                min_value: -50
+                max_value: 60
+      - name: humidity_pct
+        description: Humidité relative la plus récente (%)
+        data_type: integer
+        tests:
+          - between_range:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: precip_mm_h
+        description: Précipitation horaire la plus récente (mm/h).
+        data_type: double
+        tests:
+          - non_negative:
+              config:
+                severity: warn
+      - name: wind_speed_kmh
+        description: Vitesse du vent la plus récente (km/h).
+        data_type: double
+        tests:
+          - non_negative:
+              config:
+                severity: warn
+      - name: wind_sector
+        description: Secteur du vent la plus récent.
+        data_type: varchar
+      - name: visibility_cat
+        description: Catégorie de visibilité la plus récente.
+        data_type: varchar
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["dense_fog","fog","haze","good"]
+      - name: is_temp_comfort
+        description: Flag BI — station en confort thermique (temp_24h_intensity_level >= 4).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_temp_cool
+        description: Flag BI — station fraîche (temp_24h_intensity_level = 3).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_temp_cold
+        description: Flag BI — station en froid marqué (temp_24h_intensity_level in (1,2)).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_rain_heavy
+        description: Flag BI — pluie soutenue (precip_24h_intensity_level in (4,5)).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_rain_moderate
+        description: Flag BI — pluie modérée (precip_24h_intensity_level = 3).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_rain_drops
+        description: Flag BI — quelques gouttes (precip_24h_intensity_level = 1 et precip_24h_mm > 0).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_rain_dry
+        description: Flag BI — au sec (precip_24h_mm = 0).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_snow_light
+        description: Flag BI — neige faible (snow_24h_intensity_level in (2,3)).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_snow_heavy
+        description: Flag BI — neige forte (snow_24h_intensity_level in (4,5)).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_wind_breeze
+        description: Flag BI — brise (wind_beaufort in (2,3)).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_wind_strong
+        description: Flag BI — vent fort (wind_beaufort = 4).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_wind_very_strong
+        description: Flag BI — vent très fort (wind_beaufort = 5).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]
+      - name: is_wind_calm
+        description: Flag BI — pas de vent (wind_beaufort = 1).
+        data_type: boolean
+        tests:
+          - accepted_values:
+              arguments:
+                values: [0, 1]

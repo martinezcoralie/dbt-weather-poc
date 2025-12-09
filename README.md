@@ -4,6 +4,12 @@ Pipeline analytique Météo-France — ingestion, historisation et modélisation
 
 Objectif : **démontrer, de bout en bout, la maîtrise d’un workflow moderne dbt**, depuis la collecte des données jusqu’à leur exposition en BI (dashboard) et leur orchestration.
 
+Pourquoi cela compte pour un·e client·e ou recruteur·e :
+- données réelles (API Météo-France) avec ingestion maîtrisée,
+- bonnes pratiques dbt (layering, tests, contrats, macros, incrémental),
+- exposition BI concrète (Streamlit + exposure déclarée),
+- orchestration légère (Prefect) + CI double : build dbt sur données fraîches et génération/déploiement automatique de la doc.
+
 ---
 
 ## Ce que ce projet met en œuvre côté dbt

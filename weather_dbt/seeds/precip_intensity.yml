@@ -1,0 +1,14 @@
+version: 2
+
+seeds:
+  - name: precip_intensity
+    description: >
+      Interprétation BI des précipitations cumulées sur 24h (en mm) pour
+      qualifier l’intensité perçue.
+    columns:
+      - name: min_mm
+        description: Borne minimale (incluse) du cumul 24h (mm).
+      - name: max_mm
+        description: Borne maximale (exclue) du cumul 24h (mm). Null si borne ouverte.
+      - name: label
+        description: Libellé descriptif.

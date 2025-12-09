@@ -1,0 +1,6 @@
+min_m,max_m,label
+0,0.01,Très faible
+0.01,0.05,Faible
+0.05,0.10,Modérée
+0.10,0.20,Forte
+0.20,,Très forte

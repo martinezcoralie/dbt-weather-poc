@@ -1,0 +1,8 @@
+min_c,max_c,label
+, -5,Très froid
+-5,0,Froid
+0,10,Frais 
+10,15,Plutôt doux
+15,20,Très doux
+20,25,Chaud
+25,,Très chaud

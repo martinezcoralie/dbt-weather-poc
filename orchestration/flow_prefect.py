@@ -1,3 +1,5 @@
+"""Local Prefect flow: Météo-France ingestion → dbt build (DuckDB)."""
+
 from pathlib import Path
 import subprocess
 
@@ -45,9 +47,6 @@ def run_dbt_build() -> None:
 def weather_hourly_pipeline(dept: int = 9) -> None:
     """
     Flow Prefect : enchaîne ingestion + dbt build.
-
-    Pour l’instant, on le lance “à la main”.
-    Plus tard, on le transformera en déploiement avec un schedule (horaire).
     """
     ingest_meteofrance(dept)
     run_dbt_build()

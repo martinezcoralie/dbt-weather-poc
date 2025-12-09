@@ -26,6 +26,33 @@ dim_beaufort as (
         ms_min,
         ms_max
     from {{ ref('dim_beaufort') }}
+),
+
+dim_precip as (
+    select
+        intensity_level,
+        min_mm,
+        max_mm,
+        intensity_label
+    from {{ ref('dim_precip_intensity') }}
+),
+
+dim_snow as (
+    select
+        intensity_level,
+        min_m,
+        max_m,
+        intensity_label
+    from {{ ref('dim_snow_intensity') }}
+),
+
+dim_temp as (
+    select
+        intensity_level,
+        min_c,
+        max_c,
+        intensity_label
+    from {{ ref('dim_temp_intensity') }}
 )
 
 select
@@ -54,10 +81,6 @@ select
     obs_features.wind_speed_kmh,
     obs_features.wind_speed_ms,
 
-    -- enrichissement via dimension Beaufort
-    dim_beaufort.beaufort_level as wind_beaufort,
-    dim_beaufort.beaufort_label as wind_beaufort_label,
-
     -- visibilité & flags
     obs_features.visibility_m,
     obs_features.visibility_cat,
@@ -69,7 +92,23 @@ select
     obs_features.precip_mm_h,
     obs_features.snow_depth_m,
     obs_features.temperature_c,
-    obs_features.humidity_pct
+    obs_features.humidity_pct,
+    
+    -- interprétation BI du vent via échelle de Beaufort
+    dim_beaufort.beaufort_level as wind_beaufort,
+    dim_beaufort.beaufort_label as wind_beaufort_label,
+
+    -- interprétation BI des précip 24h
+    dim_precip.intensity_level as precip_24h_intensity_level,
+    dim_precip.intensity_label as precip_24h_intensity_label,
+
+    -- interprétation BI de la neige 24h
+    dim_snow.intensity_level as snow_24h_intensity_level,
+    dim_snow.intensity_label as snow_24h_intensity_label,
+
+    -- interprétation BI de la température moyenne 24h
+    dim_temp.intensity_level as temp_24h_intensity_level,
+    dim_temp.intensity_label as temp_24h_intensity_label
 
 from obs_windows
 left join obs_features
@@ -80,3 +119,15 @@ left join dim_stations
 
 left join dim_beaufort
     on obs_features.wind_speed_ms >= dim_beaufort.ms_min and obs_features.wind_speed_ms <  dim_beaufort.ms_max
+
+left join dim_precip
+    on obs_windows.precip_24h_mm > dim_precip.min_mm
+   and (dim_precip.max_mm is null or obs_windows.precip_24h_mm <= dim_precip.max_mm)
+
+left join dim_snow
+    on obs_windows.snow_24h_m > dim_snow.min_m
+   and (dim_snow.max_m is null or obs_windows.snow_24h_m <= dim_snow.max_m)
+
+left join dim_temp
+    on obs_windows.temp_24h_c >= coalesce(dim_temp.min_c, obs_windows.temp_24h_c)
+   and (dim_temp.max_c is null or obs_windows.temp_24h_c < dim_temp.max_c)
