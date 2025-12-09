@@ -7,15 +7,24 @@ from __future__ import annotations
 
 import streamlit as st
 
-from data import format_last_update, load_latest_timestamp
+from champions import metric_card
+from data import (
+    format_last_update,
+    load_latest_station_metrics,
+    load_latest_timestamp,
+)
 from layers import freshness_badge
 
 
 def main() -> None:
     st.set_page_config(page_title="Radar des spots météo en Ariège", layout="wide")
 
+    # Chargement des données
     max_ts = load_latest_timestamp()
     subtitle = format_last_update(max_ts)
+    latest = load_latest_station_metrics()
+
+    # HEADER
     label, color = freshness_badge(max_ts)
 
     st.markdown(
@@ -33,6 +42,34 @@ def main() -> None:
         unsafe_allow_html=True,
     )
     st.caption(subtitle)
+
+    # SECTION 1 : confort thermique
+    st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu cherches le confort thermique</div>', unsafe_allow_html=True)
+    temp_df = latest.dropna(subset=["temp_24h_intensity_label", "temp_24h_intensity_level"]) if not latest.empty else latest
+
+    if temp_df.empty:
+        st.info("Aucune donnée température disponible.")
+        return
+
+    levels = (
+        temp_df[["temp_24h_intensity_level", "temp_24h_intensity_label"]]
+        .drop_duplicates()
+        .sort_values(by="temp_24h_intensity_level", ascending=False)
+    )
+
+    # Palette du froid (1) vers le chaud (max)
+    palette = ["#0369a1", "#0ea5e9", "#22c55e", "#f59e0b", "#f97316", "#ef4444", "#b91c1c"]
+
+    cols = st.columns(len(levels))
+    for col, (_, row) in zip(cols, levels.iterrows()):
+        lvl = row["temp_24h_intensity_level"]
+        label_txt = row["temp_24h_intensity_label"]
+        subset = temp_df[temp_df["temp_24h_intensity_level"] == lvl]
+        names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
+        val = f"{len(subset)} stations" if len(subset)>1 else f"{len(subset)} station"
+        accent = palette[int(lvl) - 1] if lvl is not None else "#475569"
+        with col:
+            metric_card(label_txt, val, names, accent)
 
 
 if __name__ == "__main__":
