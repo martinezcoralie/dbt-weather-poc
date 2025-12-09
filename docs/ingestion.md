@@ -8,6 +8,16 @@ L’ingestion est assurée par les scripts Python du dossier `scripts/ingestion/
 
 ---
 
+## Prérequis
+
+- Avoir créé l’environnement Python : `make env-setup && source .venv/bin/activate`
+- Variables d’environnement (via `.env`) :
+  - `METEOFRANCE_TOKEN` : clé API Météo-France valide
+  - `DUCKDB_PATH` : chemin du fichier DuckDB (ex. `data/warehouse.duckdb`)
+- Profil dbt pointant vers le warehouse : `export DBT_PROFILES_DIR=./profiles`
+
+---
+
 ## Lancer une ingestion départementale
 
 ```bash
@@ -44,3 +54,20 @@ En cas de retard de fraîcheur, relancer l’ingestion :
 ```bash
 make dwh-ingest DEPT=9
 ```
+
+---
+
+## Entrées / sorties
+
+- Entrée : API DPPaquetObs (CSV) — endpoints `/liste-stations` et `/paquet/horaire`
+- Sorties : tables DuckDB `raw.stations` et `raw.obs_hourly` (mêmes noms de colonnes que la source)
+- Colonnes ajoutées : `load_time` (UTC) et `dept_code` (pour les observations)
+- Déduplication : clé logique `(validity_time, geo_id_insee, reference_time)` pour `raw.obs_hourly`, `Id_station` pour `raw.stations`
+- Schéma auto-créé si absent : `raw`
+
+---
+
+## Diagnostic rapide après ingestion
+
+- Vérifier les tables présentes : `make dwh-tables`
+- Compter/inspecter `raw.obs_hourly` : `make dwh-table TABLE=raw.obs_hourly`

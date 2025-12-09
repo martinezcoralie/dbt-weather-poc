@@ -35,9 +35,9 @@ Le dashboard est déclaré comme **exposure dbt** (`weather_bi_streamlit`), perm
 ### Desktop — fraîcheur à jour vs en retard
 
 - Badge « À jour » quand les données sont fraîchement ingérées :  
-  <img src="images/dashboard-desktop-fresh.png" alt="Dashboard desktop frais" width="900" />
+  <img src="images/dashboard-desktop-fresh.png" alt="Dashboard desktop frais" width="400" />
 - Badge « En retard » quand la fraîcheur est insuffisante :  
-  <img src="images/dashboard-desktop-late.png" alt="Dashboard desktop retard" width="900" />
+  <img src="images/dashboard-desktop-late.png" alt="Dashboard desktop retard" width="400" />
 
 ### Mobile — cartes de focus
 
