@@ -134,16 +134,22 @@ def metric_card(title: str, value: str, detail: str, accent: str, emoji: str | N
     st.markdown(
         f"""
         <div style="
+            width: 240px;
+            max-width: 260px;
+            min-height: 170px;
             padding: 14px 16px;
             border-radius: 14px;
             background: linear-gradient(135deg, {accent} 0%, #0f172a 120%);
             box-shadow: 0 12px 24px rgba(0,0,0,0.12);
             color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
             ">
             <div style="font-size: 18px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8;">
                 {title}
             </div>
-            {f'<div style="font-size:18px; margin:6px 0; ">{emoji}</div>' if emoji else ''}
+            {f'<div style="font-size:18px; margin:4px 0;">{emoji}</div>' if emoji else ''}
             <div style="font-size: 24px; font-weight: 700; margin: 6px 0;">
                 {value}
             </div>

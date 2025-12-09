@@ -72,7 +72,7 @@ def main() -> None:
         # Palette du froid (1) vers le chaud (max)
         palette = ["#0369a1", "#0ea5e9", "#22c55e", "#f59e0b", "#f97316", "#ef4444", "#b91c1c"]
 
-        cols = st.columns(len(levels))
+        cols = st.columns(len(levels), gap="small")
         for col, (_, row) in zip(cols, levels.iterrows()):
             lvl = row["temp_24h_intensity_level"]
             label_txt = row["temp_24h_intensity_label"]
@@ -98,7 +98,7 @@ def main() -> None:
 
         palette_snow = ["#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0ea5e9"]
 
-        cols = st.columns(len(snow_levels))
+        cols = st.columns(len(snow_levels), gap="small")
         for col, (_, row) in zip(cols, snow_levels.iterrows()):
             lvl = row["snow_24h_intensity_level"]
             label_txt = row["snow_24h_intensity_label"]
@@ -124,7 +124,7 @@ def main() -> None:
 
         palette_rain = ["#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0ea5e9"]
 
-        cols = st.columns(len(rain_levels))
+        cols = st.columns(len(rain_levels), gap="small")
         for col, (_, row) in zip(cols, rain_levels.iterrows()):
             lvl = row["precip_24h_intensity_level"]
             label_txt = row["precip_24h_intensity_label"]
@@ -150,7 +150,7 @@ def main() -> None:
 
         palette_wind = ["#cffafe", "#a5f3fc", "#67e8f9", "#22d3ee", "#06b6d4", "#0891b2", "#0e7490", "#155e75", "#164e63"]
 
-        cols = st.columns(len(wind_levels))
+        cols = st.columns(len(wind_levels), gap="small")
         for col, (_, row) in zip(cols, wind_levels.iterrows()):
             lvl = row["wind_beaufort"]
             label_txt = row["wind_beaufort_label"]
