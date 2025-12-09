@@ -17,9 +17,6 @@ clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
 
-dbt-cloud:
-    project-id: 70471823521229
-
 models:
   weather_dbt:                   # dossier racine du projet (== name dans dbt_project.yml)
     +materialized: view          # défaut global
@@ -36,10 +33,3 @@ models:
       +materialized: table        # défaut pour les marts
       +tags: ["mart"]
 
-seeds:
-  +quote_columns: false
-  +column_types:
-    level: integer
-    label: varchar
-    ms_min: double
-    ms_max: double
