@@ -4,8 +4,10 @@ Radar des spots météo en Ariège – demo minimal.
 from __future__ import annotations
 
 import streamlit as st
+import pydeck as pdk
 
 from champions import list_card, list_card_html
+from layers import _base_layer, compute_view_state
 from data import (
     format_last_update,
     load_latest_station_metrics,
@@ -221,14 +223,31 @@ def main() -> None:
             icon="💨💨💨 "
         )
 
-    if cards_html:
+    tabs = st.tabs(["Focus stations", "Carte"])
+    with tabs[0]:
+        if cards_html:
+            st.markdown(
+                f"""
+                <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:stretch; margin:12px 0 4px;">
+                    {cards_html}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        else:
+            st.info("Aucune station à mettre en avant pour le moment.")
+    with tabs[1]:
         st.markdown(
-            f"""
-            <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:stretch; margin:12px 0 4px;">
-                {cards_html}
-            </div>
-            """,
+            '<div style="font-size:16px; font-weight:700; margin:12px 0 8px;">Carte des stations</div>',
             unsafe_allow_html=True,
+        )
+        stations = latest[["station_id", "station_name", "latitude", "longitude"]].drop_duplicates() if not latest.empty else latest
+        st.pydeck_chart(
+            pdk.Deck(
+                layers=[_base_layer(stations)],
+                initial_view_state=compute_view_state(stations),
+                tooltip={"text": "{station_name}\n(lat: {latitude}, lon: {longitude})"},
+            )
         )
 
 if __name__ == "__main__":
