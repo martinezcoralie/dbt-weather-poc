@@ -26,6 +26,12 @@ def main() -> None:
         f'</div>',
         unsafe_allow_html=True,
     )
+    st.markdown(
+        '<div style="font-size:16px; color:#475569;">'
+        'Classement des stations météo sur les dernières 24h : confort thermique, neige, pluie, vent.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
     st.caption(subtitle)
 
 

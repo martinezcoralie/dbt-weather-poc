@@ -51,4 +51,4 @@ def format_last_update(ts: datetime | None) -> str:
     if not isinstance(ts, datetime):
         return "Aucune donnée disponible dans marts.agg_station_latest_24h"
     ts_formatted = ts if ts.tzinfo else ts.replace(tzinfo=None)
-    return f"Données mises à jour le {ts_formatted:%d/%m/%Y %H:%M UTC}"
+    return f"Données issues de l'API Météo France, mises à jour le {ts_formatted:%d/%m/%Y %H:%M UTC}"
