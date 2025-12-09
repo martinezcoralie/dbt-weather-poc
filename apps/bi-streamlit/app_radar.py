@@ -7,16 +7,7 @@ import streamlit as st
 import pydeck as pdk
 
 from champions import list_card, list_card_html
-from layers import (
-    COLD_ICON_URL,
-    HOT_ICON_URL,
-    RAIN_ICON_URL,
-    SNOW_ICON_URL,
-    _base_layer,
-    _icon_layer,
-    compute_view_state,
-    freshness_badge,
-)
+from layers import _base_layer, _icon_layer, compute_view_state, freshness_badge
 from data import (
     format_last_update,
     load_latest_station_metrics,
@@ -211,33 +202,49 @@ def main() -> None:
         )
 
     # Options de couches pour la carte
+    # Icon URLs (placeholder: Twemoji); you can replace per pill if needed.
+    ICON_URLS = {
+        "🔥": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f525.png",
+        "🍃": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f343.png",
+        "🥶": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f976.png",
+        "🌧️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f327.png",
+        "💧💧": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a7.png",
+        "💧": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a7.png",
+        "🌤️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f324.png",
+        "❄️❄️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2744.png",
+        "🌨️🌨️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f328.png",
+        "💨": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a8.png",
+        "💨💨": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a8.png",
+        "😌": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f60c.png",
+    }
+
     map_options = []
     if nb_high > 0:
-        map_options.append(("🔥", high_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Confort thermique"), HOT_ICON_URL))
+        map_options.append(("🔥", high_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Confort thermique")))
     if nb_cool > 0:
-        map_options.append(("🍃", cool_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Frais"), COLD_ICON_URL))
+        map_options.append(("🍃", cool_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Frais")))
     if nb_cold > 0:
-        map_options.append(("❄️❄️", cold_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Grand froid"), COLD_ICON_URL))
+        map_options.append(("🥶", cold_temp.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Grand froid")))
     if nb_heavy_rain > 0:
-        map_options.append(("🌧️", heavy_rain.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Pluie soutenue"), RAIN_ICON_URL))
+        map_options.append(("🌧️", heavy_rain.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Pluie soutenue")))
     if nb_moderate_rain > 0:
-        map_options.append(("💧💧", moderate_rain.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Pluie modérée"), RAIN_ICON_URL))
+        map_options.append(("💧💧", moderate_rain.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Pluie modérée")))
     if nb_few_drops > 0:
-        map_options.append(("💧", few_drops.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Quelques gouttes"), RAIN_ICON_URL))
+        map_options.append(("💧", few_drops.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Quelques gouttes")))
     if nb_dry > 0:
-        map_options.append(("🌤️", dry_rain.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Au sec"), RAIN_ICON_URL))
+        map_options.append(("🌤️", dry_rain.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Au sec")))
     if nb_snow_light > 0:
-        map_options.append(("❄️❄️", snow_light.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Neige faible"), SNOW_ICON_URL))
+        map_options.append(("❄️❄️", snow_light.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Neige faible")))
     if nb_snow_heavy > 0:
-        map_options.append(("🌨️🌨️", snow_heavy.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Neige forte"), SNOW_ICON_URL))
+        map_options.append(("🌨️🌨️", snow_heavy.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Neige forte")))
     if nb_wind_breeze > 0:
-        map_options.append(("🍃 ", wind_breeze.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Brise"), COLD_ICON_URL))
+        map_options.append(("🍃", wind_breeze.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Brise")))
     if nb_wind_strong4 > 0:
-        map_options.append(("💨", wind_strong4.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Vent fort"), RAIN_ICON_URL))
+        map_options.append(("💨", wind_strong4.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Vent fort")))
     if nb_wind_very_strong > 0:
-        map_options.append(("💨💨", wind_very_strong.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Vent très fort"), RAIN_ICON_URL))
+        map_options.append(("💨💨", wind_very_strong.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Vent très fort")))
     if nb_wind_calm > 0:
-        map_options.append(("😌", wind_calm.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Pas de vent"), COLD_ICON_URL))
+        map_options.append(("😌", wind_calm.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status="Pas de vent")))
 
     tabs = st.tabs(["Focus stations", "Carte"])
     with tabs[0]:
@@ -258,7 +265,7 @@ def main() -> None:
             unsafe_allow_html=True,
         )
         stations = latest[["station_id", "station_name", "latitude", "longitude"]].drop_duplicates() if not latest.empty else latest
-        options_labels = [label for label, _, _ in map_options]
+        options_labels = [label for label, _ in map_options]
         selected = st.pills(
             "Spots à afficher",
             options_labels,
@@ -268,8 +275,11 @@ def main() -> None:
         )
 
         layers = [_base_layer(stations)]
-        for label, df_points, icon_url in map_options:
+        for label, df_points in map_options:
             if label in selected:
+                icon_url = ICON_URLS.get(label)
+                if not icon_url:
+                    continue
                 layer = _icon_layer(df_points, icon_url, 28)
                 if layer:
                     layers.append(layer)

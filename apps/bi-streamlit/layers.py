@@ -87,6 +87,28 @@ def _icon_layer(data: pd.DataFrame, icon_url: str, size) -> pdk.Layer | None:
     )
 
 
+def emoji_layer(data: pd.DataFrame, emoji: str, size: int = 28) -> pdk.Layer | None:
+    """TextLayer with an emoji marker."""
+    if data is None or data.empty:
+        return None
+    df = data.copy()
+    df["text"] = emoji
+    return pdk.Layer(
+        "TextLayer",
+        data=df,
+        get_position=["lon", "lat"],
+        get_text="text",
+        get_size=size,
+        get_color=[0, 0, 0, 255],
+        get_angle=0,
+        get_text_anchor="middle",
+        get_alignment_baseline="center",
+        size_units="pixels",
+        billboard=True,
+        pickable=True,
+    )
+
+
 def build_map_layers(stations: pd.DataFrame, champs: ChampionSet) -> list[pdk.Layer]:
     """Build all map layers (base + champions)."""
     warm_layer = _icon_layer(champs.warm_points, HOT_ICON_URL, 20)
