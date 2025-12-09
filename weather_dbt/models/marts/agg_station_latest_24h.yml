@@ -40,6 +40,10 @@ models:
         description: Niveau Beaufort du vent le plus récent.
       - name: wind_beaufort_label
         description: Libellé Beaufort du vent le plus récent.
+      - name: temp_24h_intensity_level
+        description: Niveau ordinal d’intensité thermique 24h (dim_temp_intensity).
+      - name: temp_24h_intensity_label
+        description: Libellé descriptif d’intensité thermique 24h.
       - name: temperature_c
         description: Température la plus récente (°C).
       - name: humidity_pct
