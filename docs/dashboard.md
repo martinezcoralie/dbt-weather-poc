@@ -58,22 +58,21 @@ Le dashboard est déclaré comme **exposure dbt** (`weather_bi_streamlit`), perm
 
 ## Aperçu visuel
 
-### Desktop — fraîcheur à jour vs en retard
+### Fraîcheur à jour vs en retard
 
-- Badge « À jour » quand les données sont fraîchement ingérées :  
-  <img src="images/dashboard-desktop-fresh.png" alt="Dashboard desktop frais" width="900" />
+- Badge « À jour » quand les données sont fraîchement ingérées
 - Badge « En retard » quand la fraîcheur est insuffisante :  
   <img src="images/dashboard-desktop-late.png" alt="Dashboard desktop retard" width="900" />
 
-### Mobile — cartes de focus
+### Cartes de focus
 
-- Vue « Synthèse » en mobile avec les cartes listant les spots répondant aux critères (température, pluie, neige, vent) :  
-  <img src="images/dashboard-mobile-cards.png" alt="Dashboard mobile cartes" width="380" />
+- Vue « Synthèse » avec les cartes listant les spots répondant aux critères (température, pluie, neige, vent) :  
+  <img src="images/dashboard-desktop-fresh.png" alt="Dashboard desktop frais" width="900" />
 
-### Mobile — carte interactive
+
+### Carte interactive
 
 - Vue « Carte » montrant les spots filtrés sur la carte (sélection multi-onglets via les pills) :  
-  <img src="images/dashboard-mobile-map.png" alt="Dashboard mobile carte" width="380" />
-- Zoom mobile alternatif sur la carte (autre capture) :  
-  <img src="images/dashboard-mobile-map-2.png" alt="Dashboard mobile carte 2" width="380" />
+  <img src="images/dashboard-desktop-map.png" alt="Dashboard desktop frais" width="900" />
+
 

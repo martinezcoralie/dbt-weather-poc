@@ -157,11 +157,11 @@ make dbt-docs-serve
 
 Accès : [http://localhost:8080](http://localhost:8080)
 
-### Hébergée (GitHub Pages)
+### Hébergée (CI → GitHub Pages)
 
-Une GitHub Action génère et déploie automatiquement la documentation dbt sur GitHub Pages à chaque push sur `main` :
+Une GitHub Action génère et déploie automatiquement la documentation dbt à chaque push sur `main` (build + upload artefact, puis publication sur Pages) :
 
-Accès : [https://martinezcoralie.github.io/dbt-weather-poc/](https://martinezcoralie.github.io/dbt-weather-poc/)
+- Accès : [https://martinezcoralie.github.io/dbt-weather-poc/](https://martinezcoralie.github.io/dbt-weather-poc/)
 
 👉 Documentation détaillée : [`docs/dbt-docs.md`](docs/dbt-docs.md).
 
