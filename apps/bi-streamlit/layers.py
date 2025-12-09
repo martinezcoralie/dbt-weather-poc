@@ -79,11 +79,98 @@ def _icon_layer(data: pd.DataFrame, icon_url: str, size) -> pdk.Layer | None:
         billboard=True,
     )
 
+from dataclasses import dataclass
+from typing import Optional
 
-__all__ = [
-    "compute_view_state",
-    "freshness_badge",
-    "render_freshness",
-    "_base_layer",
-    "_icon_layer",
-]
+def list_card_html(title: str, station_text: str, count_text: str, accent: str, icon: str = "") -> str:
+    """Return the HTML for a list-style card (for use inside flex containers)."""
+    import textwrap
+
+    html = textwrap.dedent(
+        f"""\
+        <div style="
+            flex: 1 1 calc(50% - 12px);
+            min-width: 180px;
+            max-width: 160px;
+            min-height: 150px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, {accent} 0%, #0f172a 120%);
+            box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        ">
+            <div style="font-size: 18px; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8;">{icon}{title}</div>
+            <div style="font-size: 13px; line-height: 1.4; opacity: 0.9;">{station_text}</div>
+            <div style="font-size: 12px; font-weight: 700; opacity: 0.92; align-self: flex-end;">{count_text}</div>
+        </div>
+        """
+    ).strip()
+    return html
+
+# Placeholder icon URLs (Twemoji). Replace with your own PNGs if desired.
+ICON_URLS = {
+    "🔥": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f525.png",
+    "🍃": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f343.png",
+    "🥶": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f976.png",
+    "🌧️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f327.png",
+    "💧💧": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a7.png",
+    "💧": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a7.png",
+    "🌤️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f324.png",
+    "❄️❄️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/2744.png",
+    "🌨️🌨️": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f328.png",
+    "💨": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a8.png",
+    "💨💨": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f4a8.png",
+    "😌": "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/1f60c.png",
+}
+
+
+def build_focus_cards(latest: pd.DataFrame) -> tuple[str, list[tuple[str, pd.DataFrame, str]]]:
+    """Return (cards_html, map_options) for the focus section."""
+    cards_html = ""
+    map_options: list[tuple[str, pd.DataFrame, str]] = []
+
+    if latest.empty:
+        return cards_html, map_options
+
+    def add_focus(df: pd.DataFrame, title: str, icon: str, accent: str) -> None:
+        nonlocal cards_html, map_options
+        if df.empty:
+            return
+        df_points = df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status=title)
+        count = len(df_points)
+        names = ", ".join(sorted(df_points["station_name"].tolist()))
+        cards_html += list_card_html(title, names, f"{count} station(s)", accent, icon=f"{icon} ")
+        icon_url = ICON_URLS.get(icon.strip())
+        if icon_url:
+            map_options.append((icon, df_points, icon_url))
+
+    # Temp focus
+    add_focus(latest[latest["temp_24h_intensity_level"].fillna(0) >= 4], "Confort thermique", "🔥", "#ef4444")
+    add_focus(latest[latest["temp_24h_intensity_level"].fillna(0) == 3], "Frais", "🍃", "#0ea5e9")
+    add_focus(latest[latest["temp_24h_intensity_level"].fillna(0).isin([1, 2])], "Grand froid", "🥶", "#0ea5e9")
+
+    # Rain focus
+    add_focus(latest[latest["precip_24h_intensity_level"].fillna(0).isin([4, 5])], "Pluie soutenue", "🌧️", "#0ea5e9")
+    add_focus(latest[latest["precip_24h_intensity_level"].fillna(0) == 3], "Pluie modérée", "💧💧", "#38bdf8")
+    add_focus(
+        latest[(latest["precip_24h_intensity_level"].fillna(0) == 1) & (latest["precip_24h_mm"].fillna(0) > 0)],
+        "Quelques gouttes",
+        "💧",
+        "#60a5fa",
+    )
+    add_focus(latest[latest["precip_24h_mm"].fillna(0) == 0], "Au sec", "🌤️", "#22c55e")
+
+    # Snow focus
+    add_focus(latest[latest["snow_24h_intensity_level"].fillna(0).isin([2, 3])], "Neige faible", "❄️❄️", "#38bdf8")
+    add_focus(latest[latest["snow_24h_intensity_level"].fillna(0).isin([4, 5])], "Neige forte", "🌨️🌨️", "#0ea5e9")
+
+    # Wind focus
+    add_focus(latest[latest["wind_beaufort"].fillna(-1).isin([2, 3])], "Brise", "🍃", "#38bdf8")
+    add_focus(latest[latest["wind_beaufort"].fillna(-1) == 4], "Vent fort", "💨", "#0ea5e9")
+    add_focus(latest[latest["wind_beaufort"].fillna(-1) == 5], "Vent très fort", "💨💨", "#0b7a9b")
+    add_focus(latest[latest["wind_beaufort"].fillna(-1) == 1], "Pas de vent", "😌", "#22c55e")
+
+    return cards_html, map_options

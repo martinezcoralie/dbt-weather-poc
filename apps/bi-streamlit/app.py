@@ -1,13 +1,10 @@
-"""
-Radar des spots météo en Ariège – demo minimal.
-"""
 from __future__ import annotations
 
 import streamlit as st
 import pydeck as pdk
 
-from champions import list_card, list_card_html
-from layers import _base_layer, _icon_layer, compute_view_state, freshness_badge
+from layers import _base_layer, _icon_layer, compute_view_state, freshness_badge, list_card_html, build_focus_cards
+from data import format_last_update, load_latest_station_metrics, load_latest_timestamp
 from data import (
     format_last_update,
     load_latest_station_metrics,
@@ -22,6 +19,7 @@ def main() -> None:
     max_ts = load_latest_timestamp()
     subtitle = format_last_update(max_ts)
     latest = load_latest_station_metrics()
+    cards_html, map_options = build_focus_cards(latest)
 
     # HEADER
     label, color = freshness_badge(max_ts)
