@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 import duckdb
 import pandas as pd
@@ -26,27 +27,20 @@ def load_latest_station_metrics() -> pd.DataFrame:
     with duckdb.connect(DB_PATH, read_only=True) as con:
         return con.execute(
             """
-            select
-                station_id,
-                station_name,
-                latitude,
-                longitude,
-                validity_time_utc,
-                temp_24h_c,
-                precip_24h_mm,
-                snow_24h_m,
-                precip_24h_intensity_level,
-                precip_24h_intensity_label,
-                snow_24h_intensity_level,
-                snow_24h_intensity_label,
-                temperature_c,
-                precip_mm_h,
-                wind_speed_kmh,
-                wind_sector,
-                wind_beaufort,
-                wind_beaufort_label,
-                humidity_pct,
-                visibility_cat
+            select *
             from marts.agg_station_latest_24h
             """
         ).df()
+
+
+@st.cache_data(ttl=60)
+def load_latest_timestamp() -> datetime | None:
+    """Horodatage le plus récent disponible dans le mart agg_station_latest_24h."""
+    with duckdb.connect(DB_PATH, read_only=True) as con:
+        result = con.execute(
+            """
+            select max(validity_time_utc) as max_ts
+            from marts.agg_station_latest_24h
+            """
+        ).fetchone()
+    return result[0] if result else None
