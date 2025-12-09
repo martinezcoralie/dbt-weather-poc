@@ -49,27 +49,52 @@ def main() -> None:
 
     if temp_df.empty:
         st.info("Aucune donnée température disponible.")
-        return
+    else:
+        levels = (
+            temp_df[["temp_24h_intensity_level", "temp_24h_intensity_label"]]
+            .drop_duplicates()
+            .sort_values(by="temp_24h_intensity_level", ascending=False)
+        )
 
-    levels = (
-        temp_df[["temp_24h_intensity_level", "temp_24h_intensity_label"]]
-        .drop_duplicates()
-        .sort_values(by="temp_24h_intensity_level", ascending=False)
-    )
+        # Palette du froid (1) vers le chaud (max)
+        palette = ["#0369a1", "#0ea5e9", "#22c55e", "#f59e0b", "#f97316", "#ef4444", "#b91c1c"]
 
-    # Palette du froid (1) vers le chaud (max)
-    palette = ["#0369a1", "#0ea5e9", "#22c55e", "#f59e0b", "#f97316", "#ef4444", "#b91c1c"]
+        cols = st.columns(len(levels))
+        for col, (_, row) in zip(cols, levels.iterrows()):
+            lvl = row["temp_24h_intensity_level"]
+            label_txt = row["temp_24h_intensity_label"]
+            subset = temp_df[temp_df["temp_24h_intensity_level"] == lvl]
+            names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
+            val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
+            accent = palette[int(lvl) - 1] if lvl is not None else "#475569"
+            with col:
+                metric_card(label_txt, val, names, accent)
 
-    cols = st.columns(len(levels))
-    for col, (_, row) in zip(cols, levels.iterrows()):
-        lvl = row["temp_24h_intensity_level"]
-        label_txt = row["temp_24h_intensity_label"]
-        subset = temp_df[temp_df["temp_24h_intensity_level"] == lvl]
-        names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
-        val = f"{len(subset)} stations" if len(subset)>1 else f"{len(subset)} station"
-        accent = palette[int(lvl) - 1] if lvl is not None else "#475569"
-        with col:
-            metric_card(label_txt, val, names, accent)
+    # SECTION 2 : neige
+    st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu cherches la neige</div>', unsafe_allow_html=True)
+    snow_df = latest.dropna(subset=["snow_24h_intensity_level", "snow_24h_intensity_label"]) if not latest.empty else latest
+
+    if snow_df.empty:
+        st.info("Aucune donnée neige disponible.")
+    else:
+        snow_levels = (
+            snow_df[["snow_24h_intensity_level", "snow_24h_intensity_label"]]
+            .drop_duplicates()
+            .sort_values(by="snow_24h_intensity_level", ascending=False)
+        )
+
+        palette_snow = ["#e0f2fe", "#bae6fd", "#7dd3fc", "#38bdf8", "#0ea5e9"]
+
+        cols = st.columns(len(snow_levels))
+        for col, (_, row) in zip(cols, snow_levels.iterrows()):
+            lvl = row["snow_24h_intensity_level"]
+            label_txt = row["snow_24h_intensity_label"]
+            subset = snow_df[snow_df["snow_24h_intensity_level"] == lvl]
+            names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
+            val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
+            accent = palette_snow[min(int(lvl) - 1, len(palette_snow) - 1)] if lvl is not None else "#475569"
+            with col:
+                metric_card(label_txt, val, names, accent)
 
 
 if __name__ == "__main__":
