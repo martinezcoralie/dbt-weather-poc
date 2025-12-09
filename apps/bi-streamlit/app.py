@@ -10,6 +10,94 @@ from data import format_last_update, load_latest_station_metrics, load_latest_ti
 def main() -> None:
     st.set_page_config(page_title="Radar des spots météo en Ariège", layout="wide")
 
+    st.markdown(
+        """
+        <style>
+        .hero-header {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .hero-title {
+            font-size: 48px;
+            line-height: 1.1;
+            font-weight: 700;
+            color: #0f172a;
+            margin-right: 24px;
+        }
+        .hero-badge {
+            background: #0ea5e9;
+            color: white;
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 22px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+        }
+        .cards-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: stretch;
+            margin: 12px 0 4px;
+        }
+        .focus-card {
+            flex: 1 1 calc(50% - 12px);
+            min-width: 150px;
+            max-width: 260px;
+            min-height: 150px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--card-accent, #0ea5e9) 0%, #0f172a 120%);
+            box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .focus-card-title {
+            font-size: 18px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            opacity: 0.8;
+        }
+        .focus-card-body {
+            font-size: 13px;
+            line-height: 1.4;
+            opacity: 0.9;
+        }
+        .focus-card-count {
+            font-size: 12px;
+            font-weight: 700;
+            opacity: 0.92;
+            align-self: flex-end;
+        }
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 28px;
+                line-height: 1.2;
+                margin-right: 12px;
+            }
+            .hero-badge {
+                font-size: 16px;
+                padding: 6px 8px;
+            }
+            .cards-wrap {
+                gap: 10px;
+            }
+            .focus-card {
+                flex: 1 1 calc(50% - 10px);
+                min-width: 0;
+                max-width: none;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
     # Chargement des données
     max_ts = load_latest_timestamp()
     subtitle = format_last_update(max_ts)
@@ -19,10 +107,9 @@ def main() -> None:
     label, color = freshness_badge(max_ts)
 
     st.markdown(
-        f'<div style="display:flex; gap:10px; align-items:center;">'
-        f'<div style="font-size:48px; font-weight:700; color:#0f172a; margin-right:24px">Radar des spots météo en Ariège</div>'
-        f'<span style="background:{color}; color:white; padding:6px 10px; '
-        f'border-radius:12px; font-size:22px; font-weight:600;">{label}</span>'
+        f'<div class="hero-header">'
+        f'<div class="hero-title">Radar des spots météo en Ariège</div>'
+        f'<span class="hero-badge" style="background:{color};">{label}</span>'
         f'</div>',
         unsafe_allow_html=True,
     )
@@ -35,7 +122,7 @@ def main() -> None:
         if cards_html:
             st.markdown(
                 f"""
-                <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:stretch; margin:12px 0 4px;">
+                <div class="cards-wrap">
                     {cards_html}
                 </div>
                 """,
