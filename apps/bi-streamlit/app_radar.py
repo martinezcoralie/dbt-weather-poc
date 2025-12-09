@@ -84,7 +84,7 @@ def main() -> None:
             ", ".join(names_cool),
             f"{nb_cool} station(s)",
             "#0ea5e9",
-            icon="🍃 ",
+            icon="❄️ ",
         )
     if nb_cold > 0:
         cards_html += list_card_html(
@@ -92,7 +92,7 @@ def main() -> None:
             ", ".join(names_cold),
             f"{nb_cold} station(s)",
             "#0ea5e9",
-            icon="❄️ ",
+            icon="❄️❄️ ",
         )
 
     # Highlight pluie & sec as focus cards (wrap) appended to same container
@@ -117,7 +117,7 @@ def main() -> None:
             ", ".join(names_moderate_rain),
             f"{nb_moderate_rain} station(s)",
             "#38bdf8",
-            icon="💧 "
+            icon="💧💧 "
         )
 
     few_drops = latest[(latest["precip_24h_intensity_level"].fillna(0) == 1) & (latest["precip_24h_mm"].fillna(0) > 0)] if not latest.empty else latest
@@ -170,7 +170,7 @@ def main() -> None:
             icon="🌨️🌨️ "
         )
 
-    # Vent brise (levels 2 ou 3)
+    # Vent brise (level 2)
     wind_breeze = latest[latest["wind_beaufort"].fillna(-1).isin([2, 3])] if not latest.empty else latest
     nb_wind_breeze = len(wind_breeze)
     names_wind_breeze = sorted(wind_breeze["station_name"].tolist()) if nb_wind_breeze > 0 else []
@@ -181,6 +181,18 @@ def main() -> None:
             f"{nb_wind_breeze} station(s)",
             "#38bdf8",
             icon="🍃 "
+        )
+    # Vent modéré (level 3)
+    wind_strong = latest[latest["wind_beaufort"].fillna(-1) == 3] if not latest.empty else latest
+    nb_wind_strong = len(wind_strong)
+    names_wind_strong = sorted(wind_strong["station_name"].tolist()) if nb_wind_strong > 0 else []
+    if nb_wind_strong > 0:
+        cards_html += list_card_html(
+            "Vent modéré",
+            ", ".join(names_wind_strong),
+            f"{nb_wind_strong} station(s)",
+            "#0ea5e9",
+            icon="💨 "
         )
 
     # Vent fort (level 4)
@@ -193,7 +205,7 @@ def main() -> None:
             ", ".join(names_wind_strong),
             f"{nb_wind_strong} station(s)",
             "#0ea5e9",
-            icon="💨 "
+            icon="💨💨 "
         )
 
     # Vent très fort (level 5)
@@ -206,20 +218,7 @@ def main() -> None:
             ", ".join(names_wind_very_strong),
             f"{nb_wind_very_strong} station(s)",
             "#0b7a9b",
-            icon="💨💨 "
-        )
-
-    # Pas de vent (level 1)
-    wind_calm = latest[latest["wind_beaufort"].fillna(-1) == 1] if not latest.empty else latest
-    nb_wind_calm = len(wind_calm)
-    names_wind_calm = sorted(wind_calm["station_name"].tolist()) if nb_wind_calm > 0 else []
-    if nb_wind_calm > 0:
-        cards_html += list_card_html(
-            "Pas de vent",
-            ", ".join(names_wind_calm),
-            f"{nb_wind_calm} station(s)",
-            "#22c55e",
-            icon="😌 "
+            icon="💨💨💨 "
         )
 
     if cards_html:
@@ -231,34 +230,6 @@ def main() -> None:
             """,
             unsafe_allow_html=True,
         )
-
-    # SECTION 4 : vent
-    st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu veux éviter le vent fort</div>', unsafe_allow_html=True)
-    wind_df = latest.dropna(subset=["wind_beaufort", "wind_beaufort_label"]) if not latest.empty else latest
-
-    if wind_df.empty:
-        st.info("Aucune donnée vent disponible.")
-    else:
-        wind_levels = (
-            wind_df[["wind_beaufort", "wind_beaufort_label"]]
-            .drop_duplicates()
-            .sort_values(by="wind_beaufort", ascending=True)
-        )
-
-        palette_wind = ["#cffafe", "#a5f3fc", "#67e8f9", "#22d3ee", "#06b6d4", "#0891b2", "#0e7490", "#155e75", "#164e63"]
-
-        cols = st.columns(len(wind_levels), gap="small")
-        for col, (_, row) in zip(cols, wind_levels.iterrows()):
-            lvl = row["wind_beaufort"]
-            label_txt = row["wind_beaufort_label"]
-            subset = wind_df[wind_df["wind_beaufort"] == lvl]
-            names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
-            val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
-            idx = min(int(lvl), len(palette_wind) - 1) if lvl is not None else 0
-            accent = palette_wind[idx]
-            with col:
-                metric_card(label_txt, val, names, accent, emoji=intensity_emoji('wind', int(lvl)) if lvl is not None else None)
-
 
 if __name__ == "__main__":
     main()
