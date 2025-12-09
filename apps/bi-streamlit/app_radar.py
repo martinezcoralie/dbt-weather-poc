@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from champions import list_card, list_card_html, metric_card
+from champions import list_card, list_card_html
 from data import (
     format_last_update,
     load_latest_station_metrics,
