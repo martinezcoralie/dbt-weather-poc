@@ -19,6 +19,21 @@ from layers import freshness_badge
 def main() -> None:
     st.set_page_config(page_title="Radar des spots météo en Ariège", layout="wide")
 
+    def intensity_emoji(kind: str, level: int | None) -> str:
+        """Quick visual cue by intensity."""
+        if level is None:
+            return ""
+        if kind == "temp":
+            # 1 = froid, max = très chaud
+            return "🧊" * max(1, min(3, 4 - min(level, 4))) if level <= 3 else "🔥" * max(1, min(3, level - 2))
+        if kind == "snow":
+            return "❄️" * max(1, min(4, level))
+        if kind == "rain":
+            return "💧" * max(1, min(4, level))
+        if kind == "wind":
+            return "🌬️" * max(1, min(4, level // 3 + 1))
+        return ""
+
     # Chargement des données
     max_ts = load_latest_timestamp()
     subtitle = format_last_update(max_ts)
@@ -67,8 +82,9 @@ def main() -> None:
             names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
             val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
             accent = palette[int(lvl) - 1] if lvl is not None else "#475569"
+            display_label = f"{intensity_emoji('temp', int(lvl))} {label_txt}" if lvl is not None else label_txt
             with col:
-                metric_card(label_txt, val, names, accent)
+                metric_card(display_label, val, names, accent)
 
     # SECTION 2 : neige
     st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu cherches la neige</div>', unsafe_allow_html=True)
@@ -93,8 +109,9 @@ def main() -> None:
             names = ", ".join(sorted(subset["station_name"].tolist())) if not subset.empty else "Aucune station"
             val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
             accent = palette_snow[min(int(lvl) - 1, len(palette_snow) - 1)] if lvl is not None else "#475569"
+            display_label = f"{intensity_emoji('snow', int(lvl))} {label_txt}" if lvl is not None else label_txt
             with col:
-                metric_card(label_txt, val, names, accent)
+                metric_card(display_label, val, names, accent)
 
     # SECTION 3 : pluie
     st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu fuis la pluie</div>', unsafe_allow_html=True)
@@ -120,7 +137,7 @@ def main() -> None:
             val = f"{len(subset)} stations" if len(subset) > 1 else f"{len(subset)} station"
             accent = palette_rain[min(int(lvl) - 1, len(palette_rain) - 1)] if lvl is not None else "#475569"
             with col:
-                metric_card(label_txt, val, names, accent)
+                metric_card(f"{intensity_emoji('rain', int(lvl))} {label_txt}", val, names, accent)
 
     # SECTION 4 : vent
     st.markdown('<div style="font-size:18px; font-weight:700; margin:18px 0 10px;">Tu veux éviter le vent fort</div>', unsafe_allow_html=True)
@@ -147,7 +164,7 @@ def main() -> None:
             idx = min(int(lvl), len(palette_wind) - 1) if lvl is not None else 0
             accent = palette_wind[idx]
             with col:
-                metric_card(label_txt, val, names, accent)
+                metric_card(f"{intensity_emoji('wind', int(lvl))} {label_txt}", val, names, accent)
 
 
 if __name__ == "__main__":
