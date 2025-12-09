@@ -31,6 +31,14 @@ Ce dashboard s'appuie principalement sur le modèle `agg_station_latest_24h`.
 - Onglet **Carte** : PyDeck + pills multi-sélection pour afficher les spots par catégorie, avec tooltip (nom, statut, lat/lon)
 - Cache Streamlit : données rechargées toutes les 60 s (`st.cache_data(ttl=60)`)
 
+### Badge de fraîcheur — interprétation
+
+- 🟢 « À jour » : dernière `validity_time_utc` ≤ 3 h
+- 🟠 « En retard » : entre 3 h et 6 h
+- 🔴 « Stale » : > 6 h
+
+Pour rafraîchir manuellement : relancer l’ingestion (`make dwh-ingest DEPT=9`) puis `make dbt-build`.
+
 ## Exposure dbt associée
 
 Le dashboard est déclaré comme **exposure dbt** (`weather_bi_streamlit`), permettant de :
@@ -68,3 +76,4 @@ Le dashboard est déclaré comme **exposure dbt** (`weather_bi_streamlit`), perm
   <img src="images/dashboard-mobile-map.png" alt="Dashboard mobile carte" width="380" />
 - Zoom mobile alternatif sur la carte (autre capture) :  
   <img src="images/dashboard-mobile-map-2.png" alt="Dashboard mobile carte 2" width="380" />
+
