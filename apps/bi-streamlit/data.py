@@ -44,3 +44,11 @@ def load_latest_timestamp() -> datetime | None:
             """
         ).fetchone()
     return result[0] if result else None
+
+
+def format_last_update(ts: datetime | None) -> str:
+    """Retourne une phrase prête à afficher sur l'horodatage le plus récent."""
+    if not isinstance(ts, datetime):
+        return "Aucune donnée disponible dans marts.agg_station_latest_24h"
+    ts_formatted = ts if ts.tzinfo else ts.replace(tzinfo=None)
+    return f"Données mises à jour le {ts_formatted:%d/%m/%Y %H:%M UTC}"
