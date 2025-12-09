@@ -11,4 +11,4 @@ seeds:
       - name: max_mm
         description: Borne maximale (exclue) du cumul 24h (mm). Null si borne ouverte.
       - name: label
-        description: Libellé descriptif associé à la plage.
+        description: Libellé descriptif.

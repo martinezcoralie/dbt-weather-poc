@@ -1,0 +1,14 @@
+version: 2
+
+seeds:
+  - name: temp_intensity
+    description: >
+      Interprétation BI de la température moyenne glissante 24h (°C) 
+      pour qualifier la sensation thermique perçue.
+    columns:
+      - name: min_c
+        description: Borne minimale (incluse) de la plage de température (°C). Null si borne ouverte.
+      - name: max_c
+        description: Borne maximale (exclue) de la plage de température (°C). Null si borne ouverte.
+      - name: label
+        description: Libellé descriptif.
