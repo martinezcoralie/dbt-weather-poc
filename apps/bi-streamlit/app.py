@@ -8,7 +8,7 @@ from layers import build_map_layers, compute_view_state
 
 
 def main() -> None:
-    st.set_page_config(page_title="Ariège météo – 24h BI", layout="wide")
+    st.set_page_config(page_title="Ariège météo", layout="wide")
 
     stations = load_station_list()
     latest_metrics = load_latest_station_metrics()
