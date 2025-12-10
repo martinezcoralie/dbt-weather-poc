@@ -41,16 +41,16 @@ Le lineage est accessible via le bouton « Lineage » en bas à droite du pannea
 
 L’interface permet d’explorer facilement l’ensemble des modèles, sources, tests et descriptions.
 
-<img src="images/dbt_sidebar.png" width="150" />
+<img src="images/dbt_sidebar.png" width="250" />
 
 ### Fiche d’un modèle analytique (`fct_obs_hourly`)
 
 Chaque modèle documenté expose sa description, ses colonnes, ses contraintes et ses tests associés.
 
-<img src="images/dbt_table_extract.png" width="250" />
+<img src="images/dbt_table_extract.png" width="600" />
 
 ### Lineage complet (`raw → staging → intermediate → marts`)
 
 Le lineage graph permet de visualiser le flux de transformation de bout en bout, jusqu’à la consommation BI.
 
-<img src="images/lineage-graph.png" width="350" />
+<img src="images/lineage-graph.png" width="800" />
