@@ -5,7 +5,7 @@ dbt_packages/
 logs/
 __pycache__/.streamlit/
 __pycache__/
-data/*.duckdb
+**/*.duckdb
 .vscode
 .ruff_cache
 
