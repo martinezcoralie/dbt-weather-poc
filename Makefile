@@ -105,7 +105,7 @@ dwh-table-shape: ## Affiche le nombre de lignes et de colonnes pour une table (a
 	SELECT nrows, ncols FROM s;"
 	
 dwh-table-sample: ## Affiche un extrait de la table pour inspection rapide (argument : TABLE=<schema.table>)
-	$(PY) scripts/utils/peek_duckdb.py --table $(TABLE)
+	$(PY) scripts/duckdb/peek.py --table $(TABLE)
 
 dwh-table: dwh-table-shape dwh-table-info dwh-table-sample ## Résumé complet d’une table : shape + info colonnes + sample (argument : TABLE=<schema.table>)
 
