@@ -1,20 +1,9 @@
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Docker Compose reference guide at
-# https://docs.docker.com/go/compose-spec-reference/
-
-# For examples, see the Awesome Compose repository:
-# https://github.com/docker/awesome-compose
-
 services:
   weather-app:
-    build: .
-    # C'est ICI qu'on gère la persistance de DuckDB
+    build: .                       # construit l’image depuis le Dockerfile à la racine
     volumes:
-      - ./data:/app/data       # On garde la DB sur ton disque
-      - ./profiles:/app/profiles # On mappe les profils dbt
-    # On passe ton fichier .env au conteneur
+      - ./data:/app/data           # persiste les données/DuckDB sur le disque hôte (pas dans l’image)
     env_file:
-      - .env
-    # Pour Streamlit, on ouvre le port 8501
+      - .env                       # injecte les variables d’environnement depuis le fichier .env
     ports:
-      - "8501:8501"
+      - "8501:8501"                # expose le port 8501 du conteneur sur 8501 de l’hôte (Streamlit)
