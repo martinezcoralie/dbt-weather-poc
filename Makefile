@@ -6,10 +6,19 @@ SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
 .ONESHELL:
 
-VENV := .venv
-PY   := $(VENV)/bin/python
-PIP  := $(VENV)/bin/pip
-DBT := $(VENV)/bin/dbt
+# Par défaut on garde .venv, mais on peut le surcharger
+VENV ?= .venv
+# Si VENV est "system", on utilise directement python/pip/dbt du système
+ifeq ($(VENV),system)
+    PY := python
+    PIP := pip
+    DBT := dbt
+else
+    PY := $(VENV)/bin/python
+    PIP := $(VENV)/bin/pip
+    DBT := $(VENV)/bin/dbt
+endif
+
 DUCKDB := duckdb
 
 # Scripts et modules ingestion
