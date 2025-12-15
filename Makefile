@@ -19,6 +19,15 @@ else
     DBT := $(VENV)/bin/dbt
 endif
 
+# Options dbt additionnelles (surchage possible : DBT_FLAGS="...")
+DBT_FLAGS ?=
+
+# Si on est dans un conteneur Docker, on désactive partial parsing
+IN_DOCKER := $(shell test -f /.dockerenv && echo 1 || echo 0)
+ifeq ($(IN_DOCKER),1)
+  DBT_FLAGS += --no-partial-parse
+endif
+
 DUCKDB := duckdb
 
 # Scripts et modules ingestion
@@ -27,7 +36,7 @@ MODULE_WRITE  := scripts.ingestion.write_duckdb_raw
 
 # Chemins
 DBPATH := data/warehouse.duckdb
-DBT_PROJECT := weather_dbt
+DBT_PROJECT := .
 DBT_PROFILES_DIR ?= profiles
 export DBT_PROFILES_DIR
 
@@ -109,36 +118,36 @@ dwh-reset: ## Réinitialise les schémas calculés (staging, intermediate, marts
 
 # ========== DBT ==========
 dbt-build: ## Exécute dbt deps puis dbt run sur le projet
-	$(DBT) deps
-	$(DBT) seed
-	$(DBT) run
+	$(DBT) deps --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
+	$(DBT) seed --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
+	$(DBT) run --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-test: ## Exécute la suite de tests dbt
-	$(DBT) test
+	$(DBT) test --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-rebuild: ## Full refresh (reset + deps + seed + run --full-refresh + test)
 	@$(MAKE) dwh-reset
-	$(DBT) deps
-	$(DBT) seed
-	$(DBT) run --full-refresh
-	$(DBT) test
+	$(DBT) deps --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
+	$(DBT) seed --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
+	$(DBT) run --full-refresh --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
+	$(DBT) test --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 	@echo "✅ DBT full refresh complete."
 
 # ========== Sources DBT ==========
 dbt-sources-test: ## Lance les tests dbt sur les sources
-	$(DBT) test --select "source:*"
+	$(DBT) test --select "source:*" --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-sources-freshness: ## Vérifie la fraîcheur des sources
-	$(DBT) source freshness
+	$(DBT) source freshness --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-sources-check: dbt-sources-test dbt-sources-freshness ## Combo sur les sources: Tests & Fraîcheur
 
 # ========== Documentation DBT ==========
 dbt-docs-generate: ## Génère la documentation HTML dbt dans target/
-	$(DBT) docs generate
+	$(DBT) docs generate --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-docs-serve: ## Sert la doc dbt en local (http://localhost:8080)
-	$(DBT) docs serve --port 8080
+	$(DBT) docs serve --port 8080 --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-docs: dbt-docs-generate dbt-docs-serve ## Génère puis sert la doc dbt en local (http://localhost:8080)
 
