@@ -3,6 +3,15 @@ services:
     build: .                       # construit l’image depuis le Dockerfile à la racine
     volumes:
       - ./data:/app/data           # persiste les données/DuckDB sur le disque hôte (pas dans l’image)
+    develop:
+      watch:
+        - action: sync             # synchro code hôte -> conteneur (hot-reload Streamlit, pas de rebuild)
+          path: .
+          target: /app
+        - action: rebuild          # rebuild si les deps changent
+          path: requirements.txt
+        - action: rebuild          # rebuild si l’image change
+          path: Dockerfile
     env_file:
       - .env                       # injecte les variables d’environnement depuis le fichier .env
     ports:

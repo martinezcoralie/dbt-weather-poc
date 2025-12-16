@@ -79,6 +79,32 @@ La documentation détaillée du projet est organisée par brique :
 
 ## 🚀 Mise en route
 
+### (Option Docker) Exécuter sans installer l'environnement Python
+
+Pré-requis : Docker + Docker Compose, un fichier `.env` (copie de `.env.example`).
+
+Raccourcis fournis dans `scripts/docker/` :
+
+```bash
+./scripts/docker/docker-ingest.sh   # ingestion
+./scripts/docker/docker-dbt.sh      # dbt build
+./scripts/docker/docker-app.sh      # Streamlit (port 8501)
+```
+
+Volume monté : `./data` (warehouse) est partagé avec le conteneur.
+
+#### Développer/tester depuis le conteneur
+
+- Shell interactif avec le code de l'hôte monté (hot-reload Streamlit, pas besoin de rebuild pour le code) :
+  ```bash
+  docker compose run --rm -v "$(pwd)":/app weather-app sh
+  ```
+  Depuis le shell : `make dwh-ingest`, `make dbt-build`, ou `streamlit run apps/bi-streamlit/app.py`.
+- Si vous modifiez `requirements.txt`, rebuilder l'image : `docker compose build`.
+- Avec Docker Compose v2 : `docker compose watch` synchronise le code (hot-reload) et ne rebuild que si `requirements.txt` ou `Dockerfile` changent (voir `compose.yaml` bloc `develop.watch`).
+
+---
+
 ### 1. Installer l’environnement
 
 ```bash
