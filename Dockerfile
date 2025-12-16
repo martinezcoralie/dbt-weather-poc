@@ -10,6 +10,10 @@ ENV PYTHONUNBUFFERED=1
 # Répertoire de travail pour tout le reste de la build
 WORKDIR /app
 
+# DuckDB de démonstration embarqué pour faire tourner dbt/Streamlit sans clé API
+RUN mkdir -p /app/data
+COPY data/demo_warehouse.duckdb /app/data/warehouse.duckdb
+
 # Installe make et git (pour le Makefile et dbt), puis nettoie les caches apt
 RUN apt-get update && \
     apt-get install -y make git && \

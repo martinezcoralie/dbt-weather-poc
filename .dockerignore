@@ -25,9 +25,9 @@
 **/secrets.dev.yaml
 **/values.dev.yaml
 LICENSE
-README.md
 target/
 logs/
 dbt_packages/
 .venv/
 **/*.duckdb
+!data/demo_warehouse.duckdb
