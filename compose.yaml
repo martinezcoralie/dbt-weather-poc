@@ -1,5 +1,6 @@
 services:
   weather-app:
+    image: dbt-weather-poc/weather-app:latest  # nom/tag explicite pour l'image
     build: .                       # construit l’image depuis le Dockerfile à la racine
     volumes:
       - ./data:/app/data           # persiste les données/DuckDB sur le disque hôte (pas dans l’image)
