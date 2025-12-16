@@ -83,23 +83,31 @@ La documentation détaillée du projet est organisée par brique :
 
 Pré-requis : Docker + Docker Compose, un fichier `.env` (copie de `.env.example`).
 
-Raccourcis fournis dans `scripts/docker/` :
+Deux parcours possibles :
 
-```bash
-./scripts/docker/docker-ingest.sh   # ingestion
-./scripts/docker/docker-dbt.sh      # dbt build
-./scripts/docker/docker-app.sh      # Streamlit (port 8501)
-```
+**1) Parcours complet (ingestion + dbt + app) — requiert la clé API MétéoFrance**
+- Préparer `.env` avec `METEOFRANCE_TOKEN` et `DUCKDB_PATH=data/warehouse.duckdb`
+- Commandes :
+  ```bash
+  ./scripts/docker/docker-ingest.sh   # ingestion (API Météo-France)
+  ./scripts/docker/docker-dbt.sh      # dbt build
+  ./scripts/docker/docker-app.sh      # Streamlit (port 8501)
+  ```
+- Volume par défaut : volume nommé `weather-data:/app/data` (seedé au 1er run, persistant ensuite).
 
-Volume monté : `./data` (warehouse) est partagé avec le conteneur.
+**2) Parcours démo (dbt + app) — DuckDB embarqué**
+- L’image contient un DuckDB de démo sous `/app/data/warehouse.duckdb`
+- Volume nommé `weather-data:/app/data` : au premier run, le DuckDB démo est copié dans le volume, puis réutilisé entre les runs.
+- Commandes :
+  ```bash
+  ./scripts/docker/docker-dbt.sh      # dbt build (sur le warehouse démo)
+  ./scripts/docker/docker-app.sh      # Streamlit
+  ```
+
+Volume par défaut : volume nommé `weather-data` monté sur `/app/data`.
+Pour repartir de la démo (reset warehouse) : `docker compose down -v` pour supprimer le volume nommé, puis relancer les scripts.
 
 #### Développer/tester depuis le conteneur
-
-- Shell interactif avec le code de l'hôte monté (hot-reload Streamlit, pas besoin de rebuild pour le code) :
-  ```bash
-  docker compose run --rm -v "$(pwd)":/app weather-app sh
-  ```
-  Depuis le shell : `make dwh-ingest`, `make dbt-build`, ou `streamlit run apps/bi-streamlit/app.py`.
 - Si vous modifiez `requirements.txt`, rebuilder l'image : `docker compose build`.
 - Avec Docker Compose v2 : `docker compose watch` synchronise le code (hot-reload) et ne rebuild que si `requirements.txt` ou `Dockerfile` changent (voir `compose.yaml` bloc `develop.watch`).
 

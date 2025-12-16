@@ -3,7 +3,7 @@ services:
     image: dbt-weather-poc/weather-app:latest  # nom/tag explicite pour l'image
     build: .                       # construit l’image depuis le Dockerfile à la racine
     volumes:
-      - ./data:/app/data           # persiste les données/DuckDB sur le disque hôte (pas dans l’image)
+      - weather-data:/app/data     # volume nommé : seedé par l'image au premier run, persistant ensuite
     develop:
       watch:
         - action: sync             # synchro code hôte -> conteneur (hot-reload Streamlit, pas de rebuild)
@@ -17,3 +17,6 @@ services:
       - .env                       # injecte les variables d’environnement depuis le fichier .env
     ports:
       - "8501:8501"                # expose le port 8501 du conteneur sur 8501 de l’hôte (Streamlit)
+
+volumes:
+  weather-data:
