@@ -10,19 +10,13 @@ Une fois les données ingérées et les modèles dbt exécutés, on peut explore
 ## Lancer le dashboard
 
 ```bash
-streamlit run apps/bi-streamlit/app.py
+make app
+# équivalent à : streamlit run apps/bi-streamlit/app.py
 ```
 
 URL par défaut :
 http://localhost:8501
 
-Ce dashboard s'appuie principalement sur le modèle `agg_station_latest_24h`.
-
-### Données consommées
-
-- Source unique : `marts.agg_station_latest_24h` (1 ligne = dernière observation par station)
-- Champs utilisés dans l’UI : `validity_time_utc`, `station_name`, `latitude/longitude`, `temp_24h_c`, `precip_24h_mm`, `snow_24h_m`, `wind_beaufort_label`, `visibility_cat`, `humidity_pct`
-- Drapeaux pour la mise en avant : `is_temp_*`, `is_rain_*`, `is_snow_*`, `is_wind_*` (calculés côté mart)
 
 ### Fonctionnalités clés
 
@@ -31,13 +25,19 @@ Ce dashboard s'appuie principalement sur le modèle `agg_station_latest_24h`.
 - Onglet **Carte** : PyDeck + pills multi-sélection pour afficher les spots par catégorie, avec tooltip (nom, statut, lat/lon)
 - Cache Streamlit : données rechargées toutes les 60 s (`st.cache_data(ttl=60)`)
 
+### Data contract
+
+- Source principale : `marts.agg_station_latest_24h`
+- Champs critiques : `validity_time_utc`, `station_name`, `latitude`, `longitude`, `temp_24h_c`, `precip_24h_mm`, `snow_24h_m`, `wind_beaufort_label`, `visibility_cat`, `humidity_pct`, flags `is_*`
+- Fraîcheur attendue : `validity_time_utc` ≤ 3 h (badge 🟢)
+
 ### Badge de fraîcheur — interprétation
 
 - 🟢 « À jour » : dernière `validity_time_utc` ≤ 3 h
 - 🟠 « En retard » : entre 3 h et 6 h
 - 🔴 « Stale » : > 6 h
 
-Pour rafraîchir manuellement : relancer l’ingestion (`make dwh-ingest DEPT=9`) puis `make dbt-build`.
+Pour rafraîchir manuellement : relancer l’ingestion (`make dwh-ingest DEPT=9`) puis `make dbt-build`. En mode Docker Compose, relancer les services ingest + dbt.
 
 ## Exposure dbt associée
 
@@ -74,5 +74,4 @@ Le dashboard est déclaré comme **exposure dbt** (`weather_bi_streamlit`), perm
 
 - Vue « Carte » montrant les spots filtrés sur la carte (sélection multi-onglets via les pills) :  
   <img src="images/dashboard-desktop-map.png" alt="Dashboard desktop frais" width="900" />
-
 
