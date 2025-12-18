@@ -12,7 +12,7 @@ L’ingestion est assurée par les scripts Python du dossier `scripts/ingestion/
 
 - Avoir créé l’environnement Python : `make env-setup && source .venv/bin/activate`
 - Variables d’environnement (via `.env`) :
-  - `METEOFRANCE_TOKEN` : clé API Météo-France valide
+  - `METEOFRANCE_TOKEN` : clé API Météo-France valide (Voir [🔑 Obtenir une clé API Météo-France](meteofrance_token.md))
   - `DUCKDB_PATH` : chemin du fichier DuckDB (ex. `data/warehouse.duckdb`)
 - Profil dbt pointant vers le warehouse : `export DBT_PROFILES_DIR=./profiles`
 

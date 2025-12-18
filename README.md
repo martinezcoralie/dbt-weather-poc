@@ -1,53 +1,153 @@
-# 🌤️ dbt-weather-poc
+# 🌤️ dbt-weather-poc — Pipeline météo (dbt + DuckDB)
 
-Pipeline analytique Météo-France — ingestion, historisation et modélisation de données horaires — basé sur **dbt** et **DuckDB** (avec **Python** pour l’ingestion, **Streamlit** pour l’exposition BI et **Prefect** pour l’orchestration locale).
+Pipeline analytique de bout en bout autour des données horaires Météo-France :
+**ingestion Python → DuckDB (raw) → dbt (staging/intermediate/marts) → Streamlit (BI)**,
+avec une orchestration locale optionnelle via **Prefect**.
 
-Objectif : **démontrer, de bout en bout, la maîtrise d’un workflow moderne dbt**, depuis la collecte des données jusqu’à leur exposition en BI (dashboard) et leur orchestration.
+Objectif : démontrer un **workflow dbt** moderne (layering, tests, contrats, macros, incremental, docs, exposure)
+dans un cas réel et reproductible.
 
-Pourquoi cela compte pour un·e client·e ou recruteur·e :
-- données réelles (API Météo-France) avec ingestion maîtrisée,
-- bonnes pratiques dbt (layering, tests, contrats, macros, incrémental),
-- exposition BI concrète (Streamlit + exposure déclarée),
-- orchestration légère (Prefect) + CI double : build dbt sur données fraîches et génération/déploiement automatique de la doc.
+## Ce que ce projet démontre
 
----
+TODO
 
-## Ce que ce projet met en œuvre côté dbt
-
-Ce repository illustre concrètement :
-
-* **Sources déclarées** avec contrôle de fraîcheur (`loaded_at_field`)
-* **Tests dbt** : not_null, unique, relationships, contraintes métier, tests génériques
-* **Contrats de schéma** sur les modèles critiques
-* **Organisation modulaire** : `staging → intermediate → marts`
-* **Modèles incrémentaux** (stratégie `merge`)
-* **Macros personnalisées** (features météo, conversions, casts, time series analysis)
-* **Seeds** (échelle de Beaufort)
-* **Exposures** (dashboard Streamlit comme consommateur final)
-* **Documentation dbt** (descriptions, docs blocks, lineage graph)
-* **Facteurs métier** : dimensions stations & vent, table de faits horaire
-* **Publication automatique de la documentation dbt** (GitHub Actions + GitHub Pages)
-* **Orchestration locale** du pipeline ingestion + dbt avec **Prefect** (flow, deployment, schedule horaire)
-
-L’objectif n’est pas la BI en tant que produit, mais **la démonstration des bonnes pratiques dbt** dans un pipeline réaliste.
-
----
-
-## Architecture globale
-
+## Architecture
 ```text
 Météo-France API
-    ↓
-Ingestion Python
-    ↓
+  ↓ (ingestion Python)
 DuckDB (raw.*)
-    ↓
-dbt (staging → intermediate → marts)
-    ↓
-Dashboard Streamlit (exposure)
+  ↓ (modélisation dbt)
+DuckDB (staging → intermediate → marts)
+  ↓
+Streamlit (dashboard)
+
++ optionnel : Prefect pour planifier ingestion + dbt
 ```
 
-👉 Pour plus de détails sur chaque brique, voir la documentation complémentaire ci-dessous.
+👉 Pour plus de détails sur chaque brique, voir la documentation complémentaire (TODO: mettre lien vers la section ci bas).
+
+---
+
+## 🚀 Démo rapide (pull d'une image Docker)
+Cette image permet d'ouvrir le dashboard Streamlit sur un warehouse DuckDB de démonstration (pas de token requis).
+
+```bash
+# Pull de l’image
+
+docker pull dbt-weather-poc/weather-app:latest 
+
+
+# Lancer le conteneur Streamlit sur le DuckDB démo
+
+docker run --rm -p 8501:8501 dbt-weather-poc/weather-app:latest make app VENV=system 
+```
+Ouvrir le dashboard [http://localhost:8501](http://localhost:8501).
+
+---
+
+## Démo complète (via Docker Compose)
+
+**Prérequis:**
+* Docker Desktop (ou Docker CLI)
+* Docker Compose v2 (inclus avec Docker Desktop)
+
+```bash
+git clone https://github.com/martinezcoralie/dbt-weather-poc.git
+cd dbt-weather-poc
+```
+
+### (Optionel) Pour l'ingestion des données de l'API Météo-France
+
+Créer un fichier `.env`
+```bash
+cp .env.example .env
+```
+
+Renseigner la clé API Météo-France (Voir [🔑 Obtenir une clé API Météo-France](meteofrance_token.md)) 
+```env
+METEOFRANCE_TOKEN=VotreCleIci
+```
+
+Lancer l'ingestion sur le département de votre choix
+```bash
+DEPT=9 docker compose --profile ingest run --rm ingest
+```
+
+### Pour exécuter la modélisation dbt (stg->int->marts)
+
+
+```bash
+docker compose --profile build run --rm dbt
+```
+
+Si vous aviez ingéré de nouvelles données, alors ... sinon, cela rejoue dbt build sur la base démo.
+
+### Pour lancer le dashboard Streamlit
+
+```bash
+# Lancer le conteneur (Streamlit)
+
+docker compose up app 
+```
+Ouvrir [http://localhost:8501](http://localhost:8501).
+
+
+### Pour lancer l'orchestration Prefect du pipeline (ingestion->modélisation)
+
+Pré-requis : `.env` avec `METEOFRANCE_TOKEN` ([🔑 Obtenir une clé API Météo-France](meteofrance_token.md)).
+
+```bash
+docker compose --profile prefect up -d prefect-server prefect # Démarre Prefect (UI + worker/serve)
+
+```
+
+Ouvrir l’UI Prefect [http://localhost:4200](http://localhost:4200).
+Vous verrez les runs programmés, réalisés, etc... TODO améliorer
+Vous verrez l'app Streamlit se mettre à jour une fois par heure (TODO améliorer)
+
+
+### Pour faire un reset complet (reseed du warehouse démo)
+
+```bash
+docker compose down -v
+```
+
+---
+
+## Parcours dev local (sans Docker)
+Pré-requis : 
+- 🔑 Obtenir une clé API Météo-France](meteofrance_token.md)
+
+```bash
+git clone https://github.com/martinezcoralie/dbt-weather-poc.git
+cd dbt-weather-poc
+
+# Installer l’environnement
+make env-setup
+source .venv/bin/activate
+
+# Activer le profil dbt
+export DBT_PROFILES_DIR=./profiles
+
+# Toutes les commandes
+make help
+
+# Ingestion brute (API → DuckDB)
+make dwh-ingest DEPT=9
+
+# Modélisation dbt
+make dbt-build
+
+# Documentation dbt
+make dbt-docs-generate
+make dbt-docs-serve # (http://localhost:8080)
+
+Dashboard Streamlit (exposure dbt)
+
+# Lancer le dashboard :
+make app
+```
+
 
 ---
 
@@ -55,247 +155,11 @@ Dashboard Streamlit (exposure)
 
 La documentation détaillée du projet est organisée par brique :
 
+- [`docs/overview.md`](docs/overview.md) — XXX
+- [`docs/meteofrance_token.md`](docs/meteofrance_token.md) - comment récupérer une clé API Météo-France (c'est gratuit!)
 - [`docs/ingestion.md`](docs/ingestion.md) — ingestion API Météo-France → DuckDB (`raw.*`)
 - [`docs/warehouse.md`](docs/warehouse.md) — commandes pour explorer le warehouse DuckDB
 - [`docs/dbt.md`](docs/dbt.md) — structure des modèles dbt, layering et incrémental
 - [`docs/dbt-docs.md`](docs/dbt-docs.md) — génération et exploration de dbt Docs (lineage, tests, modèles)
 - [`docs/dashboard.md`](docs/dashboard.md) — dashboard Streamlit (exposure dbt)
 - [`docs/orchestration.md`](docs/orchestration.md) — orchestration locale du pipeline avec Prefect
-
-
----
-
-## Stack technique
-
-- **Python 3.12** — ingestion & utilitaires
-- **DuckDB (CLI + lib Python)** — data warehouse local
-- **dbt-core + dbt-duckdb** — transformation & tests
-- **Streamlit** — exposition BI
-- **SQLFluff / Ruff** — linting SQL & Python
-- **GitHub Actions** — génération et déploiement automatique des docs dbt (CI) + build dbt avec ingestion API
-- **Prefect 3** — orchestration locale *légère* (flow + deployment horaire)
-
----
-
-## 🚀 Mise en route
-
-### 🔑 Obtenir une clé API Météo-France (METEOFRANCE_TOKEN)
-
-1) Créer un compte sur le portail des API Météo-France 
-   1) Ouvrir la page “Données Publiques – Paquet Observation” : https://portail-api.meteofrance.fr/web/fr/api/DonneesPubliquesPaquetObservation
-   2) Cliquer sur **“Souscrire à l’API gratuitement”**  
-
-2) Récupérer le token et le placer dans `.env` :
-
-    ```bash
-    METEOFRANCE_TOKEN=xxxxx
-    DUCKDB_PATH=data/warehouse.duckdb
-    ```
-
-### (Option Docker) Exécuter sans installer l'environnement Python
-
-Pré-requis : Docker + Docker Compose, un fichier `.env` (copie de `.env.example`).
-
-Deux parcours possibles :
-
-**1) Parcours complet (ingestion + dbt + app) — requiert la clé API MétéoFrance**
-- Préparer `.env` avec `METEOFRANCE_TOKEN` et `DUCKDB_PATH=data/warehouse.duckdb`
-- Commandes :
-  ```bash
-  ./scripts/docker/docker-ingest.sh   # ingestion (API Météo-France)
-  ./scripts/docker/docker-dbt.sh      # dbt build
-  ./scripts/docker/docker-app.sh      # Streamlit (port 8501)
-  ```
-- Volume par défaut : volume nommé `weather-data:/app/data` (seedé au 1er run, persistant ensuite).
-
-**2) Parcours démo (dbt + app) — DuckDB embarqué**
-- L’image contient un DuckDB de démo sous `/app/data/warehouse.duckdb`
-- Volume nommé `weather-data:/app/data` : au premier run, le DuckDB démo est copié dans le volume, puis réutilisé entre les runs.
-- Commandes :
-  ```bash
-  ./scripts/docker/docker-dbt.sh      # dbt build (sur le warehouse démo)
-  ./scripts/docker/docker-app.sh      # Streamlit
-  ```
-
-Volume par défaut : volume nommé `weather-data` monté sur `/app/data`.
-Pour repartir de la démo (reset warehouse) : `docker compose down -v` pour supprimer le volume nommé, puis relancer les scripts.
-
-#### Développer/tester depuis le conteneur
-- Si vous modifiez `requirements.txt`, rebuilder l'image : `docker compose build`.
-- Avec Docker Compose v2 : `docker compose watch` synchronise le code (hot-reload) et ne rebuild que si `requirements.txt` ou `Dockerfile` changent (voir `compose.yaml` bloc `develop.watch`).
-
----
-
-### 1. Installer l’environnement
-
-```bash
-make env-setup
-source .venv/bin/activate
-```
-
-### 2. Variables d’environnement
-
-Créer un fichier `.env` :
-
-```bash
-METEOFRANCE_TOKEN=xxxxxxxxxxxx
-DUCKDB_PATH=data/warehouse.duckdb
-```
-avec `METEOFRANCE_TOKEN` la clé API Météo-France et `DUCKDB_PATH` le chemin du fichier DuckDB.
-
-### 3. Activer le profil dbt
-
-```bash
-export DBT_PROFILES_DIR=./profiles
-```
-
-### 4. Ingestion brute (API → DuckDB)
-
-```bash
-make dwh-ingest DEPT=9
-```
-
-Résultat attendu :
-- données brutes dans `raw.obs_hourly` et `raw.stations`
-- pas de transformation / typage
-- déduplication automatique
-
-👉 Documentation détaillée : [`docs/ingestion.md`](docs/ingestion.md).
-
-### 5. Modélisation dbt
-
-```bash
-make dbt-build
-```
-
----
-
-## 🧩 Modélisation dbt (vue détaillée)
-
-Points clés du projet dbt :
-
-* **Layering clair** :
-
-  * `staging` = nettoyage + typage,
-  * `intermediate` = calculs métier (features météo, agrégations),
-  * `marts` = tables de faits et dimensions analytiques.
-* **Qualité** :
-
-  * tests génériques (intégrité, clés, relations),
-  * tests métier (plages de valeurs, non-négativité, etc.),
-  * contrats de schéma sur les modèles exposés.
-* **Performance & maintenabilité** :
-
-  * modèles incrémentaux pour limiter les coûts de recalcul,
-  * macros pour mutualiser les conversions, features météo et logiques temporelles.
-
-👉 Documentation détaillée : [`docs/dbt.md`](docs/dbt.md).
-
----
-
-## 📚 Documentation dbt
-
-### Local
-
-```bash
-make dbt-docs-generate
-make dbt-docs-serve
-```
-
-Accès : [http://localhost:8080](http://localhost:8080)
-
-### Hébergée (CI → GitHub Pages)
-
-Une GitHub Action génère et déploie automatiquement la documentation dbt à chaque push sur `main` (build + upload artefact, puis publication sur Pages) :
-
-- Accès : [https://martinezcoralie.github.io/dbt-weather-poc/](https://martinezcoralie.github.io/dbt-weather-poc/)
-
-👉 Documentation détaillée : [`docs/dbt-docs.md`](docs/dbt-docs.md).
-
----
-
-## 📊 Dashboard Streamlit (exposure dbt)
-
-Lancer le dashboard :
-
-```bash
-streamlit run apps/bi-streamlit/app.py
-```
-
-Accès : [http://localhost:8501](http://localhost:8501)
-
-Le dashboard consomme les marts dbt stockés dans DuckDB (dimensions de stations, échelle de Beaufort, faits horaires).
-
-👉 Détails : [`docs/dashboard.md`](docs/dashboard.md).
-
----
-
-
-## ✅ CI dbt (build + API Météo-France)
-
-Une CI GitHub Actions rejoue une partie du pipeline à chaque push / PR sur `main` :
-
-- ingestion des données brutes depuis l’API Météo-France via `make dwh-ingest DEPT=9`,
-- création d’un warehouse DuckDB local dans l’environnement CI,
-- exécution de `dbt deps` puis `dbt build` avec `DBT_PROFILES_DIR=./profiles`.
-
-La CI s’appuie sur :
-
-- un secret GitHub Actions `METEOFRANCE_TOKEN` (clé API Météo-France),
-- une variable d’environnement `DUCKDB_PATH` pointant vers `data/warehouse.duckdb`.
-
-Ce choix permet de tester les modèles dbt et leurs tests métier sur des données réelles, sans versionner les données Météo-France dans le dépôt.
-
----
-
-
-## ⚙️ Orchestration locale (Prefect — bonus)
-
-Une orchestration locale est mise en place avec **Prefect 3** :
-
-* un flow `weather_hourly_pipeline` orchestre :
-
-  * l’ingestion (API → DuckDB),
-  * puis `dbt build`,
-* un deployment Prefect avec schedule horaire pilote l’exécution régulière du pipeline tant que le serveur Prefect et le process de service tournent.
-
-Cette orchestration est volontairement légère : elle sert à montrer comment **plugger un orchestrateur moderne autour d’un projet dbt existant**, sans complexifier le cœur du repo.
-
-👉 Détails : [`docs/orchestration.md`](docs/orchestration.md).
-
----
-
-## 🧰 Commandes (Makefile)
-
-Toutes les commandes (ingestion, dbt, docs, utilitaires DuckDB, lint, etc.) sont centralisées dans le **Makefile** :
-
-```bash
-make help
-```
-
----
-
-## Scope & limites
-
-Ce projet :
-
-* est centré sur la **démonstration de bonnes pratiques dbt** (structure, tests, contrats, docs, exposures),
-* embarque une CI et une orchestration locale pour illustrer l’intégration de dbt dans un pipeline complet,
-* **ne vise pas** (dans cette version) :
-
-  * un déploiement 24/7 sur une infra cloud,
-  * une BI métier aboutie.
-
----
-
-## Prochaines évolutions
-
-* Étendre la CI/CD (artefacts, checks supplémentaires, éventuels déploiements),
-* Déployer pipeline + dashboard sur une infra cloud (VM / containers),
-* Approfondir l’orchestration (Prefect Cloud / autre orchestrateur) si besoin projet.
-
----
-
-## 👤 Auteur
-
-Coralie Martinez

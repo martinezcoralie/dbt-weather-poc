@@ -1,22 +1,55 @@
-### Building and running your application
+# Docker (dbt-weather-poc)
 
-When you're ready, start your application by running:
-`docker compose up --build`.
+Ce projet fournit une expérience Docker “portfolio friendly” avec **une image unique**, un **volume DuckDB partagé**, et un **Compose multi-services** piloté par `make`.
 
-Your application will be available at http://localhost:8501.
+## Concepts
 
-### Deploying your application to the cloud
+### 1) Image unique
+Tous les services (`app`, `dbt`, `ingest`, `prefect-server`, `prefect`) utilisent **la même image** :
+- code + dépendances Python
+- profils dbt
+- un DuckDB de démonstration embarqué (`demo_warehouse.duckdb`)
 
-First, build your image, e.g.: `docker build -t myapp .`.
-If your cloud uses a different CPU architecture than your development
-machine (e.g., you are on a Mac M1 and your cloud provider is amd64),
-you'll want to build the image for that platform, e.g.:
-`docker build --platform=linux/amd64 -t myapp .`.
+Cette image permet :
+- une démo immédiate (sans token)
+- des jobs ponctuels (`dbt build`, ingestion)
+- l’orchestration du pipeline (Prefect)
 
-Then, push it to your registry, e.g. `docker push myregistry.com/myapp`.
+### 2) Volume nommé (DuckDB partagé)
+Un volume nommé `weather-data` est monté dans `/app/data`.
 
-Consult Docker's [getting started](https://docs.docker.com/go/get-started-sharing/)
-docs for more detail on building and pushing.
+Tous les services lisent/écrivent le même fichier :
+- `/app/data/warehouse.duckdb`
 
-### References
-* [Docker's Python guide](https://docs.docker.com/language/python/)
+### 3) Seed automatique de la base démo (entrypoint)
+Au **premier démarrage** (volume vide), un entrypoint copie le DuckDB de démonstration vers le volume :
+- source : `/app/demo/demo_warehouse.duckdb`
+- destination : `/app/data/warehouse.duckdb`
+
+Ensuite, tant que le volume existe, la base persiste entre les runs.
+
+---
+
+## Prérequis
+- Docker Desktop (ou Docker Engine)
+- Docker Compose v2 (inclus avec Docker Desktop)
+
+---
+
+## Services Compose (résumé)
+
+* `app` : Streamlit (`make app`) — port `8501:8501`
+* `dbt` (profile `build`) : job ponctuel `make dbt-build`
+* `ingest` (profile `ingest`) : job ponctuel `make dwh-ingest` (token requis)
+* `prefect-server` (profile `prefect`) : UI + API Prefect — port `4200:4200`
+* `prefect` (profile `prefect`) : exécution/serve du flow (`make flow-serve`)
+
+---
+
+## Réinitialisation (reseed du DuckDB démo)
+
+Supprime conteneurs + volume (au prochain run, seed automatique) :
+
+```bash
+docker compose down -v
+```
