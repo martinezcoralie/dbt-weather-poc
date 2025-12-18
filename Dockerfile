@@ -37,4 +37,4 @@ RUN chmod +x /app/docker/entrypoint.sh
 # L’entrypoint garantit que /app/data/warehouse.duckdb existe (seed si besoin)
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
 
-CMD ["make", "help"]
+CMD ["make", "app", "VENV=system"]
