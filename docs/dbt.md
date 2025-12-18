@@ -10,6 +10,10 @@ Cette section décrit la structure des modèles dbt du projet `weather_dbt`.
 - `intermediate` : calculs intermédiaires, features météo + fenêtres glissantes
 - `marts` : tables analytiques et dimensionnelles prêtes BI
 
+```text
+raw.* → staging → intermediate → marts → exposure Streamlit
+```
+
 Modèles clés :
 
 - `fct_obs_hourly` : fait horaire (tests, contrat de schéma, enrichissements Beaufort/intensités)
