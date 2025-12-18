@@ -11,7 +11,6 @@ comment brancher un orchestrateur moderne autour d’un projet dbt existant.
 ## 0. Raccourcis Make utiles
 
 * `make prefect-server` — démarre le serveur Prefect (UI : http://127.0.0.1:4200)
-* `make prefect-config` — pointe l’API locale (PREFECT_API_URL)
 * `make prefect-ui` — ouvre l’UI Prefect locale dans le navigateur
 * `make flow-run DEPT=9` — exécute le pipeline une fois (ingestion + dbt)
 * `make flow-serve DEPT=9` — lance le deployment horaire (cron) du pipeline
@@ -52,8 +51,6 @@ Exécute le flow **une seule fois**, sans deployment ni schedule.
 ```bash
 make flow-run DEPT=9
 # équivalent manuel :
-# source .venv/bin/activate
-# export DBT_PROFILES_DIR=./profiles
 # python orchestration/flow_prefect.py --mode run --dept 9
 ```
 
@@ -90,32 +87,17 @@ make prefect-server
 * UI disponible sur : [http://127.0.0.1:4200](http://127.0.0.1:4200)
 * Le serveur stocke les flows, deployments, schedules et historique des runs.
 
-### 3.2. Configurer l’URL de l’API Prefect
+### 3.2. Lancer le flow (run unique ou serve) depuis un second terminal
 
-Dans un second terminal :
 
-```bash
-make prefect-config
-# équivalent manuel :
-# prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
-```
-
-Puis activer l’environnement pour le projet :
 
 ```bash
-source .venv/bin/activate
-export DBT_PROFILES_DIR=./profiles
+make flow-run DEPT=9      # une exécution ponctuelle
+# ou
+make flow-serve DEPT=9    # deployment + schedule
 ```
 
-### 3.3. Démarrer le flow en mode `serve`
-
-Toujours dans ce second terminal :
-
-```bash
-python orchestration/flow_prefect.py --mode serve --dept 9
-```
-
-Ce mode :
+Le mode `serve`:
 
 * enregistre un **deployment** (par exemple `weather-hourly-deployment`)
   dans l’UI Prefect,
