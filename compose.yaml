@@ -1,22 +1,56 @@
 services:
-  weather-app:
-    image: dbt-weather-poc/weather-app:latest  # nom/tag explicite pour l'image
-    build: .                       # construit l’image depuis le Dockerfile à la racine
+  # Service principal : dashboard Streamlit (démo immédiate via demo_warehouse seedé)
+  app:
+    image: dbt-weather-poc/weather-app:latest
+    build: .
+    command: ["make", "app", "VENV=system"]
     volumes:
-      - weather-data:/app/data     # volume nommé : seedé par l'image au premier run, persistant ensuite
-    develop:
-      watch:
-        - action: sync             # synchro code hôte -> conteneur (hot-reload Streamlit, pas de rebuild)
-          path: .
-          target: /app
-        - action: rebuild          # rebuild si les deps changent
-          path: requirements.txt
-        - action: rebuild          # rebuild si l’image change
-          path: Dockerfile
-    env_file:
-      - .env                       # injecte les variables d’environnement depuis le fichier .env
+      - weather-data:/app/data
     ports:
-      - "8501:8501"                # expose le port 8501 du conteneur sur 8501 de l’hôte (Streamlit)
+      - "8501:8501"
+
+  # Job ponctuel : rejouer dbt build (tests inclus)
+  dbt:
+    image: dbt-weather-poc/weather-app:latest
+    build: .
+    command: ["make", "dbt-build", "VENV=system"]
+    volumes:
+      - weather-data:/app/data
+    profiles: ["build"]
+
+  # Job ponctuel : ingestion (nécessite METEOFRANCE_TOKEN dans .env)
+  ingest:
+    image: dbt-weather-poc/weather-app:latest
+    build: .
+    command: ["sh", "-c", "make dwh-ingest VENV=system DEPT=${DEPT:-9}"]
+    environment:
+      METEOFRANCE_TOKEN: ${METEOFRANCE_TOKEN:-}
+    volumes:
+      - weather-data:/app/data
+    profiles: ["ingest"]
+
+  # Serveur Prefect (UI + API)
+  prefect-server:
+    image: dbt-weather-poc/weather-app:latest
+    build: .
+    command: ["make", "prefect-server", "VENV=system"]
+    ports:
+      - "4200:4200"
+    profiles: ["prefect"]
+
+  # Worker / serve du flow Prefect
+  prefect:
+    image: dbt-weather-poc/weather-app:latest
+    build: .
+    depends_on:
+      - prefect-server
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      METEOFRANCE_TOKEN: ${METEOFRANCE_TOKEN:-}
+    command: ["sh", "-c", "make flow-serve VENV=system DEPT=${DEPT:-9}"]
+    volumes:
+      - weather-data:/app/data
+    profiles: ["prefect"]
 
 volumes:
   weather-data:
