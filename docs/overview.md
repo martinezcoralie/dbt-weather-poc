@@ -1,46 +1,32 @@
-# 
----
+# Vue d’ensemble
 
-## Ce que ce projet met en œuvre côté dbt
+Projet dbt + DuckDB autour des données horaires Météo-France. Objectif : démontrer des pratiques dbt pro (tests, contrats, macros, incrémental, exposures), une ingestion maîtrisée, une exposition BI Streamlit, une CI (build + docs), et une orchestration locale Prefect.
 
-Ce repository illustre concrètement :
+## Ce que le projet met en œuvre
+- **Sources déclarées** avec fraîcheur (`loaded_at_field`).
+- **Tests dbt** (intégrité + métier) et **contrats de schéma** sur les modèles critiques.
+- **Layering** `staging → intermediate → marts` avec **modèles incrémentaux** (merge).
+- **Macros métiers** (features météo, conversions, time series) et **seeds** (échelle de Beaufort, intensités).
+- **Exposure** pour le dashboard Streamlit.
+- **Documentation dbt** (descriptions, docs blocks, lineage) publiée automatiquement (Pages).
+- **Orchestration Prefect** horaire ingestion → dbt.
 
-* **Sources déclarées** avec contrôle de fraîcheur (`loaded_at_field`)
-* **Tests dbt** : not_null, unique, relationships, contraintes métier, tests génériques
-* **Contrats de schéma** sur les modèles critiques
-* **Organisation modulaire** : `staging → intermediate → marts`
-* **Modèles incrémentaux** (stratégie `merge`)
-* **Macros personnalisées** (features météo, conversions, casts, time series analysis)
-* **Seeds** (échelle de Beaufort)
-* **Exposures** (dashboard Streamlit comme consommateur final)
-* **Documentation dbt** (descriptions, docs blocks, lineage graph)
-* **Facteurs métier** : dimensions stations & vent, table de faits horaire
-* **Publication automatique de la documentation dbt** (GitHub Actions + GitHub Pages)
-* **Orchestration locale** du pipeline ingestion + dbt avec **Prefect** (flow, deployment, schedule horaire)
+## Pourquoi cela compte pour un client / recruteur
+- Données réelles (API Météo-France) et pipeline reproductible.
+- Qualité dbt : tests, contrats, macros, incrémental, seeds, exposure.
+- BI concrète (Streamlit) connectée aux marts dbt.
+- CI qui rejoue ingestion + dbt build et publie la doc.
+- Orchestration légère démontrant l’intégration autour de dbt.
 
-L’objectif n’est pas la BI en tant que produit, mais **la démonstration des bonnes pratiques dbt** dans un pipeline réaliste.
+## Stack
+- Python 3.12 (ingestion, orchestration)
+- DuckDB
+- dbt-core + dbt-duckdb
+- Streamlit
+- SQLFluff / Ruff
+- GitHub Actions (build dbt + docs)
+- Prefect 3
 
----
-
-## Pourquoi cela compte pour un·e client·e ou recruteur·e
-- données réelles (API Météo-France) avec ingestion maîtrisée,
-- bonnes pratiques dbt (layering, tests, contrats, macros, incrémental),
-- exposition BI concrète (Streamlit + exposure déclarée),
-- orchestration légère (Prefect) + CI double : build dbt sur données fraîches et génération/déploiement automatique de la doc.
-
----
-
-## Stack technique
-
-- **Python 3.12** — ingestion & utilitaires
-- **DuckDB (CLI + lib Python)** — data warehouse local
-- **dbt-core + dbt-duckdb** — transformation & tests
-- **Streamlit** — exposition BI
-- **SQLFluff / Ruff** — linting SQL & Python
-- **GitHub Actions** — génération et déploiement automatique des docs dbt (CI) + build dbt avec ingestion API
-- **Prefect 3** — orchestration locale *légère* (flow + deployment horaire)
-
----
 
 ---
 ## Parcours dev local (sans Docker)
