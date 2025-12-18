@@ -117,20 +117,17 @@ dwh-reset: ## Réinitialise les schémas calculés (staging, intermediate, marts
 	@echo "✅ Warehouse reset complete."
 
 # ========== DBT ==========
-dbt-build: ## Exécute dbt deps puis dbt run sur le projet
+dbt-build: ## Exécute dbt deps puis dbt build sur le projet
 	$(DBT) deps --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
-	$(DBT) seed --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
-	$(DBT) run --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
+	$(DBT) build --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-test: ## Exécute la suite de tests dbt
 	$(DBT) test --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
-dbt-rebuild: ## Full refresh (reset + deps + seed + run --full-refresh + test)
+dbt-rebuild: ## Full refresh (reset + deps + build --full-refresh)
 	@$(MAKE) dwh-reset
 	$(DBT) deps --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
-	$(DBT) seed --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
-	$(DBT) run --full-refresh --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
-	$(DBT) test --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
+	$(DBT) build --full-refresh --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 	@echo "✅ DBT full refresh complete."
 
 # ========== Sources DBT ==========

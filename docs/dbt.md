@@ -81,7 +81,7 @@ dbt seed --select beaufort_scale  # seed ciblé
 # Tester la connexion au DWH
 dbt debug
 
-# Tous les modèles
+# Tous les modèles, tests, snapshots et seeds
 make dbt-build
 
 # Tous les tests
