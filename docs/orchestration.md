@@ -36,7 +36,7 @@ Tant que :
 * et que le process de service du flow tourne,
 
 le pipeline est exécuté automatiquement selon ce schedule et le warehouse DuckDB
-(`data/warehouse.duckdb`) est régulièrement rafraîchi.
+(`data/warehouse.duckdb`) est régulièrement rafraîchi. Logs visibles dans la console du `make flow-serve` et dans l’UI Prefect (runs/tasks).
 
 ---
 
