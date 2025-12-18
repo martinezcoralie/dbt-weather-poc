@@ -14,11 +14,13 @@ ifeq ($(VENV),system)
     PIP := pip
     DBT := dbt
     PREFECT := prefect
+	STREAMLIT := streamlit
 else
     PY := $(VENV)/bin/python
     PIP := $(VENV)/bin/pip
     DBT := $(VENV)/bin/dbt
     PREFECT := $(VENV)/bin/prefect
+    STREAMLIT := $(VENV)/bin/streamlit
 endif
 
 # Options dbt additionnelles (surchage possible : DBT_FLAGS="...")
@@ -37,7 +39,8 @@ SCRIPT_FETCH  := scripts/ingestion/fetch_meteofrance_paquetobs.py
 MODULE_WRITE  := scripts.ingestion.write_duckdb_raw
 
 # Chemins
-DBPATH := data/warehouse.duckdb
+DBPATH ?= data/warehouse.duckdb
+export DBPATH
 DBT_PROJECT := .
 DBT_PROFILES_DIR ?= profiles
 export DBT_PROFILES_DIR
@@ -52,6 +55,7 @@ TABLE   ?= raw.obs_hourly
 
 .PHONY: help tree \
 		env-setup env-lock env-clean env-activate \
+		app \
 		api-check \
 		dwh-ingest dwh-reset dwh-tables \
 		dwh-table-info dwh-table-shape dwh-table-sample dwh-table \
@@ -86,6 +90,10 @@ env-activate: ## Affiche la commande à exécuter pour activer le virtualenv
 	@echo "To activate:"
 	@echo "  source $(VENV)/bin/activate"
 	@echo "  export DBT_PROFILES_DIR=./profiles"
+
+# ========== BI app ==========
+app:
+	streamlit run apps/bi-streamlit/app.py --server.address 0.0.0.0 --server.port 8501
 
 # ========== API & Ingestion ==========
 api-check: ## Teste l’API Météo-France et les scripts de fetch (arguments : DEPT=<code>)
