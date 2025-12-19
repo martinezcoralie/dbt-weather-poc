@@ -3,13 +3,19 @@
 Pipeline analytique de bout en bout autour des observations horaires Météo-France : ingestion Python → **DuckDB** (`raw`) → **dbt** (`staging / intermediate / marts`) → **Streamlit** (dashboard).  
 Orchestration locale **Prefect 3** disponible en option.
 
-## Compétences dbt démontrées
+## Compétences principales démontrées (dbt)
 
 - **Modélisation dbt “layered”** (`staging → intermediate → marts`) et conventions de structuration.
 - **Qualité** : tests (génériques + métier), **contrats** sur modèles critiques, seeds, exposures.
 - **Performance** : modèles **incrémentaux** (stratégie `merge`) et macros utilitaires.
 - **Traçabilité** : **dbt Docs** (modèles, colonnes, tests, lineage, exposure).
-- **Consommation BI** : dashboard Streamlit branché sur `marts.agg_station_latest_24h`.
+- **Consommation BI** : mart BI stable (`marts.agg_station_latest_24h`) consommé par le dashboard Streamlit.
+
+## Compétences complémentaires démontrées (delivery)
+
+- **Docker / Compose** : image Docker publique (démo sans token) + `docker compose` multi-services pour rejouer ingestion, dbt et Prefect.
+- **CI/CD (GitHub Actions)** : CI dbt sur données réelles + publication automatique des **dbt Docs** sur GitHub Pages
+- **Orchestration** : Prefect 3 local (mode `run` et `serve`) pour planifier ingestion → dbt (horaire) et observer les exécutions.
 
 ## Architecture (résumé)
 
