@@ -15,8 +15,8 @@ Le dashboard peut démarrer sur un warehouse de démonstration (seed):
 
 ### Option A — Image publiée (sans cloner le dépôt)
 ```bash
-docker pull dbt-weather-poc/weather-app:latest
-docker run --rm -p 8501:8501 -v weather-data:/app/data dbt-weather-poc/weather-app:latest
+docker pull martinezcoralie/weather-app:latest
+docker run --rm -p 8501:8501 -v weather-data:/app/data martinezcoralie/weather-app:latest
 # http://localhost:8501
 ```
 Notes :
@@ -38,7 +38,7 @@ Notes :
   ```
 
 ## Services Docker Compose
-Tous les services utilisent la même image (`dbt-weather-poc/weather-app:latest`) et le même volume `weather-data` monté dans `/app/data`.
+Tous les services utilisent la même image (`martinezcoralie/weather-app:latest`) et le même volume `weather-data` monté dans `/app/data`.
 
 - `app` : dashboard Streamlit — port `8501:8501`
 - `dbt` (profile `build`) : job ponctuel `make dbt-build` (tests inclus)

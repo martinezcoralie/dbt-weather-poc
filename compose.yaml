@@ -1,7 +1,7 @@
 services:
   # Service principal : dashboard Streamlit (démo immédiate via demo_warehouse seedé)
   app:
-    image: dbt-weather-poc/weather-app:latest
+    image: martinezcoralie/weather-app:latest
     build: .
     command: ["make", "app", "VENV=system"]
     volumes:
@@ -11,7 +11,7 @@ services:
 
   # Job ponctuel : rejouer dbt build (tests inclus)
   dbt:
-    image: dbt-weather-poc/weather-app:latest
+    image: martinezcoralie/weather-app:latest
     build: .
     command: ["make", "dbt-build", "VENV=system"]
     volumes:
@@ -20,7 +20,7 @@ services:
 
   # Job ponctuel : ingestion (nécessite METEOFRANCE_TOKEN dans .env)
   ingest:
-    image: dbt-weather-poc/weather-app:latest
+    image: martinezcoralie/weather-app:latest
     build: .
     command: ["sh", "-c", "make dwh-ingest VENV=system DEPT=${DEPT:-9}"]
     environment:
@@ -31,7 +31,7 @@ services:
 
   # Serveur Prefect (UI + API)
   prefect-server:
-    image: dbt-weather-poc/weather-app:latest
+    image: martinezcoralie/weather-app:latest
     build: .
     command: ["make", "prefect-server", "VENV=system"]
     ports:
@@ -40,7 +40,7 @@ services:
 
   # Worker / serve du flow Prefect
   prefect:
-    image: dbt-weather-poc/weather-app:latest
+    image: martinezcoralie/weather-app:latest
     build: .
     depends_on:
       - prefect-server
