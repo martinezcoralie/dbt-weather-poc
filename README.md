@@ -1,97 +1,111 @@
-# 🌤️ dbt-weather-poc — Pipeline météo (dbt + DuckDB)
+# 🌤️ dbt-weather-poc — Pipeline analytics météo (dbt + DuckDB)
 
-Pipeline analytique de bout en bout autour des données horaires Météo-France :
-**ingestion Python → DuckDB (raw) → dbt (staging/intermediate/marts) → Streamlit (BI)**,
-avec orchestration locale optionnelle via **Prefect**.
+Pipeline analytique de bout en bout autour des observations horaires Météo-France : ingestion Python → **DuckDB** (`raw`) → **dbt** (`staging / intermediate / marts`) → **Streamlit** (dashboard).  
+Orchestration locale **Prefect 3** disponible en option.
 
-## En bref
-- Données réelles Météo-France, ingestion Python idempotente vers DuckDB.
-- Modélisation **dbt** (layering, tests génériques + custom, contrats, incrémental merge, macros métiers).
-- Exposition BI **Streamlit** et déclaration en **exposure dbt**.
-- **CI GitHub Actions** : build dbt + publication automatique des docs.
-- **Orchestration Prefect** : cron horaire ingestion → dbt.
+## Compétences dbt démontrées
 
-## Architecture rapide
+- **Modélisation dbt “layered”** (`staging → intermediate → marts`) et conventions de structuration.
+- **Qualité** : tests (génériques + métier), **contrats** sur modèles critiques, seeds, exposures.
+- **Performance** : modèles **incrémentaux** (stratégie `merge`) et macros utilitaires.
+- **Traçabilité** : **dbt Docs** (modèles, colonnes, tests, lineage, exposure).
+- **Consommation BI** : dashboard Streamlit branché sur `marts.agg_station_latest_24h`.
+
+## Architecture (résumé)
+
 ```text
 Météo-France API
   ↓ (ingestion Python)
-DuckDB (raw.*)
-  ↓ (dbt)
-DuckDB (staging → intermediate → marts)
+DuckDB raw.*
+  ↓ (dbt build)
+DuckDB staging → intermediate → marts
   ↓
 Streamlit (dashboard)
-  ↕
+  ↕ (option)
 Prefect (schedule ingestion + dbt)
 ```
-Plus de détails : docs/architecture.md.
 
-## Ce que ce projet démontre (dbt)
-- Tests dbt complets (intégrité + métier) et contrats sur les modèles critiques.
-- Modèles incrémentaux (stratégie merge) pour limiter les full refresh.
-- Macros métiers météo (unités, secteurs de vent, flags) et seeds (Beaufort, intensités).
-- Exposure déclarée pour le dashboard BI.
-- Documentation dbt générée et publiée automatiquement (Pages).
+Détails : [docs/00-Architecture.md](docs/00-Architecture.md)
 
-## 🚀 Démo immédiate (Docker, 2 commandes)
-Image prête avec DuckDB démo (pas de token requis) :
-```bash
-docker pull dbt-weather-poc/weather-app:latest
-docker run --rm -p 8501:8501 dbt-weather-poc/weather-app:latest make app VENV=system
-```
-Dashboard : http://localhost:8501. Plus d’options : README.Docker.md.
+## Démarrage rapide
 
-## Démo complète (Docker Compose)
-Pré-requis : Docker + Compose v2.
+### Option A — Démo immédiate (image Docker publique)
+
+Une image Docker publique est fournie avec un **DuckDB de démonstration** (pas de token requis).
+
 ```bash
-git clone https://github.com/martinezcoralie/dbt-weather-poc.git
-cd dbt-weather-poc
+IMAGE=dbt-weather-poc/weather-app:latest
+docker pull "$IMAGE"
+docker run --rm -p 8501:8501 "$IMAGE" make app VENV=system
+# Dashboard : http://localhost:8501
 ```
-1) (Option) Ingestion API Météo-France :
+
+### Option B — Explorer le pipeline en Docker Compose (multi-services)
+
+Le `compose.yaml` propose des services et profils pour rejouer **dbt**, lancer l’**ingestion** (token requis) et démarrer **Prefect**.
+
+Démarrer le dashboard (démo) :
+
 ```bash
-cp .env.example .env
-# voir docs/meteofrance_token.md
-DEPT=9 docker compose --profile ingest run --rm ingest
+docker compose up --build app
 ```
-2) Modélisation dbt :
+
+Rejouer dbt (job ponctuel, tests inclus) :
+
 ```bash
 docker compose --profile build run --rm dbt
 ```
-3) Dashboard Streamlit :
+
+Ingestion réelle (token requis) :
+
 ```bash
-docker compose up app
+DEPT=75 docker compose --profile ingest run --rm ingest
 ```
-4) Orchestration Prefect (horaire) :
+
+Orchestration Prefect (option) :
+
 ```bash
-docker compose --profile prefect up -d prefect-server prefect
+docker compose --profile prefect up --build prefect-server
+# UI Prefect : http://localhost:4200
+docker compose --profile prefect up --build prefect
 ```
-Reset complet (reseed DuckDB démo) :
+
+Reset complet (reseed du DuckDB démo au prochain run) :
+
 ```bash
 docker compose down -v
 ```
 
-## Parcours dev local (sans Docker)
-Pré-requis : clé API Météo-France (docs/meteofrance_token.md).
+Détails et explications : [README.Docker.md](README.Docker.md) 
+
+### Option C — Développement local (sans Docker)
+
+Pré-requis : token Météo-France (voir [docs/10-Setup.md](docs/10-Setup.md))
+
 ```bash
-git clone https://github.com/martinezcoralie/dbt-weather-poc.git
-cd dbt-weather-poc
 make env-setup && source .venv/bin/activate
 export DBT_PROFILES_DIR=./profiles
-make help                    # toutes les commandes
-make dwh-ingest DEPT=9       # ingestion brute (API → DuckDB)
-make dbt-build               # modèles + tests + seeds
-make dbt-docs-generate       # docs dbt (HTML/JSON)
-make dbt-docs-serve          # http://localhost:8080
-make app                     # dashboard Streamlit
+
+make dwh-ingest DEPT=75
+make dbt-build
+make app
 ```
 
-## 📎 Documentation complémentaire
-- docs/overview.md — vue d’ensemble
-- docs/highlights.md — compétences démontrées (dbt, CI, orchestration)
-- docs/architecture.md — flux et stockage
-- docs/meteofrance_token.md — récupérer une clé API Météo-France
-- docs/ingestion.md — ingestion API → DuckDB (`raw.*`)
-- docs/warehouse.md — commandes d’exploration DuckDB
-- docs/dbt.md — structure dbt, layering, incrémental, macros, tests
-- docs/dbt-docs.md — génération/exploration de dbt Docs
-- docs/dashboard.md — dashboard Streamlit (exposure dbt)
-- docs/orchestration.md — orchestration locale avec Prefect
+#### Commandes (Makefile)
+
+Toutes les commandes (ingestion, dbt, docs, utilitaires DuckDB, lint, etc.) sont centralisées dans le **Makefile** :
+
+```bash
+make help
+```
+
+## Vérifier rapidement la modélisation (dbt Docs)
+
+```bash
+make dbt-docs
+# http://localhost:8080
+```
+
+## Documentation
+- Index : [docs/README.md](docs/README.md)
+- Docker / Compose : [README.Docker.md](README.Docker.md)
