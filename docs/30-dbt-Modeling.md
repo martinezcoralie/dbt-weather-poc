@@ -25,7 +25,7 @@ raw.* → staging → intermediate → marts → exposure Streamlit
 
 ## Incrémental (stratégie `merge`)
 
-Certains modèles sont matérialisés en `incremental` avec stratégie `merge` pour éviter un full refresh systématique.
+Certains modèles (`int_obs_features`, `int_obs_windows`) sont matérialisés en `incremental` avec stratégie `merge` pour éviter un full refresh systématique.
 
 Rebuild complet (reset + `--full-refresh`) :
 
@@ -106,5 +106,4 @@ dbt test -s +exposure:weather_bi_streamlit
 
 
 Prochaine étape : [31-dbt-Docs-Lineage.md](31-dbt-Docs-Lineage.md).
-
 

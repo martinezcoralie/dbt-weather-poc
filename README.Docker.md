@@ -50,7 +50,7 @@ Tous les services utilisent la même image (`dbt-weather-poc/weather-app:latest`
 
 ### Ingestion réelle (token requis)
 1) Créer un `.env` (non commité) avec `METEOFRANCE_TOKEN`. Voir : [docs/10-Setup.md](docs/10-Setup.md)
-2) Lancer l’ingestion pour un département (ex. 75) :
+2) Lancer l’ingestion pour un département (format sans zéro initial (`9`, `75` ; pas `09`)) :
 ```bash
 DEPT=75 docker compose --profile ingest run --rm ingest
 ```

@@ -58,7 +58,7 @@ Démarrer le dashboard (démo) :
 docker compose up --build app
 ```
 
-Rejouer dbt (job ponctuel, tests inclus) :
+Rejouer dbt (job ponctuel, tests inclus, utilisera le seed si l’ingestion n’a pas tourné) :
 
 ```bash
 docker compose --profile build run --rm dbt

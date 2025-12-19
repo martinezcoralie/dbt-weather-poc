@@ -30,6 +30,7 @@ L’ingestion alimente le schéma **`raw`** du warehouse DuckDB. On conserve vol
 ```bash
 make dwh-ingest DEPT=75
 ```
+Codes département attendus : format sans zéro initial (`9`, `75` ; pas `09`).
 
 ## Exécuter l’ingestion (Docker Compose)
 
