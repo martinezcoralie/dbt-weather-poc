@@ -31,7 +31,7 @@ docker compose up --build app
 - Fraîcheur attendue : `validity_time_utc` ≤ 3 h (badge 🟢)
 - 🟢 « À jour » : dernière `validity_time_utc` ≤ 3 h
 - 🟠 « En retard » : entre 3 h et 6 h
-- 🔴 « Stale » : > 6 h
+- 🔴 « Périmé » : > 6 h
 
 Rafraîchir manuellement : relancer l’ingestion puis `make dbt-build` (ou, en Docker, relancer les jobs `ingest` + `dbt`).
 
