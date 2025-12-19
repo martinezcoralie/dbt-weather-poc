@@ -93,7 +93,10 @@ env-activate: ## Affiche la commande à exécuter pour activer le virtualenv
 
 # ========== BI app ==========
 app:
-	streamlit run apps/bi-streamlit/app.py --server.address 0.0.0.0 --server.port 8501
+	streamlit run apps/bi-streamlit/app.py \
+		--server.address 0.0.0.0 \
+		--server.port 8501 \
+		--browser.serverAddress localhost
 
 # ========== API & Ingestion ==========
 api-check: ## Teste l’API Météo-France et les scripts de fetch (arguments : DEPT=<code>)
