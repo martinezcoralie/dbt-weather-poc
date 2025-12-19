@@ -42,9 +42,8 @@ Détails : [docs/00-Architecture.md](docs/00-Architecture.md)
 Une image Docker publique est fournie avec un **DuckDB de démonstration** (pas de token requis).
 
 ```bash
-IMAGE=dbt-weather-poc/weather-app:latest
-docker pull "$IMAGE"
-docker run --rm -p 8501:8501 "$IMAGE" make app VENV=system
+docker pull dbt-weather-poc/weather-app:latest
+docker run --rm -p 8501:8501 -v weather-data:/app/data dbt-weather-poc/weather-app:latest
 # Dashboard : http://localhost:8501
 ```
 

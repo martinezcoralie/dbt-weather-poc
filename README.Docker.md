@@ -20,7 +20,7 @@ docker run --rm -p 8501:8501 -v weather-data:/app/data dbt-weather-poc/weather-a
 # http://localhost:8501
 ```
 Notes :
-- Nécessite que l’image soit publiée et accessible
+- Se base sur une image Docker publique fournie avec un **DuckDB de démonstration** (pas de token requis)
 
 ### Option B — Depuis le dépôt (build local)
 ```bash
