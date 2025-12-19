@@ -11,4 +11,5 @@ Cette section regroupe la documentation du projet. Les pages ci-dessous sont ind
 - [dbt Docs & Lineage](31-dbt-Docs-Lineage.md)
 - [Dashboard Streamlit](40-Dashboard.md)
 - [Orchestration Prefect](50-Orchestration-Prefect.md)
+- [CI/CD (GitHub Actions)](60-CI-CD.md)
 - [Annexe — Inspection DuckDB](90-Appendix-Warehouse-Inspection.md)

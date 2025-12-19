@@ -7,6 +7,14 @@ Après exécution des modèles (`make dbt-build` ou `make dbt-rebuild`), dbt peu
 - **lineage graph** (raw → staging → intermediate → marts)
 - exposure du dashboard
 
+## Docs dbt en ligne (GitHub Pages)
+
+La documentation dbt est automatiquement publiée sur GitHub Pages à chaque push sur `main` :
+
+https://martinezcoralie.github.io/dbt-weather-poc/
+
+Détails CI/CD : [60-CI-CD.md](60-CI-CD.md)
+
 ## Générer et servir la documentation
 
 ```bash
