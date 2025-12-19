@@ -28,7 +28,7 @@ def freshness_badge(max_ts: datetime | None) -> tuple[str, str]:
         return ("À jour", "#22c55e")
     if delay_hours <= 6:
         return ("En retard", "#f97316")
-    return ("Stale", "#ef4444")
+    return ("Périmé", "#ef4444")
 
 
 def build_station_scatter_layer(stations: pd.DataFrame) -> pdk.Layer:

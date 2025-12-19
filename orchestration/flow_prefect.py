@@ -39,7 +39,7 @@ def run_dbt_build() -> None:
     """
     Tâche Prefect : exécution de dbt (deps + build) sur le projet.
     """
-    cmd = "DBT_PROFILES_DIR=profiles dbt deps && DBT_PROFILES_DIR=profiles dbt build"
+    cmd = "make dbt-build"
     run_cmd(cmd)
 
 

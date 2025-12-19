@@ -1,0 +1,56 @@
+services:
+  # Service principal : dashboard Streamlit (démo immédiate via demo_warehouse seedé)
+  app:
+    image: martinezcoralie/weather-app:latest
+    build: .
+    command: ["make", "app", "VENV=system"]
+    volumes:
+      - weather-data:/app/data
+    ports:
+      - "8501:8501"
+
+  # Job ponctuel : rejouer dbt build (tests inclus)
+  dbt:
+    image: martinezcoralie/weather-app:latest
+    build: .
+    command: ["make", "dbt-build", "VENV=system"]
+    volumes:
+      - weather-data:/app/data
+    profiles: ["build"]
+
+  # Job ponctuel : ingestion (nécessite METEOFRANCE_TOKEN dans .env)
+  ingest:
+    image: martinezcoralie/weather-app:latest
+    build: .
+    command: ["sh", "-c", "make dwh-ingest VENV=system DEPT=${DEPT:-9}"]
+    environment:
+      METEOFRANCE_TOKEN: ${METEOFRANCE_TOKEN:-}
+    volumes:
+      - weather-data:/app/data
+    profiles: ["ingest"]
+
+  # Serveur Prefect (UI + API)
+  prefect-server:
+    image: martinezcoralie/weather-app:latest
+    build: .
+    command: ["make", "prefect-server", "VENV=system"]
+    ports:
+      - "4200:4200"
+    profiles: ["prefect"]
+
+  # Worker / serve du flow Prefect
+  prefect:
+    image: martinezcoralie/weather-app:latest
+    build: .
+    depends_on:
+      - prefect-server
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      METEOFRANCE_TOKEN: ${METEOFRANCE_TOKEN:-}
+    command: ["sh", "-c", "make flow-serve VENV=system DEPT=${DEPT:-9}"]
+    volumes:
+      - weather-data:/app/data
+    profiles: ["prefect"]
+
+volumes:
+  weather-data:

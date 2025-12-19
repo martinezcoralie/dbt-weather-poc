@@ -6,10 +6,32 @@ SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
 .ONESHELL:
 
-VENV := .venv
-PY   := $(VENV)/bin/python
-PIP  := $(VENV)/bin/pip
-DBT := $(VENV)/bin/dbt
+# Par défaut on garde .venv, mais on peut le surcharger
+VENV ?= .venv
+# Si VENV est "system", on utilise directement python/pip/dbt du système
+ifeq ($(VENV),system)
+    PY := python
+    PIP := pip
+    DBT := dbt
+    PREFECT := prefect
+	STREAMLIT := streamlit
+else
+    PY := $(VENV)/bin/python
+    PIP := $(VENV)/bin/pip
+    DBT := $(VENV)/bin/dbt
+    PREFECT := $(VENV)/bin/prefect
+    STREAMLIT := $(VENV)/bin/streamlit
+endif
+
+# Options dbt additionnelles (surchage possible : DBT_FLAGS="...")
+DBT_FLAGS ?=
+
+# Si on est dans un conteneur Docker, on désactive partial parsing
+IN_DOCKER := $(shell test -f /.dockerenv && echo 1 || echo 0)
+ifeq ($(IN_DOCKER),1)
+  DBT_FLAGS += --no-partial-parse
+endif
+
 DUCKDB := duckdb
 
 # Scripts et modules ingestion
@@ -17,10 +39,15 @@ SCRIPT_FETCH  := scripts/ingestion/fetch_meteofrance_paquetobs.py
 MODULE_WRITE  := scripts.ingestion.write_duckdb_raw
 
 # Chemins
-DBPATH := data/warehouse.duckdb
-DBT_PROJECT := weather_dbt
+DBPATH ?= data/warehouse.duckdb
+export DBPATH
+DBT_PROJECT := .
 DBT_PROFILES_DIR ?= profiles
 export DBT_PROFILES_DIR
+
+# Prefect API
+PREFECT_API_URL ?= http://127.0.0.1:4200/api
+export PREFECT_API_URL
 
 # Paramètres (overridable)
 DEPT    ?= 9
@@ -28,13 +55,14 @@ TABLE   ?= raw.obs_hourly
 
 .PHONY: help tree \
 		env-setup env-lock env-clean env-activate \
+		app \
 		api-check \
 		dwh-ingest dwh-reset dwh-tables \
 		dwh-table-info dwh-table-shape dwh-table-sample dwh-table \
 		dbt-build dbt-test dbt-rebuild \
 		dbt-sources-test dbt-sources-freshness dbt-sources-check \
 		dbt-docs-generate dbt-docs-serve dbt-docs \
-		prefect-server prefect-config prefect-ui flow-run flow-serve flow-status \
+		prefect-server prefect-ui flow-run flow-serve flow-status \
 		py-lint py-fmt sql-lint sql-fmt
 
 # ========== Default / Help ==========
@@ -63,6 +91,13 @@ env-activate: ## Affiche la commande à exécuter pour activer le virtualenv
 	@echo "  source $(VENV)/bin/activate"
 	@echo "  export DBT_PROFILES_DIR=./profiles"
 
+# ========== BI app ==========
+app:
+	streamlit run apps/bi-streamlit/app.py \
+		--server.address 0.0.0.0 \
+		--server.port 8501 \
+		--browser.serverAddress localhost
+
 # ========== API & Ingestion ==========
 api-check: ## Teste l’API Météo-France et les scripts de fetch (arguments : DEPT=<code>)
 	$(PY) $(SCRIPT_FETCH) --list-stations --head 5
@@ -87,7 +122,7 @@ dwh-table-shape: ## Affiche le nombre de lignes et de colonnes pour une table (a
 	SELECT nrows, ncols FROM s;"
 	
 dwh-table-sample: ## Affiche un extrait de la table pour inspection rapide (argument : TABLE=<schema.table>)
-	$(PY) scripts/utils/peek_duckdb.py --table $(TABLE)
+	$(PY) scripts/duckdb/peek.py --table $(TABLE)
 
 dwh-table: dwh-table-shape dwh-table-info dwh-table-sample ## Résumé complet d’une table : shape + info colonnes + sample (argument : TABLE=<schema.table>)
 
@@ -99,46 +134,40 @@ dwh-reset: ## Réinitialise les schémas calculés (staging, intermediate, marts
 	@echo "✅ Warehouse reset complete."
 
 # ========== DBT ==========
-dbt-build: ## Exécute dbt deps puis dbt run sur le projet
-	$(DBT) deps
-	$(DBT) seed
-	$(DBT) run
+dbt-build: ## Exécute dbt deps puis dbt build sur le projet
+	$(DBT) deps --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
+	$(DBT) build --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-test: ## Exécute la suite de tests dbt
-	$(DBT) test
+	$(DBT) test --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
-dbt-rebuild: ## Full refresh (reset + deps + seed + run --full-refresh + test)
+dbt-rebuild: ## Full refresh (reset + deps + build --full-refresh)
 	@$(MAKE) dwh-reset
-	$(DBT) deps
-	$(DBT) seed
-	$(DBT) run --full-refresh
-	$(DBT) test
+	$(DBT) deps --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
+	$(DBT) build --full-refresh --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 	@echo "✅ DBT full refresh complete."
 
 # ========== Sources DBT ==========
 dbt-sources-test: ## Lance les tests dbt sur les sources
-	$(DBT) test --select "source:*"
+	$(DBT) test --select "source:*" --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-sources-freshness: ## Vérifie la fraîcheur des sources
-	$(DBT) source freshness
+	$(DBT) source freshness --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-sources-check: dbt-sources-test dbt-sources-freshness ## Combo sur les sources: Tests & Fraîcheur
 
 # ========== Documentation DBT ==========
 dbt-docs-generate: ## Génère la documentation HTML dbt dans target/
-	$(DBT) docs generate
+	$(DBT) docs generate --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-docs-serve: ## Sert la doc dbt en local (http://localhost:8080)
-	$(DBT) docs serve --port 8080
+	$(DBT) docs serve --port 8080 --project-dir $(DBT_PROJECT) $(DBT_FLAGS)
 
 dbt-docs: dbt-docs-generate dbt-docs-serve ## Génère puis sert la doc dbt en local (http://localhost:8080)
 
 # ========== Orchestration Prefect ==========
 prefect-server: ## Démarre le serveur Prefect (UI http://127.0.0.1:4200)
-	prefect server start
-
-prefect-config: ## Pointe l'API Prefect locale (127.0.0.1:4200)
-	prefect config set PREFECT_API_URL=http://127.0.0.1:4200/api
+	$(PREFECT) server start
 
 prefect-ui: ## Ouvre l'UI Prefect locale dans le navigateur
 	open http://127.0.0.1:4200
@@ -150,8 +179,8 @@ flow-serve: ## Lance le deployment Prefect horaire (cron) pour DEPT=<code>
 	$(PY) orchestration/flow_prefect.py --mode serve --dept $(DEPT)
 
 flow-status: ## Liste les deployments et les 5 derniers flow runs
-	prefect deployment ls
-	prefect flow-run ls --limit 5
+	$(PREFECT) deployment ls
+	$(PREFECT) flow-run ls --limit 5
 
 # ========== Lint ==========
 py-lint: ## Lint Python
