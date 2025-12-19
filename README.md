@@ -1,15 +1,17 @@
 # 🌤️ dbt-weather-poc — Pipeline analytics météo (dbt + DuckDB)
 
 Pipeline analytique de bout en bout autour des observations horaires Météo-France : ingestion Python → **DuckDB** (`raw`) → **dbt** (`staging / intermediate / marts`) → **Streamlit** (dashboard).  
-Orchestration locale **Prefect 3** disponible en option.
+Orchestration locale **Prefect 3** disponible.
 
 ## Compétences principales démontrées (dbt)
 
 - **Modélisation dbt “layered”** (`staging → intermediate → marts`) et conventions de structuration.
+- **Sources + fraîcheur** : sources dbt déclarées avec `loaded_at_field` et seuils de freshness (warn/error).
 - **Qualité** : tests (génériques + métier), **contrats** sur modèles critiques, seeds, exposures.
 - **Performance** : modèles **incrémentaux** (stratégie `merge`) et macros utilitaires.
 - **Traçabilité** : **dbt Docs** (modèles, colonnes, tests, lineage, exposure).
 - **Consommation BI** : mart BI stable (`marts.agg_station_latest_24h`) consommé par le dashboard Streamlit.
+
 
 ## Compétences complémentaires démontrées (delivery)
 
