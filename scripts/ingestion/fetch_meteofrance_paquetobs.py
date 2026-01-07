@@ -19,6 +19,9 @@ from typing import Optional
 
 import pandas as pd
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+
 from dotenv import load_dotenv
 
 # --------------------------------------------------------------------------- #
@@ -72,6 +75,19 @@ def open_session_paquetobs(apikey: Optional[str] = None) -> requests.Session:
             "User-Agent": USER_AGENT,
         }
     )
+    retry = Retry(
+        total=5,
+        connect=5,
+        read=5,
+        backoff_factor=0.8,  # exponential backoff: 0.8, 1.6, 3.2, 6.4...
+        status_forcelist=[429, 502, 503, 504],
+        allowed_methods={"GET"},
+        raise_on_status=False,
+        respect_retry_after_header=True,
+      )
+    adapter = HTTPAdapter(max_retries=retry)
+    s.mount("https://", adapter)
+    s.mount("http://", adapter)
     return s
 
 
