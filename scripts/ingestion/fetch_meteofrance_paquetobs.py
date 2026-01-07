@@ -24,6 +24,11 @@ from urllib3.util.retry import Retry
 
 from dotenv import load_dotenv
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("urllib3").setLevel(logging.DEBUG)
+
 # --------------------------------------------------------------------------- #
 # Chargement de l'environnement
 # --------------------------------------------------------------------------- #
@@ -80,7 +85,7 @@ def open_session_paquetobs(apikey: Optional[str] = None) -> requests.Session:
         connect=5,
         read=5,
         backoff_factor=0.8,  # exponential backoff: 0.8, 1.6, 3.2, 6.4...
-        status_forcelist=[429, 502, 503, 504],
+        status_forcelist=[429, 500, 502, 503, 504],
         allowed_methods={"GET"},
         raise_on_status=False,
         respect_retry_after_header=True,
@@ -128,7 +133,7 @@ def fetch_hourly_for_dept(session: requests.Session, dept: str) -> pd.DataFrame:
         params={"id-departement": dept_code, "format": "csv"},
         timeout=TIMEOUT,
     )
-    resp.raise_for_status()
+    resp.raise_for_status() # lève une exception si HTTP != 2xx
     df = pd.read_csv(io.BytesIO(resp.content), sep=";", dtype=str, low_memory=False)
     df["dept_code"] = dept_code
     return df
