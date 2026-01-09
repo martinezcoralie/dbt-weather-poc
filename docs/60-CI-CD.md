@@ -15,6 +15,13 @@ Une CI GitHub Actions rejoue une partie du pipeline à chaque push / PR sur `mai
 - création d’un warehouse DuckDB dans l’environnement CI,
 - exécution de `dbt deps` puis `dbt build` avec `DBT_PROFILES_DIR=./profiles`.
 
+## CI : smoke test des services Docker
+
+Une vérification rapide s’assure que le service `app` démarre correctement via Docker Compose :
+
+- démarrage du service `app`,
+- health check HTTP sur `/_stcore/health`.
+
 ## Secrets / variables
 
 La CI s’appuie sur :
