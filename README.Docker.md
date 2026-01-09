@@ -29,7 +29,7 @@ docker compose up --build app
 ```
 
 Notes :
-- `--build` force la reconstruction locale de l’image à partir du `Dockerfile`.
+- `--build` permet de forcer la reconstruction locale de l’image à partir du `Dockerfile` (utile par exemple après avoir modifié le code local).
 - Pour **forcer l’utilisation de l’image publiée** avec Compose (sans rebuild local) :
 
   ```bash
@@ -41,7 +41,7 @@ Notes :
 Tous les services utilisent la même image (`martinezcoralie/weather-app:latest`) et le même volume `weather-data` monté dans `/app/data`.
 
 - `app` : dashboard Streamlit — port `8501:8501`
-- `dbt` (profile `build`) : job ponctuel `make dbt-build` (tests inclus)
+- `dbt` (profile `dbt`) : job ponctuel `make dbt-build` (tests inclus)
 - `ingest` (profile `ingest`) : job ponctuel `make dwh-ingest` (**token requis**)
 - `prefect-server` (profile `prefect`) : UI + API Prefect — port `4200:4200`
 - `prefect` (profile `prefect`) :serve du flow (`make flow-serve`), connecté à `prefect-server`
@@ -57,14 +57,14 @@ DEPT=75 docker compose --profile ingest run --rm ingest
 
 ### Rejouer dbt (job ponctuel)
 ```bash
-docker compose --profile build run --rm dbt
+docker compose --profile dbt run --rm dbt
 ```
 Notes :
 - Par défaut, dbt cible `/app/data/warehouse.duckdb`. Si l’ingestion a été exécutée, dbt transformera les données ingérées ; sinon il transformera le dataset de démo seedé.
 
 ### Orchestration Prefect
 ```bash
-docker compose --profile prefect up --build prefect-server prefect
+docker compose --profile prefect up prefect-server prefect
 # UI Prefect : http://localhost:4200
 ```
 

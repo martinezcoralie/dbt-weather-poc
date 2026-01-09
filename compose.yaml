@@ -16,13 +16,13 @@ services:
     command: ["make", "dbt-build", "VENV=system"]
     volumes:
       - weather-data:/app/data
-    profiles: ["build"]
+    profiles: ["dbt"]
 
   # Job ponctuel : ingestion (nécessite METEOFRANCE_TOKEN dans .env)
   ingest:
     image: martinezcoralie/weather-app:latest
     build: .
-    command: ["sh", "-c", "make dwh-ingest VENV=system DEPT=${DEPT:-9}"]
+    command: ["make", "dwh-ingest", "VENV=system", "DEPT=${DEPT:-9}"]
     environment:
       METEOFRANCE_TOKEN: ${METEOFRANCE_TOKEN:-}
     volumes:
@@ -47,7 +47,7 @@ services:
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
       METEOFRANCE_TOKEN: ${METEOFRANCE_TOKEN:-}
-    command: ["sh", "-c", "make flow-serve VENV=system DEPT=${DEPT:-9}"]
+    command: ["make", "flow-serve", "VENV=system", "DEPT=${DEPT:-9}"]
     volumes:
       - weather-data:/app/data
     profiles: ["prefect"]

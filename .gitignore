@@ -6,6 +6,7 @@ logs/
 __pycache__/.streamlit/
 __pycache__/
 **/*.duckdb
+!data/demo_warehouse.duckdb
 .vscode
 .ruff_cache
 

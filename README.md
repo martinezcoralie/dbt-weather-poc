@@ -16,7 +16,7 @@ Orchestration locale **Prefect 3** disponible.
 ## Compétences complémentaires démontrées (delivery)
 
 - **Docker / Compose** : image Docker publique (démo sans token) + `docker compose` multi-services pour rejouer ingestion, dbt et Prefect.
-- **CI/CD (GitHub Actions)** : CI dbt sur données réelles + publication automatique des **dbt Docs** sur GitHub Pages
+- **CI/CD (GitHub Actions)** : ingestion + dbt build + smoke tests Docker (app + Prefect) + publication automatique des **dbt Docs** sur GitHub Pages
 - **Orchestration** : Prefect 3 local (mode `run` et `serve`) pour planifier ingestion → dbt (horaire) et observer les exécutions.
 
 ## Architecture (résumé)
@@ -60,7 +60,7 @@ docker compose up --build app
 Rejouer dbt (job ponctuel, tests inclus, utilisera le seed si l’ingestion n’a pas tourné) :
 
 ```bash
-docker compose --profile build run --rm dbt
+docker compose --profile dbt run --rm dbt
 ```
 
 Ingestion réelle (token requis) :
@@ -72,9 +72,9 @@ DEPT=75 docker compose --profile ingest run --rm ingest
 Orchestration Prefect (option) :
 
 ```bash
-docker compose --profile prefect up --build prefect-server
+docker compose --profile prefect up prefect-server
 # UI Prefect : http://localhost:4200
-docker compose --profile prefect up --build prefect
+docker compose --profile prefect up prefect
 ```
 
 Reset complet (reseed du DuckDB démo au prochain run) :
