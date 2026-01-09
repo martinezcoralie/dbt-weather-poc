@@ -33,9 +33,9 @@ def freshness_badge(max_ts: datetime | None) -> tuple[str, str]:
 
 def build_station_scatter_layer(stations: pd.DataFrame) -> pdk.Layer:
     """Grey scatter layer for all stations (map background)."""
-    stations_map = stations.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
-        status="Station"
-    )
+    stations_map = stations.rename(
+        columns={"longitude": "lon", "latitude": "lat"}
+    ).assign(status="Station")
     return pdk.Layer(
         "ScatterplotLayer",
         data=stations_map,
@@ -68,7 +68,9 @@ def build_icon_layer(data: pd.DataFrame, icon_url: str, size) -> pdk.Layer | Non
     )
 
 
-def render_focus_card_html(title: str, station_text: str, count_text: str, accent: str, icon_html: str = "") -> str:
+def render_focus_card_html(
+    title: str, station_text: str, count_text: str, accent: str, icon_html: str = ""
+) -> str:
     """Render the HTML for a focus card (used inside the flex container)."""
     import textwrap
 
@@ -84,7 +86,9 @@ def render_focus_card_html(title: str, station_text: str, count_text: str, accen
     return html
 
 
-def build_focus_cards(latest: pd.DataFrame) -> tuple[str, list[tuple[str, pd.DataFrame, str]]]:
+def build_focus_cards(
+    latest: pd.DataFrame,
+) -> tuple[str, list[tuple[str, pd.DataFrame, str]]]:
     """Return (cards_html, map_options) for the focus section; requires is_* flags in data."""
     cards_html = ""
     map_options: list[tuple[str, pd.DataFrame, str]] = []
@@ -102,14 +106,18 @@ def build_focus_cards(latest: pd.DataFrame) -> tuple[str, list[tuple[str, pd.Dat
         nonlocal cards_html, map_options
         if df.empty:
             return
-        df_points = df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(status=title)
+        df_points = df.rename(columns={"longitude": "lon", "latitude": "lat"}).assign(
+            status=title
+        )
         count = len(df_points)
         names = ", ".join(sorted(df_points["station_name"].tolist()))
         icon_html = (
             f'<img src="{icon_url}" alt="{title}" width="18" height="18" '
             'style="vertical-align:middle; margin-right:6px;" />'
         )
-        cards_html += render_focus_card_html(title, names, f"{count} station(s)", accent, icon_html=icon_html)
+        cards_html += render_focus_card_html(
+            title, names, f"{count} station(s)", accent, icon_html=icon_html
+        )
         map_options.append((title, df_points, icon_url))
 
     for flag, meta in FLAG_DICT.items():

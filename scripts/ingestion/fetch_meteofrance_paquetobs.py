@@ -89,7 +89,7 @@ def open_session_paquetobs(apikey: Optional[str] = None) -> requests.Session:
         allowed_methods={"GET"},
         raise_on_status=False,
         respect_retry_after_header=True,
-      )
+    )
     adapter = HTTPAdapter(max_retries=retry)
     s.mount("https://", adapter)
     s.mount("http://", adapter)
@@ -133,7 +133,7 @@ def fetch_hourly_for_dept(session: requests.Session, dept: str) -> pd.DataFrame:
         params={"id-departement": dept_code, "format": "csv"},
         timeout=TIMEOUT,
     )
-    resp.raise_for_status() # lève une exception si HTTP != 2xx
+    resp.raise_for_status()  # lève une exception si HTTP != 2xx
     df = pd.read_csv(io.BytesIO(resp.content), sep=";", dtype=str, low_memory=False)
     df["dept_code"] = dept_code
     return df

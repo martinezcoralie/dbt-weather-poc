@@ -4,7 +4,7 @@ Cette partie est volontairement **optionnelle** : l’objectif est de démontrer
 
 ## Raccourcis Make
 
-- `make prefect-server` — démarre le serveur Prefect (UI : http://127.0.0.1:4200)
+- `make prefect-server` — démarre le serveur Prefect (UI : http://localhost:4200)
 - `make flow-run DEPT=9` — exécute le pipeline une fois
 - `make flow-serve DEPT=9` — crée/maintient un deployment + schedule horaire
 

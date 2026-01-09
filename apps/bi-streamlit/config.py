@@ -1,4 +1,5 @@
 """Static configuration for focus categories (UI + BI flags)."""
+
 FLAG_DICT = {
     "is_temp_comfort": {
         "title": "Confort thermique",

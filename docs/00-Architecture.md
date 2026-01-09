@@ -20,7 +20,7 @@ Prefect (schedule ingestion + dbt)
 - **dbt** : projet `weather_dbt`, layering `staging/intermediate/marts`, macros météo, seeds (Beaufort, intensités), modèles incrémentaux (merge), contrats + tests, exposure.
 - **BI** : Streamlit (`apps/bi-streamlit/app.py`), dépendance principale `marts.agg_station_latest_24h`.
 - **Orchestration** : Prefect flow `weather_hourly_pipeline` (ingestion → dbt), deployment horaire optionnel.
-- **CI** : GitHub Actions rejoue ingestion + `dbt build` et publie dbt Docs (Pages).
+- **CI** : GitHub Actions exécute lint Ruff, ingestion + `dbt build`, smoke tests Docker (app + Prefect), et publie dbt Docs (Pages).
 
 ## Modes d’exécution
 

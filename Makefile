@@ -15,12 +15,16 @@ ifeq ($(VENV),system)
     DBT := dbt
     PREFECT := prefect
 	STREAMLIT := streamlit
+    RUFF := ruff
+    SQLFLUFF := sqlfluff
 else
     PY := $(VENV)/bin/python
     PIP := $(VENV)/bin/pip
     DBT := $(VENV)/bin/dbt
     PREFECT := $(VENV)/bin/prefect
     STREAMLIT := $(VENV)/bin/streamlit
+    RUFF := $(VENV)/bin/ruff
+    SQLFLUFF := $(VENV)/bin/sqlfluff
 endif
 
 # Options dbt additionnelles (surchage possible : DBT_FLAGS="...")
@@ -54,16 +58,16 @@ DEPT    ?= 9
 TABLE   ?= raw.obs_hourly
 
 .PHONY: help tree \
-		env-setup env-lock env-clean env-activate \
-		app \
-		api-check \
-		dwh-ingest dwh-reset dwh-tables \
-		dwh-table-info dwh-table-shape dwh-table-sample dwh-table \
-		dbt-build dbt-test dbt-rebuild \
-		dbt-sources-test dbt-sources-freshness dbt-sources-check \
-		dbt-docs-generate dbt-docs-serve dbt-docs \
-		prefect-server prefect-ui flow-run flow-serve flow-status \
-		py-lint py-fmt sql-lint sql-fmt
+	env-setup env-lock env-clean env-activate \
+	app \
+	api-check \
+	dwh-ingest dwh-reset dwh-tables \
+	dwh-table-info dwh-table-shape dwh-table-sample dwh-table \
+	dbt-build dbt-test dbt-rebuild \
+	dbt-sources-test dbt-sources-freshness dbt-sources-check \
+	dbt-docs-generate dbt-docs-serve dbt-docs \
+	prefect-server prefect-ui flow-run flow-serve flow-status \
+	py-lint py-fmt py-fmt-check py-check sql-lint sql-fmt
 
 # ========== Default / Help ==========
 .DEFAULT_GOAL := help
@@ -184,13 +188,18 @@ flow-status: ## Liste les deployments et les 5 derniers flow runs
 
 # ========== Lint ==========
 py-lint: ## Lint Python
-	$(VENV)/bin/ruff check .
+	$(RUFF) check .
 
 py-fmt: ## Format Python
-	$(VENV)/bin/ruff format .
+	$(RUFF) format .
+
+py-fmt-check: ## Vérifie le format Python (sans modifier)
+	$(RUFF) format --check .
+
+py-check: py-lint py-fmt-check ## Lint + format check Python
 
 sql-lint: ## Lint SQL
-	$(VENV)/bin/sqlfluff lint $(DBT_PROJECT)
+	$(SQLFLUFF) lint $(DBT_PROJECT)
 
 sql-fmt: ## Format SQL
-	$(VENV)/bin/sqlfluff fix $(DBT_PROJECT) --rules LT08,LT09,LT10,LT12,AL01,LT02
+	$(SQLFLUFF) fix $(DBT_PROJECT) --rules LT08,LT09,LT10,LT12,AL01,LT02
