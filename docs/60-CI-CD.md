@@ -15,6 +15,10 @@ Une CI GitHub Actions rejoue une partie du pipeline à chaque push / PR sur `mai
 - création d’un warehouse DuckDB dans l’environnement CI,
 - exécution de `dbt deps` puis `dbt build` avec `DBT_PROFILES_DIR=./profiles`.
 
+## CI : lint Python
+
+Un job exécute un lint rapide avec Ruff via `make py-check`.
+
 ## CI : smoke test des services Docker
 
 Une vérification rapide s’assure que le service `app` démarre correctement via Docker Compose :
@@ -28,7 +32,8 @@ La CI s’appuie sur :
 
 - un secret GitHub Actions `METEOFRANCE_TOKEN` (clé API Météo-France),
 - une variable d’environnement `DUCKDB_PATH` pointant vers `data/warehouse.duckdb`.
+- le fichier versionné `data/demo_warehouse.duckdb` pour seed et smoke tests Docker.
 
 ## Pourquoi ce choix
 
-Ce dispositif permet de tester les modèles dbt et leurs tests métier sur des données réelles, sans versionner les données Météo-France dans le dépôt (repo propre, reproductible, et “portfolio-friendly”).
+Ce dispositif permet de tester les modèles dbt sur des données réelles via l’API (sans versionner ces données) et de vérifier le démarrage des services Docker grâce au seed de démo.
