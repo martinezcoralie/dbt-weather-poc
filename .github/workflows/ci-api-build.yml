@@ -49,11 +49,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Build and run Streamlit app (smoke test)
+      - name: Start app + Prefect server (smoke test)
         run: |
-          docker compose up -d --build app
+          docker compose up -d --build app prefect-server
           sleep 5
           curl -fsS http://localhost:8501/_stcore/health
+          curl -fsS http://localhost:4200/api/health
 
       - name: Tear down compose
         if: always()

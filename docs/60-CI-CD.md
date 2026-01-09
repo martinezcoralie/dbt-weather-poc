@@ -19,8 +19,8 @@ Une CI GitHub Actions rejoue une partie du pipeline à chaque push / PR sur `mai
 
 Une vérification rapide s’assure que le service `app` démarre correctement via Docker Compose :
 
-- démarrage du service `app`,
-- health check HTTP sur `/_stcore/health`.
+- démarrage du service `app` et du serveur Prefect,
+- health check HTTP sur `/_stcore/health` et `http://localhost:4200/api/health`.
 
 ## Secrets / variables
 
