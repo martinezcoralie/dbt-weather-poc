@@ -166,11 +166,11 @@ dbt-docs-serve: ## Sert la doc dbt en local (http://localhost:8080)
 dbt-docs: dbt-docs-generate dbt-docs-serve ## Génère puis sert la doc dbt en local (http://localhost:8080)
 
 # ========== Orchestration Prefect ==========
-prefect-server: ## Démarre le serveur Prefect (UI http://127.0.0.1:4200)
-	$(PREFECT) server start
+prefect-server: ## Démarre le serveur Prefect (UI http://localhost:4200)
+	$(PREFECT) server start --host 0.0.0.0 --port 4200
 
 prefect-ui: ## Ouvre l'UI Prefect locale dans le navigateur
-	open http://127.0.0.1:4200
+	open http://localhost:4200
 
 flow-run: ## Exécute le flow Prefect une fois (ingestion + dbt) pour DEPT=<code>
 	$(PY) orchestration/flow_prefect.py --mode run --dept $(DEPT)
