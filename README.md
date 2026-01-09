@@ -116,3 +116,4 @@ make dbt-docs
 ## Documentation
 - Index : [docs/README.md](docs/README.md)
 - Docker / Compose : [README.Docker.md](README.Docker.md)
+- dbt Docs (auto) : https://martinezcoralie.github.io/dbt-weather-poc/#!/overview
