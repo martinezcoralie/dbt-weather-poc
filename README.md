@@ -16,7 +16,7 @@ Orchestration locale **Prefect 3** disponible.
 ## Compétences complémentaires démontrées (delivery)
 
 - **Docker / Compose** : image Docker publique (démo sans token) + `docker compose` multi-services pour rejouer ingestion, dbt et Prefect.
-- **CI/CD (GitHub Actions)** : CI dbt sur données réelles + publication automatique des **dbt Docs** sur GitHub Pages
+- **CI/CD (GitHub Actions)** : ingestion + dbt build + smoke tests Docker (app + Prefect) + publication automatique des **dbt Docs** sur GitHub Pages
 - **Orchestration** : Prefect 3 local (mode `run` et `serve`) pour planifier ingestion → dbt (horaire) et observer les exécutions.
 
 ## Architecture (résumé)

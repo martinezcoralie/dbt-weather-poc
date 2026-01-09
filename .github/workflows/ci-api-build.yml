@@ -42,7 +42,7 @@ jobs:
           dbt deps
           dbt build
 
-  compose-app-smoke:
+  compose-services-smoke:
     runs-on: ubuntu-latest
 
     steps:
@@ -52,8 +52,15 @@ jobs:
       - name: Start app + Prefect server (smoke test)
         run: |
           docker compose up -d --build app prefect-server
-          sleep 5
+          for i in {1..30}; do
+            curl -fsS http://localhost:8501/_stcore/health && break
+            sleep 2
+          done
           curl -fsS http://localhost:8501/_stcore/health
+          for i in {1..30}; do
+            curl -fsS http://localhost:4200/api/health && break
+            sleep 2
+          done
           curl -fsS http://localhost:4200/api/health
 
       - name: Tear down compose
