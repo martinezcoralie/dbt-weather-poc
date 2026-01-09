@@ -54,7 +54,7 @@ Le `compose.yaml` propose des services et profils pour rejouer **dbt**, lancer l
 Démarrer le dashboard (démo) :
 
 ```bash
-docker compose up app
+docker compose up --build app
 ```
 
 Rejouer dbt (job ponctuel, tests inclus, utilisera le seed si l’ingestion n’a pas tourné) :
@@ -82,8 +82,6 @@ Reset complet (reseed du DuckDB démo au prochain run) :
 ```bash
 docker compose down -v
 ```
-
-Note : si l’image n’existe pas, Compose la build automatiquement. Utilisez `--build` uniquement après avoir modifié le code local pour forcer la reconstruction.
 
 Détails et explications : [README.Docker.md](README.Docker.md) 
 

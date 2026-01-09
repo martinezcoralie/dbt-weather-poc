@@ -29,7 +29,7 @@ docker compose up --build app
 ```
 
 Notes :
-- `--build` force la reconstruction locale de l’image à partir du `Dockerfile`.
+- `--build` permet de forcer la reconstruction locale de l’image à partir du `Dockerfile` (utile par exemple après avoir modifié le code local).
 - Pour **forcer l’utilisation de l’image publiée** avec Compose (sans rebuild local) :
 
   ```bash
@@ -39,8 +39,6 @@ Notes :
 
 ## Services Docker Compose
 Tous les services utilisent la même image (`martinezcoralie/weather-app:latest`) et le même volume `weather-data` monté dans `/app/data`.
-
-Note : si l’image n’existe pas, Compose la build automatiquement. Utilisez `--build` uniquement après avoir modifié le code local pour forcer la reconstruction.
 
 - `app` : dashboard Streamlit — port `8501:8501`
 - `dbt` (profile `dbt`) : job ponctuel `make dbt-build` (tests inclus)
