@@ -55,7 +55,9 @@ def weather_hourly_pipeline(dept: int = 9) -> None:
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Weather pipeline orchestrated with Prefect")
+    parser = argparse.ArgumentParser(
+        description="Weather pipeline orchestrated with Prefect"
+    )
     parser.add_argument(
         "--mode",
         choices=["run", "serve"],

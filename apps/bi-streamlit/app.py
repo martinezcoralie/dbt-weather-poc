@@ -5,7 +5,13 @@ from __future__ import annotations
 import streamlit as st
 import pydeck as pdk
 
-from layers import build_station_scatter_layer, build_icon_layer, compute_view_state, freshness_badge, build_focus_cards
+from layers import (
+    build_station_scatter_layer,
+    build_icon_layer,
+    compute_view_state,
+    freshness_badge,
+    build_focus_cards,
+)
 from data import format_last_update, load_latest_station_metrics, load_latest_timestamp
 
 
@@ -113,7 +119,7 @@ def main() -> None:
         f'<div class="hero-header">'
         f'<div class="hero-title">Radar des spots météo en Ariège</div>'
         f'<span class="hero-badge" style="background:{color};">{label}</span>'
-        f'</div>',
+        f"</div>",
         unsafe_allow_html=True,
     )
     st.caption(subtitle)
@@ -138,7 +144,13 @@ def main() -> None:
             '<div style="font-size:16px; font-weight:700; margin:12px 0 8px;">Carte des stations</div>',
             unsafe_allow_html=True,
         )
-        stations = latest[["station_id", "station_name", "latitude", "longitude"]].drop_duplicates() if not latest.empty else latest
+        stations = (
+            latest[
+                ["station_id", "station_name", "latitude", "longitude"]
+            ].drop_duplicates()
+            if not latest.empty
+            else latest
+        )
         options_labels = [label for label, _, _ in map_options]
         selected = st.pills(
             "Spots à afficher",
@@ -161,6 +173,7 @@ def main() -> None:
                 tooltip={"text": "{station_name}\n{status}\n(lat: {lat}, lon: {lon})"},
             )
         )
+
 
 if __name__ == "__main__":
     main()
