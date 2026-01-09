@@ -1,4 +1,4 @@
-name: CI - dbt build with API ingestion
+name: CI - pipeline + services
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  dbt-build-api:
+  ingest-dbt-build:
     runs-on: ubuntu-latest
 
     env:
@@ -41,3 +41,20 @@ jobs:
         run: |
           dbt deps
           dbt build
+
+  compose-app-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and run Streamlit app (smoke test)
+        run: |
+          docker compose up -d --build app
+          sleep 5
+          curl -fsS http://localhost:8501/_stcore/health
+
+      - name: Tear down compose
+        if: always()
+        run: docker compose down
