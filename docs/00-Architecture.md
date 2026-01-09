@@ -25,6 +25,6 @@ Prefect (schedule ingestion + dbt)
 ## Modes d’exécution
 
 - **Local** : pilotage via `make` (ingestion, dbt, app, docs, Prefect).
-- **Docker Compose** : multi‑services avec profils (`build`, `ingest`, `prefect`) et volume partagé pour le warehouse.
+- **Docker Compose** : multi‑services avec profils (`dbt`, `ingest`, `prefect`) et volume partagé pour le warehouse.
 
 Prochaine étape : [10-Setup.md](10-Setup.md).

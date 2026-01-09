@@ -16,7 +16,7 @@ services:
     command: ["make", "dbt-build", "VENV=system"]
     volumes:
       - weather-data:/app/data
-    profiles: ["build"]
+    profiles: ["dbt"]
 
   # Job ponctuel : ingestion (nécessite METEOFRANCE_TOKEN dans .env)
   ingest:

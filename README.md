@@ -54,13 +54,13 @@ Le `compose.yaml` propose des services et profils pour rejouer **dbt**, lancer l
 Démarrer le dashboard (démo) :
 
 ```bash
-docker compose up --build app
+docker compose up app
 ```
 
 Rejouer dbt (job ponctuel, tests inclus, utilisera le seed si l’ingestion n’a pas tourné) :
 
 ```bash
-docker compose --profile build run --rm dbt
+docker compose --profile dbt run --rm dbt
 ```
 
 Ingestion réelle (token requis) :
@@ -72,9 +72,9 @@ DEPT=75 docker compose --profile ingest run --rm ingest
 Orchestration Prefect (option) :
 
 ```bash
-docker compose --profile prefect up --build prefect-server
+docker compose --profile prefect up prefect-server
 # UI Prefect : http://localhost:4200
-docker compose --profile prefect up --build prefect
+docker compose --profile prefect up prefect
 ```
 
 Reset complet (reseed du DuckDB démo au prochain run) :
@@ -82,6 +82,8 @@ Reset complet (reseed du DuckDB démo au prochain run) :
 ```bash
 docker compose down -v
 ```
+
+Note : si l’image n’existe pas, Compose la build automatiquement. Utilisez `--build` uniquement après avoir modifié le code local pour forcer la reconstruction.
 
 Détails et explications : [README.Docker.md](README.Docker.md) 
 
