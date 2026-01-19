@@ -22,19 +22,21 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from dotenv import load_dotenv
-
 import logging
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 # --------------------------------------------------------------------------- #
-# Chargement de l'environnement
+# Chargement .env (dev only)
 # --------------------------------------------------------------------------- #
 
-# Charger .env une seule fois à l'import
-load_dotenv()
+try:
+    from dotenv import load_dotenv  # type: ignore
+    load_dotenv()
+except ModuleNotFoundError:
+    pass
+
 
 # --------------------------------------------------------------------------- #
 # Constantes
