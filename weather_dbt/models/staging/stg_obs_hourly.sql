@@ -60,7 +60,10 @@ with base as (
         {{ safe_double('fxi') }}                             as wind_gust_abs_max_ms,
 
         -- Précipitations (horaire mm)
-        {{ safe_double('rr1') }}                             as precip_mm_h,
+        case
+            when {{ safe_double('rr1') }} >= 0 
+                then {{ safe_double('rr1') }}
+        end                                                 as precip_mm_h,
 
         -- Températures du sol (K)
         {{ safe_double('t_10') }}                            as soil_t_10cm_k,

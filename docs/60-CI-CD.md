@@ -13,7 +13,7 @@ Une CI GitHub Actions rejoue une partie du pipeline à chaque push / PR sur `mai
 
 - ingestion des données brutes depuis l’API Météo-France via `make dwh-ingest DEPT=9`,
 - création d’un warehouse DuckDB dans l’environnement CI,
-- exécution de `dbt deps` puis `dbt build` avec `DBT_PROFILES_DIR=./profiles`.
+- exécution de `dbt deps` puis `dbt build` avec `DBT_PROFILES_DIR=./configs/dbt`.
 
 ## CI : lint Python
 

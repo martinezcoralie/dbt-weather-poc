@@ -46,8 +46,6 @@ MODULE_WRITE  := scripts.ingestion.write_duckdb_raw
 DBPATH ?= data/warehouse.duckdb
 export DBPATH
 DBT_PROJECT := .
-DBT_PROFILES_DIR ?= profiles
-export DBT_PROFILES_DIR
 
 # Prefect API
 PREFECT_API_URL ?= http://127.0.0.1:4200/api
@@ -93,7 +91,7 @@ env-clean: ## Supprime complètement le virtualenv (.venv)
 env-activate: ## Affiche la commande à exécuter pour activer le virtualenv
 	@echo "To activate:"
 	@echo "  source $(VENV)/bin/activate"
-	@echo "  export DBT_PROFILES_DIR=./profiles"
+	@echo "  export DBT_PROFILES_DIR=./configs/dbt"
 
 # ========== BI app ==========
 app:
@@ -187,16 +185,13 @@ flow-status: ## Liste les deployments et les 5 derniers flow runs
 	$(PREFECT) flow-run ls --limit 5
 
 # ========== Lint ==========
-py-lint: ## Lint Python
-	$(RUFF) check .
-
-py-fmt: ## Format Python
+py-fix: ## Lint+format (modifie)
+	$(RUFF) check . --fix
 	$(RUFF) format .
 
-py-fmt-check: ## Vérifie le format Python (sans modifier)
+py-check: ## Lint+format (CI, ne modifie pas)
+	$(RUFF) check .
 	$(RUFF) format --check .
-
-py-check: py-lint py-fmt-check ## Lint + format check Python
 
 sql-lint: ## Lint SQL
 	$(SQLFLUFF) lint $(DBT_PROJECT)

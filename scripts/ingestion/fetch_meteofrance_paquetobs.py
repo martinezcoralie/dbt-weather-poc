@@ -22,19 +22,22 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-from dotenv import load_dotenv
-
 import logging
 
 logging.basicConfig(level=logging.INFO)
-logging.getLogger("urllib3").setLevel(logging.DEBUG)
+logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 # --------------------------------------------------------------------------- #
-# Chargement de l'environnement
+# Chargement .env (dev only)
 # --------------------------------------------------------------------------- #
 
-# Charger .env une seule fois à l'import
-load_dotenv()
+try:
+    from dotenv import load_dotenv  # type: ignore
+
+    load_dotenv()
+except ModuleNotFoundError:
+    pass
+
 
 # --------------------------------------------------------------------------- #
 # Constantes
@@ -103,7 +106,7 @@ def open_session_paquetobs(apikey: Optional[str] = None) -> requests.Session:
 
 def normalize_dept_code(dept: str) -> str:
     """Normalise le code département."""
-    return str(dept).strip().upper()
+    return str(dept).strip().upper().lstrip("0")
 
 
 # --------------------------------------------------------------------------- #
@@ -135,7 +138,7 @@ def fetch_hourly_for_dept(session: requests.Session, dept: str) -> pd.DataFrame:
     )
     resp.raise_for_status()  # lève une exception si HTTP != 2xx
     df = pd.read_csv(io.BytesIO(resp.content), sep=";", dtype=str, low_memory=False)
-    df["dept_code"] = dept_code
+    # df["dept_code"] = dept_code
     return df
 
 

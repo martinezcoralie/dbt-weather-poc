@@ -91,7 +91,7 @@ Pré-requis : token Météo-France (voir [docs/10-Setup.md](docs/10-Setup.md))
 
 ```bash
 make env-setup && source .venv/bin/activate
-export DBT_PROFILES_DIR=./profiles
+export DBT_PROFILES_DIR=./configs/dbt
 
 make dwh-ingest DEPT=75
 make dbt-build

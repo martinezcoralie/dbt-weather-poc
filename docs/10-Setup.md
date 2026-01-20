@@ -11,7 +11,7 @@
 ```bash
 make env-setup
 source .venv/bin/activate
-export DBT_PROFILES_DIR=./profiles
+export DBT_PROFILES_DIR=./configs/dbt
 ```
 
 ## Configuration (.env)

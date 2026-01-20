@@ -26,7 +26,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # Copie tout le projet dans /app
 COPY . .
 
-ENV DBT_PROFILES_DIR=/app/profiles
+ENV DBT_PROFILES_DIR=/app/configs/dbt
 
 EXPOSE 8501 4200
 
