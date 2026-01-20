@@ -33,6 +33,7 @@ logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 try:
     from dotenv import load_dotenv  # type: ignore
+
     load_dotenv()
 except ModuleNotFoundError:
     pass
