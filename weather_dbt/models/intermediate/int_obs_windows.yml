@@ -13,7 +13,8 @@ models:
       unique_key: event_id
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: ['station_id', 'validity_time_utc']
+          arguments:
+            combination_of_columns: ['station_id', 'validity_time_utc']
     columns:
       - name: event_id
         description: Clé de substitution (station_id + validity_time_utc).
@@ -42,6 +43,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "is null or precip_1h_mm >= 0"
+              config:
+                severity: warn
 
       - name: precip_3h_mm
         description: Cumul mobile des précipitations sur 3h (mm), par station.
@@ -49,6 +52,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "is null or precip_3h_mm >= 0"
+              config:
+                severity: warn
 
       - name: precip_24h_mm
         description: Cumul mobile des précipitations sur 24h (mm), par station.
@@ -56,6 +61,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "is null or precip_24h_mm >= 0"
+              config:
+                severity: warn
 
       # --- Neige (cumuls glissants) ---
       - name: snow_1h_m

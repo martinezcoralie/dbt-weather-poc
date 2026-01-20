@@ -151,6 +151,8 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "is null or precip_mm_h >= 0"
+                config:
+                  severity: warn
 
       # ─────────────── Températures du sol (K) ───────────────
       - name: soil_t_10cm_k

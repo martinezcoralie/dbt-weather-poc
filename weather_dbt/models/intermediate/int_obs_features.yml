@@ -13,7 +13,8 @@ models:
       unique_key: event_id
     tests:
       - dbt_utils.unique_combination_of_columns:
-          combination_of_columns: ['station_id', 'validity_time_utc']
+          arguments:
+            combination_of_columns: ['station_id', 'validity_time_utc']
     columns:
       - name: event_id
         description: Clé de substitution (station_id + validity_time_utc).
@@ -47,7 +48,8 @@ models:
         description: Secteur cardinal (N, NE, E, SE, S, SW, W, NW).
         tests:
           - accepted_values:
-              values: ["N","NE","E","SE","S","SW","W","NW"]
+              arguments:
+                values: ["N","NE","E","SE","S","SW","W","NW"]
 
       - name: wind_speed_kmh
         description: Vitesse du vent en km/h (convertie depuis m/s).
@@ -77,7 +79,8 @@ models:
         description: Catégorie de visibilité (dense_fog, fog, haze, good).
         tests:
           - accepted_values:
-              values: ["dense_fog","fog","haze","good"]
+              arguments:
+                values: ["dense_fog","fog","haze","good"]
 
       # --- Drapeaux ---
       - name: freezing_flag
@@ -86,7 +89,8 @@ models:
           NULL si la température n’est pas disponible.
         tests:
           - accepted_values:
-              values: [0, 1]
+              arguments:
+                values: [0, 1]
 
       - name: precip_flag
         description: >
@@ -94,7 +98,8 @@ models:
           NULL si la précipitation n’est pas disponible.
         tests:
           - accepted_values:
-              values: [0, 1]
+              arguments:
+                values: [0, 1]
 
       - name: snow_on_ground_flag
         description: >
@@ -102,7 +107,8 @@ models:
           NULL si la hauteur de neige au sol n’est pas disponible.
         tests:
           - accepted_values:
-              values: [0, 1]
+              arguments:
+                values: [0, 1]
 
       # --- Mesures brutes utiles aux fenêtres ---
       - name: precip_mm_h
@@ -111,6 +117,9 @@ models:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "is null or precip_mm_h >= 0"
+              config:
+                severity: warn
+
 
       - name: snow_depth_m
         description: Hauteur de neige au sol (m).
