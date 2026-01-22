@@ -36,6 +36,11 @@ models:
         tests:
           - not_null
 
+      - name: validity_date
+        description: Date de validité (UTC).
+        tests:
+          - not_null
+
       # --- Précipitations (cumuls glissants) ---
       - name: precip_1h_mm
         description: Cumul mobile des précipitations sur 1h (mm), par station.

@@ -3,7 +3,9 @@
     materialized='incremental',
     unique_key='event_id',
     incremental_strategy='merge',
-    on_schema_change='sync_all_columns'
+    on_schema_change='sync_all_columns',
+    partition_by={"field": "validity_date", "data_type": "date"},
+    cluster_by=["station_id"]
 ) }}
 
 with base as (
@@ -13,17 +15,19 @@ with base as (
         {{ kelvin_to_c('obs_hourly.temperature_k') }} as temperature_c
     from {{ ref('stg_obs_hourly') }} as obs_hourly
     {% if is_incremental() %}
-    -- On n’ingère que les nouvelles heures
-        where obs_hourly.validity_time_utc > (
-            select coalesce(max(validity_time_utc), '1900-01-01') from {{ this }}
-        )
+    where obs_hourly.validity_date >= date_sub(
+        (select coalesce(max(validity_date), date('1900-01-01')) from {{ this }}),
+        interval 2 day
+    )
     {% endif %}
+
 )
 
 select
     event_id,
     station_id,
     validity_time_utc,
+    validity_date,
 
     -- Vent
     wind_dir_deg,
