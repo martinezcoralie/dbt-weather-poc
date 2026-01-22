@@ -1,6 +1,4 @@
-from datetime import datetime, timezone
 import logging
-import os
 import time
 
 from google.cloud import bigquery
@@ -9,16 +7,9 @@ from scripts.ingestion.fetch_meteofrance_paquetobs import (
     open_session_paquetobs,
     fetch_hourly_for_dept,
 )
+from scripts.ingestion.utils import env, now_utc_iso
 
 # --------- ENV VARS (required) ---------
-
-
-def env(name: str, default: str | None = None) -> str:
-    v = os.getenv(name, default)
-    if v is None or str(v).strip() == "":
-        raise RuntimeError(f"Missing env var: {name}")
-    return str(v).strip()
-
 
 PROJECT_ID = env("GCP_PROJECT")
 DATASET = env("BQ_DATASET", "raw")
@@ -45,7 +36,7 @@ def main():
     logger.info("fetched rows=%s stations=%s", len(df), df["geo_id_insee"].nunique())
 
     # 2) Add a load timestamp for traceability.
-    df["load_time"] = datetime.now(timezone.utc).isoformat()
+    df["load_time"] = now_utc_iso()
 
     client = bigquery.Client(project=PROJECT_ID)
 
