@@ -48,7 +48,7 @@ models:
         description: Date et heure d’insertion des données dans la base source (UTC).
 
       - name: load_time_utc
-        description: Horodatage de chargement dans l'ELT (UTC).
+        description: Horodatage d'ingestion dans l'ELT (UTC).
 
       # ─────────────── Températures de l’air (K) ───────────────
       - name: temperature_k

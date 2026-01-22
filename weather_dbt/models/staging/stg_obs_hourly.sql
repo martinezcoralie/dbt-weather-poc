@@ -14,11 +14,12 @@ with base as (
                 then {{ safe_double('lon') }} 
         end                                                 as longitude,
 
-        -- Timestamps (ISO 8601 / UTC)
-        try_cast(reference_time as timestamptz)             as production_time_utc,
-        try_cast(insert_time    as timestamptz)             as insert_time_utc,
-        try_cast(validity_time  as timestamptz)             as validity_time_utc,
-        load_time                                           as load_time_utc,
+        -- Timestamps (ISO 8601 / UTC) & Dates
+        {{ to_ts('reference_time') }} as production_time_utc,
+        {{ to_ts('insert_time') }}    as insert_time_utc,
+        {{ to_ts('validity_time') }}  as validity_time_utc,
+        {{ to_ts('load_time') }}      as load_time_utc,
+        {{ to_date(to_ts('validity_time')) }} as validity_date,
 
         -- Températures (K)
         {{ safe_double('t') }}                               as temperature_k,
