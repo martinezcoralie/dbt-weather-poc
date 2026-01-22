@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 import os
+import logging
 
 
 def env(name: str, default: str | None = None) -> str:
@@ -15,3 +16,9 @@ def env(name: str, default: str | None = None) -> str:
 def now_utc_iso() -> str:
     """Return a UTC ISO-8601 timestamp for ingestion metadata."""
     return datetime.now(timezone.utc).isoformat()
+
+
+def setup_logging(name: str) -> logging.Logger:
+    """Configure and return a module logger with a simple format."""
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    return logging.getLogger(name)

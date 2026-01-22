@@ -1,4 +1,3 @@
-import logging
 import time
 
 from google.cloud import bigquery
@@ -7,7 +6,7 @@ from scripts.ingestion.fetch_meteofrance_paquetobs import (
     open_session_paquetobs,
     fetch_stations,
 )
-from scripts.ingestion.utils import env, now_utc_iso
+from scripts.ingestion.utils import env, now_utc_iso, setup_logging
 
 # --------- ENV VARS (required) ---------
 
@@ -16,8 +15,7 @@ DATASET = env("BQ_DATASET", "raw")
 TARGET_TABLE = env("BQ_TARGET_TABLE", "stations")
 
 # --------- LOGGING ------------
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-logger = logging.getLogger(__name__)
+logger = setup_logging(__name__)
 
 def main():
     t0 = time.time()

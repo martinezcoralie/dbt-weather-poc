@@ -1,4 +1,3 @@
-import logging
 import time
 
 from google.cloud import bigquery
@@ -7,7 +6,7 @@ from scripts.ingestion.fetch_meteofrance_paquetobs import (
     open_session_paquetobs,
     fetch_hourly_for_dept,
 )
-from scripts.ingestion.utils import env, now_utc_iso
+from scripts.ingestion.utils import env, now_utc_iso, setup_logging
 
 # --------- ENV VARS (required) ---------
 
@@ -18,8 +17,7 @@ STAGING_TABLE = env("BQ_STAGING_TABLE", "_obs_hourly_staging")
 DEPT = env("DEPT_CODE", "09")
 
 # --------- LOGGING ------------
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-logger = logging.getLogger(__name__)
+logger = setup_logging(__name__)
 
 # ------------------------------
 
