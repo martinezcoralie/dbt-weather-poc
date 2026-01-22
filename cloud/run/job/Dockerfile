@@ -8,4 +8,4 @@ COPY scripts/__init__.py /app/scripts/__init__.py
 COPY scripts/ingestion /app/scripts/ingestion
 
 ENV PYTHONUNBUFFERED=1
-CMD ["python", "-m", "scripts.ingestion.ingest_obs_hourly_bq"]
+CMD ["python", "-m", "scripts.ingestion.ingest_bq_obs"]
