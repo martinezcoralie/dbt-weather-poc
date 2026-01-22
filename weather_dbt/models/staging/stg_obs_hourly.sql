@@ -19,7 +19,11 @@ with base as (
         {{ to_ts('insert_time') }}    as insert_time_utc,
         {{ to_ts('validity_time') }}  as validity_time_utc,
         {{ to_ts('load_time') }}      as load_time_utc,
-        {{ to_date(to_ts('validity_time')) }} as validity_date,
+        {% if target.type == 'bigquery' %}
+        validity_date                                       as validity_date,
+        {% else %}
+        {{ to_date(to_ts('validity_time')) }}               as validity_date,
+        {% endif %}
 
         -- Températures (K)
         {{ safe_double('t') }}                               as temperature_k,
