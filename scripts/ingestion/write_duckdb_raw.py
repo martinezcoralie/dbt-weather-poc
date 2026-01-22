@@ -4,12 +4,14 @@
 
 from __future__ import annotations
 import argparse
-import os
 from typing import Sequence
 import duckdb
 import pandas as pd
 from dotenv import load_dotenv
 
+from scripts.ingestion.utils import env, setup_logging
+
+logger = setup_logging(__name__)
 
 # --------------------------------------------------------------------------- #
 # Utils
@@ -80,7 +82,7 @@ def main() -> None:
     ap.add_argument(
         "--dept", required=True, help="Code département (ex. '09', '75', '2A', '2B')."
     )
-    ap.add_argument("--db", default=os.getenv("DUCKDB_PATH", "data/warehouse.duckdb"))
+    ap.add_argument("--db", default=env("DUCKDB_PATH", "data/warehouse.duckdb"))
     args = ap.parse_args()
 
     # import du fetcher (DRY)
@@ -96,13 +98,13 @@ def main() -> None:
     df_st = fetch_stations(session)
     pk_st = ["Id_station"]
     write_raw_dedup(df_st, "raw.stations", pk_st, args.db)
-    print(f"raw.stations: {len(df_st):,} rows (dedup)")
+    logger.info("raw.stations: %s rows (dedup)", f"{len(df_st):,}")
 
     # Observations horaires → raw.obs_hourly
     df_hr = fetch_hourly_for_dept(session, args.dept)
     pk_hr = ["validity_time", "geo_id_insee", "reference_time"]
     write_raw_dedup(df_hr, "raw.obs_hourly", pk_hr, args.db)
-    print(f"raw.obs_hourly[{args.dept}]: {len(df_hr):,} rows (dedup)")
+    logger.info("raw.obs_hourly[%s]: %s rows (dedup)", args.dept, f"{len(df_hr):,}")
 
 
 if __name__ == "__main__":

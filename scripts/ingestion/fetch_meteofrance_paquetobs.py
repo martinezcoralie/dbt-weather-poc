@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import argparse
 import io
-import os
 from typing import Optional
 
 import pandas as pd
@@ -24,8 +23,9 @@ from urllib3.util.retry import Retry
 
 import logging
 
-logging.basicConfig(level=logging.INFO)
-logging.getLogger("urllib3").setLevel(logging.WARNING)
+from scripts.ingestion.utils import env, setup_logging
+
+logger = setup_logging(__name__)
 
 # --------------------------------------------------------------------------- #
 # Chargement .env (dev only)
@@ -55,26 +55,13 @@ ENDPOINTS = {
 }
 
 # --------------------------------------------------------------------------- #
-# Utilitaires
-# --------------------------------------------------------------------------- #
-
-
-def _require_env(var_name: str) -> str:
-    """Récupère une variable d'environnement (après chargement .env) ou lève."""
-    value = os.getenv(var_name, "").strip()
-    if not value:
-        raise RuntimeError(f"Variable d'environnement manquante : {var_name}")
-    return value
-
-
-# --------------------------------------------------------------------------- #
 # Session HTTP
 # --------------------------------------------------------------------------- #
 
 
 def open_session_paquetobs(apikey: Optional[str] = None) -> requests.Session:
     """Crée une session HTTP authentifiée (header `apikey`)."""
-    token = apikey or _require_env("METEOFRANCE_TOKEN")
+    token = apikey or env("METEOFRANCE_TOKEN")
     s = requests.Session()
     s.headers.update(
         {
@@ -138,7 +125,6 @@ def fetch_hourly_for_dept(session: requests.Session, dept: str) -> pd.DataFrame:
     )
     resp.raise_for_status()  # lève une exception si HTTP != 2xx
     df = pd.read_csv(io.BytesIO(resp.content), sep=";", dtype=str, low_memory=False)
-    # df["dept_code"] = dept_code
     return df
 
 
@@ -183,14 +169,16 @@ def main() -> None:
 
     if args.list_stations:
         df_st = fetch_stations(session)
-        print(df_st.head(args.head).to_string(index=False))
-        print(f"\nStations : {len(df_st):,}")
+        logger.info("\n%s", df_st.head(args.head).to_string(index=False))
+        logger.info("Stations : %s", f"{len(df_st):,}")
 
     if args.dept:
         df_hr = fetch_hourly_for_dept(session, args.dept)
-        print(df_hr.head(args.head).to_string(index=False))
-        print(
-            f"\nObservations horaires pour le département {normalize_dept_code(args.dept)} : {len(df_hr):,}"
+        logger.info("\n%s", df_hr.head(args.head).to_string(index=False))
+        logger.info(
+            "Observations horaires pour le departement %s : %s",
+            normalize_dept_code(args.dept),
+            f"{len(df_hr):,}",
         )
 
 
