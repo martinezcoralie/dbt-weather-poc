@@ -1,7 +1,15 @@
 weather_dbt:
+  target: duckdb # cible par défaut lors de `dbt COMMAND`` (sans -t)
   outputs:
-    dev:
+
+    duckdb:
       type: duckdb
       path: data/warehouse.duckdb
       schema: analytics
-  target: dev
+
+    bigquery:
+      type: bigquery
+      method: oauth # dbt utilise les credentials locaux (gcloud ADC)
+      project: dbt-weather-poc
+      schema: analytics
+      location: europe-west1
