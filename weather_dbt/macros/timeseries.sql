@@ -11,6 +11,7 @@
   {{ adapter.dispatch('rolling_avg_hours', 'weather_dbt')(col_expr, ts_col, part_col, hours) }}
 {%- endmacro %}
 
+{# DuckDB: supporte RANGE avec INTERVAL sur un ORDER BY timestamp #}
 {% macro duckdb__rolling_sum_hours(col_expr, ts_col, part_col, hours) -%}
   sum({{ col_expr }}) over (
     partition by {{ part_col }}
@@ -19,6 +20,7 @@
   )
 {%- endmacro %}
 
+{# DuckDB: supporte RANGE avec INTERVAL sur un ORDER BY timestamp #}
 {% macro duckdb__rolling_avg_hours(col_expr, ts_col, part_col, hours) -%}
   avg({{ col_expr }}) over (
     partition by {{ part_col }}
@@ -27,6 +29,7 @@
   )
 {%- endmacro %}
 
+{# BigQuery: RANGE exige un ORDER BY numerique -> secondes unix #}
 {% macro bigquery__rolling_sum_hours(col_expr, ts_col, part_col, hours) -%}
   sum({{ col_expr }}) over (
     partition by {{ part_col }}
@@ -35,6 +38,7 @@
   )
 {%- endmacro %}
 
+{# BigQuery: RANGE exige un ORDER BY numerique -> secondes unix #}
 {% macro bigquery__rolling_avg_hours(col_expr, ts_col, part_col, hours) -%}
   avg({{ col_expr }}) over (
     partition by {{ part_col }}
