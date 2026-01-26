@@ -1,15 +1,41 @@
 -- models/marts/fct_obs_hourly.sql
 
-{{ config(materialized='table') }}
+{{ config(
+    materialized='incremental',
+    unique_key='event_id',
+    incremental_strategy='merge',
+    on_schema_change='sync_all_columns',
+    partition_by={"field": "validity_date", "data_type": "date"},
+    cluster_by=["station_id"]
+) }}
 
-with obs_windows as (
+{% if is_incremental() %}
+with max_existing as (
+    select
+        coalesce(
+            date_sub(max(validity_date), INTERVAL 1 day),
+            DATE '1900-01-01'
+        ) as buffer_start
+    from {{ this }}
+),
+{% endif %}
+
+obs_windows as (
     select *
     from {{ ref('int_obs_windows') }}
+    {% if is_incremental() %}
+    -- Recalcule un buffer de 24h
+    where validity_date >= (select buffer_start from max_existing)
+    {% endif %}
 ),
 
 obs_features as (
     select *
     from {{ ref('int_obs_features') }}
+    {% if is_incremental() %}
+    -- Recalcule un buffer de 24h
+    where validity_date >= (select buffer_start from max_existing)
+    {% endif %}
 ),
 
 dim_beaufort as (
