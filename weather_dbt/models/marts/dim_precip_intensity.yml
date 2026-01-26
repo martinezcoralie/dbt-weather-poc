@@ -10,16 +10,20 @@ models:
     columns:
       - name: intensity_level
         description: Niveau ordinal (1 = le plus faible).
+        data_type: integer
         tests:
           - not_null
           - unique
       - name: min_mm
         description: Borne minimale (exclue) du cumul 24h (mm).
+        data_type: float
         tests:
           - not_null
       - name: max_mm
         description: Borne maximale (incluse) du cumul 24h (mm). Null si borne ouverte.
+        data_type: float
       - name: intensity_label
         description: Libellé descriptif.
+        data_type: string
         tests:
           - not_null

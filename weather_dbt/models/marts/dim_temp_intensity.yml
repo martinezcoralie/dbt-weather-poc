@@ -10,14 +10,18 @@ models:
     columns:
       - name: intensity_level
         description: Niveau ordinal (1 = le plus faible).
+        data_type: integer
         tests:
           - not_null
           - unique
       - name: min_c
         description: Borne minimale (incluse) de la plage de température 24h (°C). Null si borne ouverte.
+        data_type: float
       - name: max_c
         description: Borne maximale (exclue) de la plage de température 24h (°C). Null si borne ouverte.
+        data_type: float
       - name: intensity_label
         description: Libellé descriptif.
+        data_type: string
         tests:
           - not_null

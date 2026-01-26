@@ -10,16 +10,20 @@ models:
     columns:
       - name: intensity_level
         description: Niveau ordinal (1 = le plus faible).
+        data_type: integer
         tests:
           - not_null
           - unique
       - name: min_m
         description: Borne minimale (exclue) de la hauteur de neige 24h (m).
+        data_type: float
         tests:
           - not_null
       - name: max_m
         description: Borne maximale (incluse) de la hauteur de neige 24h (m). Null si borne ouverte.
+        data_type: float
       - name: intensity_label
         description: Libellé descriptif.
+        data_type: string
         tests:
           - not_null
