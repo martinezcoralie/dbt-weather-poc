@@ -9,8 +9,9 @@
     cluster_by=["station_id"]
 ) }}
 
+with
 {% if is_incremental() %}
-with max_existing as (
+max_existing as (
     select
         coalesce(
             date_sub(max(validity_date), INTERVAL 1 day),
@@ -19,7 +20,6 @@ with max_existing as (
     from {{ this }}
 ),
 {% endif %}
-
 obs_windows as (
     select *
     from {{ ref('int_obs_windows') }}

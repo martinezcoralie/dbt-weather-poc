@@ -5,8 +5,9 @@
     on_schema_change='sync_all_columns'
 ) }}
 
+with
 {% if is_incremental() %}
-with max_existing as (
+max_existing as (
     select
         coalesce(
             date_sub(cast(max(validity_time_utc) as date), INTERVAL 1 day),
