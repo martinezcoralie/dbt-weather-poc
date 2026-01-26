@@ -235,6 +235,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
           - freezing_flag_matches_value:
               arguments:
                 value_column: temperature_c
@@ -248,6 +249,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
           - precip_flag_matches_value:
               arguments:
                 value_column: precip_mm_h
@@ -261,6 +263,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
           - snow_flag_matches_value:
               arguments:
                 value_column: snow_depth_m
