@@ -6,9 +6,6 @@ models:
       Vue “dernières 24h” par station : dernière observation disponible enrichie avec
       les cumuls 24h et les labels BI (intensité précipitations, Beaufort), plus coordonnées.
       Sert de source directe au dashboard pour les classements et la cartographie.
-    config:
-      contract:
-        enforced: true
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -16,7 +13,7 @@ models:
     columns:
       - name: station_id
         description: Identifiant station (clé vers dim_stations).
-        data_type: varchar
+        data_type: string
         tests:
           - not_null
           - unique
@@ -26,29 +23,29 @@ models:
                 field: station_id
       - name: station_name
         description: Nom de la station.
-        data_type: varchar
+        data_type: string
       - name: latitude
         description: Latitude de la station.
-        data_type: double
+        data_type: float
         tests:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "between -90 and 90"
       - name: longitude
         description: Longitude de la station.
-        data_type: double
+        data_type: float
         tests:
           - dbt_utils.expression_is_true:
               arguments:
                 expression: "between -180 and 180"
       - name: validity_time_utc
         description: Horodate la plus récente disponible pour la station (UTC).
-        data_type: timestamptz
+        data_type: timestamp
         tests:
           - not_null
       - name: temp_24h_c
         description: Moyenne glissante 24h de la température (°C).
-        data_type: double
+        data_type: float
         tests:
           - between_range:
               arguments:
@@ -56,14 +53,14 @@ models:
                 max_value: 60
       - name: precip_24h_mm
         description: Cumul 24h des précipitations (mm).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
                 severity: warn
       - name: snow_24h_m
         description: Cumul 24h de neige (m).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -78,7 +75,7 @@ models:
                 field: intensity_level
       - name: snow_24h_intensity_label
         description: Libellé d’intensité de neige 24h.
-        data_type: varchar
+        data_type: string
       - name: precip_24h_intensity_level
         description: Niveau ordinal d’intensité des précipitations 24h (dim_precip_intensity).
         data_type: integer
@@ -89,7 +86,7 @@ models:
                 field: intensity_level
       - name: precip_24h_intensity_label
         description: Libellé d’intensité des précipitations 24h.
-        data_type: varchar
+        data_type: string
       - name: wind_beaufort
         description: Niveau Beaufort du vent le plus récent.
         data_type: integer
@@ -104,7 +101,7 @@ models:
                 field: beaufort_level
       - name: wind_beaufort_label
         description: Libellé Beaufort du vent le plus récent.
-        data_type: varchar
+        data_type: string
       - name: temp_24h_intensity_level
         description: Niveau ordinal d’intensité thermique 24h (dim_temp_intensity).
         data_type: integer
@@ -115,10 +112,10 @@ models:
                 field: intensity_level
       - name: temp_24h_intensity_label
         description: Libellé descriptif d’intensité thermique 24h.
-        data_type: varchar
+        data_type: string
       - name: temperature_c
         description: Température la plus récente (°C).
-        data_type: double
+        data_type: float
         tests:
           - between_range:
               arguments:
@@ -134,24 +131,24 @@ models:
                 max_value: 100
       - name: precip_mm_h
         description: Précipitation horaire la plus récente (mm/h).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
                 severity: warn
       - name: wind_speed_kmh
         description: Vitesse du vent la plus récente (km/h).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
                 severity: warn
       - name: wind_sector
         description: Secteur du vent la plus récent.
-        data_type: varchar
+        data_type: string
       - name: visibility_cat
         description: Catégorie de visibilité la plus récente.
-        data_type: varchar
+        data_type: string
         tests:
           - accepted_values:
               arguments:

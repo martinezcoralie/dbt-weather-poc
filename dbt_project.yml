@@ -32,4 +32,5 @@ models:
       +schema: marts  
       +materialized: table        # défaut pour les marts
       +tags: ["mart"]
-
+      +contract:
+        enforced: "{{ target.type == 'bigquery' }}"
