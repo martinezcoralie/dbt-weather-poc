@@ -4,11 +4,11 @@
 {%- endmacro %}
 
 {% macro duckdb__safe_double(col) -%}
-  try_cast(nullif({{ col }}, '') as double)
+  try_cast(nullif(cast({{ col }} as varchar), '') as double)
 {%- endmacro %}
 
 {% macro bigquery__safe_double(col) -%}
-  safe_cast(nullif({{ col }}, '') as float64)
+  safe_cast(nullif(cast({{ col }} as string), '') as float64)
 {%- endmacro %}
 
 
@@ -17,9 +17,9 @@
 {%- endmacro %}
 
 {% macro duckdb__safe_int(col) -%}
-  try_cast(nullif({{ col }}, '') as integer)
+  try_cast(nullif(cast({{ col }} as varchar), '') as integer)
 {%- endmacro %}
 
 {% macro bigquery__safe_int(col) -%}
-  safe_cast(nullif({{ col }}, '') as int64)
+  safe_cast(nullif(cast({{ col }} as string), '') as int64)
 {%- endmacro %}
