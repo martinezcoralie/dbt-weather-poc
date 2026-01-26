@@ -169,7 +169,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_temp_cool
         description: Flag BI — station fraîche (temp_24h_intensity_level = 3).
@@ -177,7 +177,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_temp_cold
         description: Flag BI — station en froid marqué (temp_24h_intensity_level in (1,2)).
@@ -185,7 +185,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_rain_heavy
         description: Flag BI — pluie soutenue (precip_24h_intensity_level in (4,5)).
@@ -193,7 +193,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_rain_moderate
         description: Flag BI — pluie modérée (precip_24h_intensity_level = 3).
@@ -201,7 +201,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_rain_drops
         description: Flag BI — quelques gouttes (precip_24h_intensity_level = 1 et precip_24h_mm > 0).
@@ -209,7 +209,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_rain_dry
         description: Flag BI — au sec (precip_24h_mm = 0).
@@ -217,7 +217,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_snow_light
         description: Flag BI — neige faible (snow_24h_intensity_level in (2,3)).
@@ -225,7 +225,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_snow_heavy
         description: Flag BI — neige forte (snow_24h_intensity_level in (4,5)).
@@ -233,7 +233,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_wind_breeze
         description: Flag BI — brise (wind_beaufort in (2,3)).
@@ -241,7 +241,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_wind_strong
         description: Flag BI — vent fort (wind_beaufort = 4).
@@ -249,7 +249,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_wind_very_strong
         description: Flag BI — vent très fort (wind_beaufort = 5).
@@ -257,7 +257,7 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
+                values: [true, false]
                 quote: false
       - name: is_wind_calm
         description: Flag BI — pas de vent (wind_beaufort = 1).
@@ -265,6 +265,5 @@ models:
         tests:
           - accepted_values:
               arguments:
-                values: [0, 1]
-
+                values: [true, false]
                 quote: false
