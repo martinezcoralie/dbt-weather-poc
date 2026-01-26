@@ -4,7 +4,7 @@
     materialized='incremental',
     unique_key='event_id',
     incremental_strategy='merge',
-    on_schema_change='sync_all_columns',
+    on_schema_change='append_new_columns',
     partition_by={"field": "validity_date", "data_type": "date"},
     cluster_by=["station_id"]
 ) }}
