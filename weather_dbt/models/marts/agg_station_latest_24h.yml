@@ -8,6 +8,14 @@ models:
       Sert de source directe au dashboard pour les classements et la cartographie.
     config:
       tags: ["agg"]
+    meta:
+      owner: "Coralie Martinez"
+      domain: "weather_analytics"
+      criticality: "high"
+      pii: false
+      refresh_expectation: "hourly"
+      usage: "Source directe du dashboard Streamlit (exposure weather_bi_streamlit)."
+      grain: "1 ligne = 1 station_id (derniere validity_time_utc disponible)"
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
@@ -90,13 +98,13 @@ models:
         description: Libellé d’intensité des précipitations 24h.
         data_type: string
       - name: wind_beaufort
-        description: Niveau Beaufort du vent le plus récent.
+        description: Niveau Beaufort simplifié (1–5) du vent le plus récent.
         data_type: integer
         tests:
           - between_range:
               arguments:
-                min_value: 0
-                max_value: 12
+                min_value: 1
+                max_value: 5
           - relationships:
               arguments:
                 to: ref('dim_beaufort')
