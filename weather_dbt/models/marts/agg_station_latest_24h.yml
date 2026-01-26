@@ -2,10 +2,7 @@ version: 2
 
 models:
   - name: agg_station_latest_24h
-    description: >
-      Vue “dernières 24h” par station : dernière observation disponible enrichie avec
-      les cumuls 24h et les labels BI (intensité précipitations, Beaufort), plus coordonnées.
-      Sert de source directe au dashboard pour les classements et la cartographie.
+    description: "{{ doc('doc_agg_station_latest_24h') }}"
     config:
       tags: ["agg"]
     meta:

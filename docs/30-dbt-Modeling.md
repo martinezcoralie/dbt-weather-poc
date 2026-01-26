@@ -36,7 +36,7 @@ make dbt-rebuild
 ## Qualité, contrats, exposure
 
 - Tests : `not_null`, `unique`, `relationships`, `accepted_values` + tests custom (ex. `non_negative`, `between_range`, cohérence drapeaux ↔ valeurs).
-- Contrats : `fct_obs_hourly` et `agg_station_latest_24h` sont contractés (types + colonnes stabilisés, utile pour sécuriser la consommation BI).
+- Contrats : tous les modèles `marts` sont contractés sur BigQuery (types + colonnes stabilisés).
 - Exposure : `weather_bi_streamlit` déclare le dashboard Streamlit comme consommateur final.
 
 ## Sources & Freshness
@@ -106,4 +106,3 @@ dbt test -s +exposure:weather_bi_streamlit
 
 
 Prochaine étape : [31-dbt-Docs-Lineage.md](31-dbt-Docs-Lineage.md).
-

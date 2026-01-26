@@ -2,9 +2,7 @@ version: 2
 
 models:
   - name: dim_precip_intensity
-    description: >
-      Dimension d’interprétation BI des cumuls de précipitations sur 24h,
-      dérivée du seed precip_intensity (plages en mm et libellés).
+    description: "{{ doc('doc_dim_precip_intensity') }}"
     config:
       tags: ["dim"]
     columns:

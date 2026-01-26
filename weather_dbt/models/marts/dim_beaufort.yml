@@ -2,9 +2,7 @@ version: 2
 
 models:
   - name: dim_beaufort
-    description: >
-      Dimension simplifiée de l'échelle de Beaufort (5 niveaux agrégés)
-      avec libellés métiers et bornes min/max agrégées de vitesse du vent en m/s.
+    description: "{{ doc('doc_dim_beaufort') }}"
     config:
       tags: ["dim"]
     columns:

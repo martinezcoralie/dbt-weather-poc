@@ -2,9 +2,7 @@ version: 2
 
 models:
   - name: dim_snow_intensity
-    description: >
-      Dimension d’interprétation BI des hauteurs de neige cumulées (m),
-      issue du seed snow_intensity, avec niveaux ordonnés et libellés.
+    description: "{{ doc('doc_dim_snow_intensity') }}"
     config:
       tags: ["dim"]
     columns:
