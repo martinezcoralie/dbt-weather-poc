@@ -96,6 +96,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
 
       - name: precip_flag
         description: >
@@ -105,6 +106,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
 
       - name: snow_on_ground_flag
         description: >
@@ -114,6 +116,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
 
       # --- Mesures brutes utiles aux fenêtres ---
       - name: precip_mm_h
