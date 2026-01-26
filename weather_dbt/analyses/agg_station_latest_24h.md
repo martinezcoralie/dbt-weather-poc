@@ -8,7 +8,7 @@ BI (intensites precipitations, neige, temperature, Beaufort) et des coordonnees.
 **Grain** : 1 ligne = 1 station_id (derniere validity_time_utc disponible)
 **Usage** : source directe du dashboard Streamlit (exposure `weather_bi_streamlit`).
 
-Les colonnes `is_*` sont des drapeaux booleens pre-calcules pour simplifier les
-filtres et cartes dans la BI.
+Les colonnes `is_*` sont des drapeaux booleens pre-calcules a partir des champs
+d'intensite 24h et de Beaufort, pour simplifier les filtres et cartes dans la BI.
 
 {% enddocs %}
