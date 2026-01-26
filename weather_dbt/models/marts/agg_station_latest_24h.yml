@@ -6,6 +6,8 @@ models:
       Vue “dernières 24h” par station : dernière observation disponible enrichie avec
       les cumuls 24h et les labels BI (intensité précipitations, Beaufort), plus coordonnées.
       Sert de source directe au dashboard pour les classements et la cartographie.
+    config:
+      tags: ["agg"]
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:

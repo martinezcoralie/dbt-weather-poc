@@ -2,6 +2,8 @@ version: 2
 models:
   - name: dim_stations
     description: "{{ doc('doc_dim_stations') }}"
+    config:
+      tags: ["dim"]
     meta:
       owner: "Coralie Martinez"
       domain: "weather_analytics"

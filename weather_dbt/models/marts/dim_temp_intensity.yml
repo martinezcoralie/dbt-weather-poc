@@ -5,6 +5,8 @@ models:
     description: >
       Dimension d’interprétation BI de la température moyenne glissante sur 24h
       (°C), dérivée du seed temp_intensity.
+    config:
+      tags: ["dim"]
     columns:
       - name: intensity_level
         description: Niveau ordinal (1 = le plus faible).

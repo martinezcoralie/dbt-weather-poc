@@ -3,7 +3,8 @@ version: 2
 models:
   - name: fct_obs_hourly
     description: "{{ doc('fct_obs_hourly_doc') }}"
-    tags: ["mart", "fact", "critical"]
+    config:
+      tags: ["fact"]
     meta:
       owner: "Coralie Martinez"
       domain: "weather_analytics"

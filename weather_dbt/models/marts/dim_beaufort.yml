@@ -5,6 +5,8 @@ models:
     description: >
       Dimension simplifiée de l'échelle de Beaufort (5 niveaux agrégés)
       avec libellés métiers et bornes min/max agrégées de vitesse du vent en m/s.
+    config:
+      tags: ["dim"]
     columns:
       - name: beaufort_level
         description: Niveau Beaufort simplifié (1=très faible … 5=très fort).
