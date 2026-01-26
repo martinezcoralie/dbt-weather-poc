@@ -5,7 +5,7 @@
 Table de faits horaire issue de l’assemblage :
 - des métriques dérivées (fenêtres glissantes) depuis `int_obs_windows`,
 - des features enrichies (unités, secteurs de vent, flags, conversions) depuis `int_obs_features`,
-- des attributs de référence station et Beaufort simplifié via `dim_stations` et `dim_beaufort`,
+- des attributs de référence Beaufort simplifié via `dim_beaufort`,
 - des dimensions d’intensité précipitations, neige et température via `dim_precip_intensity`,
   `dim_snow_intensity` et `dim_temp_intensity`.
 

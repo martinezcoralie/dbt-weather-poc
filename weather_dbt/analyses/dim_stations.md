@@ -13,8 +13,11 @@ Cette dimension fournit une vue simplifiée et stable des stations météo :
 
 `dim_stations` sert principalement à :
 
-- afficher des libellés compréhensibles dans les dashboards (plutôt qu’un code brut) ;
+- afficher des libellés compréhensibles dans le dashboard (plutôt qu’un code brut) ;
 - positionner les stations sur une carte à partir des coordonnées ;
+
+Dans ce projet, la dimension est consommée par `agg_station_latest_24h` pour
+exposer nom et coordonnées dans le dashboard.
 
 Les contrôles de qualité (plages de latitude/longitude/altitude, unicité de la station, etc.)
 sont appliqués en amont dans le modèle de staging `stg_stations`. La dimension projette ensuite

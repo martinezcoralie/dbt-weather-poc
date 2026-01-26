@@ -33,9 +33,6 @@ models:
                 to: ref('dim_stations')
                 field: station_id
 
-      - name: station_name
-        description: Nom de la station issu de la dimension stations.
-        data_type: string
       - name: validity_time_utc
         description: Heure de validité de l'observation (UTC).
         data_type: timestamp

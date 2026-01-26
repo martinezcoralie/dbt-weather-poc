@@ -12,13 +12,6 @@ obs_features as (
     from {{ ref('int_obs_features') }}
 ),
 
-dim_stations as (
-    select
-        station_id,
-        station_name
-    from {{ ref('dim_stations') }}
-),
-
 dim_beaufort as (
     select
         beaufort_level,
@@ -61,8 +54,6 @@ select
     obs_windows.station_id,
     obs_windows.validity_time_utc,
 
-    -- station
-    dim_stations.station_name,
 
     -- fenêtres (rollings)
     obs_windows.precip_1h_mm,
@@ -113,9 +104,6 @@ select
 from obs_windows
 left join obs_features
     on obs_windows.event_id = obs_features.event_id
-
-left join dim_stations
-    on obs_windows.station_id = dim_stations.station_id
 
 left join dim_beaufort
     on obs_features.wind_speed_ms >= dim_beaufort.ms_min and obs_features.wind_speed_ms <  dim_beaufort.ms_max
