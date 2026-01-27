@@ -14,4 +14,4 @@ exposures:
       name: Coralie Martinez
       email: comartinez.pro@gmail.com
     depends_on:
-      - ref('agg_station_latest_24h')
+      - ref('agg_station_latest')

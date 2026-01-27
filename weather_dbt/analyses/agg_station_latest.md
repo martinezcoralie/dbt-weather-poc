@@ -1,9 +1,10 @@
-{% docs doc_agg_station_latest_24h %}
+{% docs doc_agg_station_latest %}
 
-# agg_station_latest_24h
+# agg_station_latest
 
-Vue "dernieres 24h" par station, issue de `fct_obs_hourly` et enrichie des labels
-BI (intensites precipitations, neige, temperature, Beaufort) et des coordonnees.
+Vue "dernier etat" par station : derniere observation horaire disponible issue de
+`fct_obs_hourly`, enrichie de metriques sur fenetres glissantes 24h (precipitations,
+neige, temperature) et des labels BI (intensites, Beaufort) et des coordonnees.
 
 **Grain** : 1 ligne = 1 station_id (derniere validity_time_utc disponible)
 **Usage** : source directe du dashboard Streamlit (exposure `weather_bi_streamlit`).

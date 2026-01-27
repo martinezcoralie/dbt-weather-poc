@@ -15,7 +15,7 @@ raw.* → staging → intermediate → marts → exposure Streamlit
 ## Modèles clés
 
 - `fct_obs_hourly` : fait horaire (tests, contrat de schéma, enrichissements Beaufort / intensités)
-- `agg_station_latest_24h` : dernière observation par station, avec flags prêts dashboard
+- `agg_station_latest` : dernière observation par station, avec flags prêts dashboard
 - `dim_stations` : dimension géographique
 - Dimensions de référence construites depuis des seeds :
   - `dim_beaufort`

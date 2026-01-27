@@ -1,8 +1,8 @@
 version: 2
 
 models:
-  - name: agg_station_latest_24h
-    description: "{{ doc('doc_agg_station_latest_24h') }}"
+  - name: agg_station_latest
+    description: "{{ doc('doc_agg_station_latest') }}"
     config:
       tags: ["agg"]
     meta:
