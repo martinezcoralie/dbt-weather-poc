@@ -79,6 +79,7 @@ select
     obs_windows.event_id,
     obs_windows.station_id,
     obs_windows.validity_time_utc,
+    obs_windows.validity_date,
 
 
     -- fenêtres (rollings)

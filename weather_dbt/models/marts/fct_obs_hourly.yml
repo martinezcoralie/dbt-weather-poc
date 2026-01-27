@@ -38,6 +38,11 @@ models:
         data_type: timestamp
         tests:
           - not_null
+      - name: validity_date
+        description: Date de validité de l'observation (UTC).
+        data_type: date
+        tests:
+          - not_null
 
       # --- Fenêtres (cumul précipitations) ---
       - name: precip_1h_mm
