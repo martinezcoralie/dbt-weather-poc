@@ -8,6 +8,7 @@ neige, temperature) et des labels BI (intensites, Beaufort) et des coordonnees.
 
 **Grain** : 1 ligne = 1 station_id (derniere validity_time_utc disponible)
 **Usage** : source directe du dashboard Streamlit (exposure `weather_bi_streamlit`).
+**Matérialisation** : incremental (merge) avec filtre sur `fct_obs_hourly.validity_date`.
 
 Les colonnes `is_*` sont des drapeaux booleens pre-calcules a partir des champs
 d'intensite 24h et de Beaufort, pour simplifier les filtres et cartes dans la BI.

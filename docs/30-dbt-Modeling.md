@@ -23,9 +23,17 @@ raw.* → staging → intermediate → marts → exposure Streamlit
   - `dim_precip_intensity`
   - `dim_snow_intensity`
 
-## Incrémental (stratégie `merge`)
+## Incrémental & partitioning (stratégie `merge`)
 
-Certains modèles (`int_obs_features`, `int_obs_windows`) sont matérialisés en `incremental` avec stratégie `merge` pour éviter un full refresh systématique.
+Les modèles suivants sont matérialisés en `incremental` avec stratégie `merge` pour éviter un full refresh systématique :
+
+- `int_obs_features` (partition `validity_date`)
+- `int_obs_windows` (partition `validity_date`)
+- `fct_obs_hourly` (partition `validity_date`, cluster `station_id`)
+- `agg_station_latest` (merge par station_id, filtre incremental sur `fct_obs_hourly.validity_date`)
+
+Les filtres incrementaux utilisent `validity_date` afin d'exploiter le partition pruning sur BigQuery.
+Sur DuckDB, l'incremental évite un full refresh, mais ne beneficie pas du partition pruning.
 
 Rebuild complet (reset + `--full-refresh`) :
 
