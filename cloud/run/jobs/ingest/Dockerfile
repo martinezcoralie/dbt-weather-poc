@@ -1,7 +1,7 @@
 FROM python:3.12-slim
 
 WORKDIR /app
-COPY cloud/run/job/requirements.txt /app/requirements.txt
+COPY cloud/run/jobs/ingest/requirements.txt /app/requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY scripts/__init__.py /app/scripts/__init__.py

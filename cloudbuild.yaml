@@ -2,7 +2,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-f', 'cloud/run/job/Dockerfile',
+      '-f', 'cloud/run/jobs/ingest/Dockerfile',
       '-t', 'europe-west1-docker.pkg.dev/dbt-weather-poc/weather/ingest:latest',
       '.'
     ]
