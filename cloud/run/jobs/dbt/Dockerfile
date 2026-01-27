@@ -16,4 +16,4 @@ ENV DBT_PROFILES_DIR=/app/configs/dbt
 
 RUN dbt deps
 
-CMD ["dbt", "build", "-t", "bigquery", "--full-refresh"]
+CMD ["dbt", "build", "-t", "bigquery"]
