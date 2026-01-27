@@ -14,4 +14,6 @@ COPY weather_dbt /app/weather_dbt
 # Default to running dbt build against BigQuery
 ENV DBT_PROFILES_DIR=/app/configs/dbt
 
+RUN dbt deps
+
 CMD ["dbt", "build", "-t", "bigquery", "--full-refresh"]
