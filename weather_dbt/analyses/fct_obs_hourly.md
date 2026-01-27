@@ -12,6 +12,7 @@ Table de faits horaire issue de l’assemblage :
 **Grain** : 1 ligne = 1 station_id × 1 validity_time_utc  
 **Usage** : base factuelle pour contrôles qualité et agrégations. Alimente `agg_station_latest`
 utilisé par le dashboard Streamlit.
+**Partition** : `validity_date` (optimisation BigQuery).
 
 Les tests en `severity: warn` concernent les champs issus directement des mesures brutes Météo-France, susceptibles de contenir du bruit opérationnel. Les incohérences logiques (ex. flags) sont, elles, testées de manière stricte.
 
