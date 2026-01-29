@@ -20,5 +20,7 @@ def now_utc_iso() -> str:
 
 def setup_logging(name: str) -> logging.Logger:
     """Configure and return a module logger with a simple format."""
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s"
+    )
     return logging.getLogger(name)

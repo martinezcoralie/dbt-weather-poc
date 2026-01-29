@@ -17,10 +17,13 @@ TARGET_TABLE = env("BQ_TARGET_TABLE", "stations")
 # --------- LOGGING ------------
 logger = setup_logging(__name__)
 
+
 def main():
     t0 = time.time()
 
-    logger.info("start project=%s dataset=%s table=%s", PROJECT_ID, DATASET, TARGET_TABLE)
+    logger.info(
+        "start project=%s dataset=%s table=%s", PROJECT_ID, DATASET, TARGET_TABLE
+    )
 
     # 1) Fetch stations from MeteoFrance API.
     session = open_session_paquetobs()

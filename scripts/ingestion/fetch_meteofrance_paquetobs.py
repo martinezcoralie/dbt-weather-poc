@@ -21,7 +21,6 @@ import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
-import logging
 
 from scripts.ingestion.utils import env, setup_logging
 
