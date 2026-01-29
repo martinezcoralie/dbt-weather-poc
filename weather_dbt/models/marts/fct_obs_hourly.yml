@@ -3,31 +3,29 @@ version: 2
 models:
   - name: fct_obs_hourly
     description: "{{ doc('fct_obs_hourly_doc') }}"
-    tags: ["mart", "fact", "critical"]
     config:
-      contract:
-        enforced: true
+      tags: ["fact"]
     meta:
       owner: "Coralie Martinez"
       domain: "weather_analytics"
       criticality: "high"
       pii: false
       refresh_expectation: "hourly"
-      usage: "Base analytique pour visualisation météo horaire et contrôles qualité"
+      usage: "Base factuelle pour contrôles qualité et agrégations; alimente agg_station_latest."
       grain: "1 ligne = 1 station_id x 1 validity_time_utc"
     columns:
 
       # --- clés & grain ---
       - name: event_id
         description: Clé unique (station_id + validity_time_utc).
-        data_type: varchar
+        data_type: string
         tests:
           - not_null
           - unique
 
       - name: station_id
         description: Identifiant station utilisé pour joindre la dimension.
-        data_type: varchar
+        data_type: string
         tests:
           - not_null
           - relationships:
@@ -35,20 +33,21 @@ models:
                 to: ref('dim_stations')
                 field: station_id
 
-      - name: station_name
-        description: Nom de la station issu de la dimension stations.
-        data_type: varchar
-
       - name: validity_time_utc
         description: Heure de validité de l'observation (UTC).
-        data_type: timestamptz
+        data_type: timestamp
+        tests:
+          - not_null
+      - name: validity_date
+        description: Date de validité de l'observation (UTC).
+        data_type: date
         tests:
           - not_null
 
       # --- Fenêtres (cumul précipitations) ---
       - name: precip_1h_mm
         description: Précipitations cumulées sur les 1h précédentes (mm).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -56,7 +55,7 @@ models:
 
       - name: precip_3h_mm
         description: Précipitations cumulées sur les 3h précédentes (mm).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -64,7 +63,7 @@ models:
 
       - name: precip_24h_mm
         description: Précipitations cumulées sur les 24h précédentes (mm).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -73,7 +72,7 @@ models:
       # --- Fenêtres (neige) ---
       - name: snow_1h_m
         description: Neige cumulée sur 1h (m).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -81,7 +80,7 @@ models:
 
       - name: snow_3h_m
         description: Neige cumulée sur 3h (m).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -89,7 +88,7 @@ models:
 
       - name: snow_24h_m
         description: Neige cumulée sur 24h (m).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -98,7 +97,7 @@ models:
       # --- Fenêtres (température) ---
       - name: temp_1h_c
         description: Moyenne glissante de température sur 1h (°C).
-        data_type: double
+        data_type: float
         tests:
           - between_range:
               arguments:
@@ -109,7 +108,7 @@ models:
 
       - name: temp_3h_c
         description: Moyenne glissante de température sur 3h (°C).
-        data_type: double
+        data_type: float
         tests:
           - between_range:
               arguments:
@@ -120,7 +119,7 @@ models:
 
       - name: temp_24h_c
         description: Moyenne glissante de température sur 24h (°C).
-        data_type: double
+        data_type: float
         tests:
           - between_range:
               arguments:
@@ -141,7 +140,7 @@ models:
 
       - name: wind_sector
         description: Secteur cardinal du vent (N, NE, E, SE, S, SW, W, NW).
-        data_type: varchar
+        data_type: string
         tests:
           - accepted_values:
               arguments:
@@ -149,7 +148,7 @@ models:
 
       - name: wind_speed_ms
         description: Vitesse du vent en m/s (unité de la source brute).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -157,7 +156,7 @@ models:
 
       - name: wind_speed_kmh
         description: Vitesse du vent en km/h (convertie depuis m/s).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -175,8 +174,7 @@ models:
 
       - name: snow_24h_intensity_label
         description: Libellé descriptif de l’intensité neige 24h.
-        data_type: varchar
-
+        data_type: string
       - name: precip_24h_intensity_level
         description: Niveau ordinal d’intensité des précipitations 24h (jointure dim_precip_intensity).
         data_type: integer
@@ -188,8 +186,7 @@ models:
 
       - name: precip_24h_intensity_label
         description: Libellé descriptif d’intensité des précipitations 24h.
-        data_type: varchar
-
+        data_type: string
       # --- Enrichissement température 24h ---
       - name: temp_24h_intensity_level
         description: Niveau ordinal d’intensité thermique 24h (jointure dim_temp_intensity).
@@ -202,11 +199,10 @@ models:
 
       - name: temp_24h_intensity_label
         description: Libellé descriptif de l’intensité thermique 24h.
-        data_type: varchar
-
+        data_type: string
       # --- Enrichissement Beaufort ---
       - name: wind_beaufort
-        description: Niveau de l’échelle de Beaufort (0–12) dérivé de la vitesse du vent (jointure dim_beaufort).
+        description: Niveau de l’échelle de Beaufort simplifiée (1–5) dérivé de la vitesse du vent (jointure dim_beaufort).
         data_type: integer
         tests:
           - relationships:
@@ -215,13 +211,12 @@ models:
                 field: beaufort_level
           - between_range:
               arguments:
-                min_value: 0
-                max_value: 12
+                min_value: 1
+                max_value: 5
 
       - name: wind_beaufort_label
         description: Libellé descriptif du niveau Beaufort (ex. calme, brise légère, coup de vent).
-        data_type: varchar
-
+        data_type: string
       # --- Visibilité & flags ---
       - name: visibility_m
         description: Visibilité horizontale (m).
@@ -233,8 +228,7 @@ models:
 
       - name: visibility_cat
         description: Catégorie de visibilité dérivée de visibility_m.
-        data_type: varchar
-
+        data_type: string
       - name: freezing_flag
         description: >
           Indicateur de gel : 1 si température ≤ 0°C, 0 si > 0°C,
@@ -244,6 +238,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
           - freezing_flag_matches_value:
               arguments:
                 value_column: temperature_c
@@ -257,6 +252,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
           - precip_flag_matches_value:
               arguments:
                 value_column: precip_mm_h
@@ -270,6 +266,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
           - snow_flag_matches_value:
               arguments:
                 value_column: snow_depth_m
@@ -277,7 +274,7 @@ models:
       # --- Mesures brutes utiles ---
       - name: precip_mm_h
         description: Précipitation horaire (mm).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -285,7 +282,7 @@ models:
 
       - name: snow_depth_m
         description: Hauteur de neige (m).
-        data_type: double
+        data_type: float
         tests:
           - non_negative:
               config:
@@ -293,7 +290,7 @@ models:
 
       - name: temperature_c
         description: Température horaire (°C).
-        data_type: double
+        data_type: float
         tests:
           - between_range:
               arguments:

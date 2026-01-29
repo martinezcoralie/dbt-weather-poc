@@ -8,10 +8,11 @@ exposures:
     description: >
       Application Streamlit permettant aux habitant(e)s de l’Ariège
       d’identifier les stations les plus adaptées à leur balade du jour, à
-      partir des observations horaires Météo-France des dernières 24 h. 
+      partir des dernières observations horaires disponibles, enrichies par
+      des métriques calculées sur fenêtres glissantes 24 h.
       Sert de vitrine BI au data product météo construit avec dbt.
     owner:
       name: Coralie Martinez
       email: comartinez.pro@gmail.com
     depends_on:
-      - ref('agg_station_latest_24h')
+      - ref('agg_station_latest')

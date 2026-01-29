@@ -1,22 +1,41 @@
 -- models/marts/fct_obs_hourly.sql
 
-{{ config(materialized='table') }}
+{{ config(
+    materialized='incremental',
+    unique_key='event_id',
+    incremental_strategy='merge',
+    on_schema_change='append_new_columns',
+    partition_by={"field": "validity_date", "data_type": "date"},
+    cluster_by=["station_id"]
+) }}
 
-with obs_windows as (
+with
+{% if is_incremental() %}
+max_existing as (
+    select
+        coalesce(
+            date_sub(max(validity_date), INTERVAL 1 day),
+            DATE '1900-01-01'
+        ) as buffer_start
+    from {{ this }}
+),
+{% endif %}
+obs_windows as (
     select *
     from {{ ref('int_obs_windows') }}
+    {% if is_incremental() %}
+    -- Recalcule un buffer de 24h
+    where validity_date >= (select buffer_start from max_existing)
+    {% endif %}
 ),
 
 obs_features as (
     select *
     from {{ ref('int_obs_features') }}
-),
-
-dim_stations as (
-    select
-        station_id,
-        station_name
-    from {{ ref('dim_stations') }}
+    {% if is_incremental() %}
+    -- Recalcule un buffer de 24h
+    where validity_date >= (select buffer_start from max_existing)
+    {% endif %}
 ),
 
 dim_beaufort as (
@@ -60,9 +79,8 @@ select
     obs_windows.event_id,
     obs_windows.station_id,
     obs_windows.validity_time_utc,
+    obs_windows.validity_date,
 
-    -- station
-    dim_stations.station_name,
 
     -- fenêtres (rollings)
     obs_windows.precip_1h_mm,
@@ -113,9 +131,6 @@ select
 from obs_windows
 left join obs_features
     on obs_windows.event_id = obs_features.event_id
-
-left join dim_stations
-    on obs_windows.station_id = dim_stations.station_id
 
 left join dim_beaufort
     on obs_features.wind_speed_ms >= dim_beaufort.ms_min and obs_features.wind_speed_ms <  dim_beaufort.ms_max

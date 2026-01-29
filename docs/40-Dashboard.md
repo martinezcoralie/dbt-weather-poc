@@ -23,7 +23,7 @@ docker compose up --build app
 
 ## Source du dashboard (modèle mart)
 
-- Source principale : `marts.agg_station_latest_24h`
+- Source principale : `marts.agg_station_latest`
 - Les agrégations et indicateurs “prêts BI” sont calculés dans dbt afin de limiter la logique métier dans Streamlit (app plus simple, schéma plus stable).
 
 ## Fraîcheur des données

@@ -1,6 +1,22 @@
-{{ config(materialized='table') }}
+{{ config(
+    materialized='incremental',
+    unique_key='station_id',
+    incremental_strategy='merge',
+    on_schema_change='append_new_columns'
+) }}
 
-with ranked as (
+with
+{% if is_incremental() %}
+max_existing as (
+    select
+        coalesce(
+            date_sub(cast(max(validity_time_utc) as date), INTERVAL 1 day),
+            DATE '1900-01-01'
+        ) as buffer_start
+    from {{ this }}
+),
+{% endif %}
+ranked as (
     select
         f.station_id,
         f.validity_time_utc,
@@ -45,6 +61,9 @@ with ranked as (
         ) as rn
     from {{ ref('fct_obs_hourly') }} f
     join {{ ref('dim_stations') }} s on s.station_id = f.station_id
+    {% if is_incremental() %}
+    where f.validity_date >= (select buffer_start from max_existing)
+    {% endif %}
 )
 
 select

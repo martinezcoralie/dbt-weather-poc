@@ -3,7 +3,9 @@
     materialized='incremental',
     unique_key='event_id',
     incremental_strategy='merge',
-    on_schema_change='sync_all_columns'
+    on_schema_change='sync_all_columns',
+    partition_by={"field": "validity_date", "data_type": "date"},
+    cluster_by=["station_id"]
 ) }}
 
 with src as (
@@ -11,11 +13,11 @@ with src as (
     from {{ ref('int_obs_features') }}
     {% if is_incremental() %}
     -- Recalcule un buffer de 24h
-        where validity_time_utc >= (
+        where validity_date >= (
             select
                 coalesce(
-                    date_add(max(validity_time_utc), INTERVAL '-25 hours'),
-                    TIMESTAMP '1900-01-01'
+                    date_sub(max(validity_date), INTERVAL 1 day),
+                    DATE '1900-01-01'
                 )
             from {{ this }}
         )
@@ -26,6 +28,7 @@ select
     event_id,
     station_id,
     validity_time_utc,
+    validity_date,
 
     -- Précip cumuls
     {{ rolling_sum_hours('precip_mm_h', 'validity_time_utc', 'station_id', 1) }}  as precip_1h_mm,

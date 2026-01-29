@@ -36,6 +36,11 @@ models:
         tests:
           - not_null
 
+      - name: validity_date
+        description: Date de validité (UTC).
+        tests:
+          - not_null
+
       # --- Vent (features atomiques) ---
       - name: wind_dir_deg
         description: Direction moyenne du vent en degrés (0–360).
@@ -91,6 +96,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
 
       - name: precip_flag
         description: >
@@ -100,6 +106,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
 
       - name: snow_on_ground_flag
         description: >
@@ -109,6 +116,7 @@ models:
           - accepted_values:
               arguments:
                 values: [0, 1]
+                quote: false
 
       # --- Mesures brutes utiles aux fenêtres ---
       - name: precip_mm_h

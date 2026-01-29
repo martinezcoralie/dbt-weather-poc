@@ -15,7 +15,7 @@ raw.* → staging → intermediate → marts → exposure Streamlit
 ## Modèles clés
 
 - `fct_obs_hourly` : fait horaire (tests, contrat de schéma, enrichissements Beaufort / intensités)
-- `agg_station_latest_24h` : dernière observation par station, avec flags prêts dashboard
+- `agg_station_latest` : dernière observation par station, avec flags prêts dashboard
 - `dim_stations` : dimension géographique
 - Dimensions de référence construites depuis des seeds :
   - `dim_beaufort`
@@ -23,9 +23,17 @@ raw.* → staging → intermediate → marts → exposure Streamlit
   - `dim_precip_intensity`
   - `dim_snow_intensity`
 
-## Incrémental (stratégie `merge`)
+## Incrémental & partitioning (stratégie `merge`)
 
-Certains modèles (`int_obs_features`, `int_obs_windows`) sont matérialisés en `incremental` avec stratégie `merge` pour éviter un full refresh systématique.
+Les modèles suivants sont matérialisés en `incremental` avec stratégie `merge` pour éviter un full refresh systématique :
+
+- `int_obs_features` (partition `validity_date`)
+- `int_obs_windows` (partition `validity_date`)
+- `fct_obs_hourly` (partition `validity_date`, cluster `station_id`)
+- `agg_station_latest` (merge par station_id, filtre incremental sur `fct_obs_hourly.validity_date`)
+
+Les filtres incrementaux utilisent `validity_date` afin d'exploiter le partition pruning sur BigQuery.
+Sur DuckDB, l'incremental évite un full refresh, mais ne beneficie pas du partition pruning.
 
 Rebuild complet (reset + `--full-refresh`) :
 
@@ -36,7 +44,7 @@ make dbt-rebuild
 ## Qualité, contrats, exposure
 
 - Tests : `not_null`, `unique`, `relationships`, `accepted_values` + tests custom (ex. `non_negative`, `between_range`, cohérence drapeaux ↔ valeurs).
-- Contrats : `fct_obs_hourly` et `agg_station_latest_24h` sont contractés (types + colonnes stabilisés, utile pour sécuriser la consommation BI).
+- Contrats : tous les modèles `marts` sont contractés sur BigQuery (types + colonnes stabilisés).
 - Exposure : `weather_bi_streamlit` déclare le dashboard Streamlit comme consommateur final.
 
 ## Sources & Freshness
@@ -106,4 +114,3 @@ dbt test -s +exposure:weather_bi_streamlit
 
 
 Prochaine étape : [31-dbt-Docs-Lineage.md](31-dbt-Docs-Lineage.md).
-

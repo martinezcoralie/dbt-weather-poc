@@ -1,24 +1,16 @@
-from datetime import datetime, timezone
-import logging
-import os
 import time
 
+import pandas as pd
 from google.cloud import bigquery
+from google.api_core.exceptions import NotFound
 
 from scripts.ingestion.fetch_meteofrance_paquetobs import (
     open_session_paquetobs,
     fetch_hourly_for_dept,
 )
+from scripts.ingestion.utils import env, now_utc_iso, setup_logging
 
 # --------- ENV VARS (required) ---------
-
-
-def env(name: str, default: str | None = None) -> str:
-    v = os.getenv(name, default)
-    if v is None or str(v).strip() == "":
-        raise RuntimeError(f"Missing env var: {name}")
-    return str(v).strip()
-
 
 PROJECT_ID = env("GCP_PROJECT")
 DATASET = env("BQ_DATASET", "raw")
@@ -27,8 +19,7 @@ STAGING_TABLE = env("BQ_STAGING_TABLE", "_obs_hourly_staging")
 DEPT = env("DEPT_CODE", "09")
 
 # --------- LOGGING ------------
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-logger = logging.getLogger(__name__)
+logger = setup_logging(__name__)
 
 # ------------------------------
 
@@ -44,8 +35,12 @@ def main():
 
     logger.info("fetched rows=%s stations=%s", len(df), df["geo_id_insee"].nunique())
 
+    # Parse and derive partitioning columns.
+    df["validity_time"] = pd.to_datetime(df["validity_time"], utc=True, errors="coerce")
+    df["validity_date"] = df["validity_time"].dt.date
+
     # 2) Add a load timestamp for traceability.
-    df["load_time"] = datetime.now(timezone.utc).isoformat()
+    df["load_time"] = now_utc_iso()
 
     client = bigquery.Client(project=PROJECT_ID)
 
@@ -63,7 +58,24 @@ def main():
 
     logger.info("loaded staging=%s", staging_id)
 
-    # 4) Merge staging into target (insert new rows only).
+    # 4) Ensure target table exists and is partitioned.
+    try:
+        client.get_table(target_id)
+        logger.info(
+            "target exists=%s; (drop to recreate)",
+            target_id,
+        )
+    except NotFound:
+        staging_table = client.get_table(staging_id)
+        target_table = bigquery.Table(target_id, schema=staging_table.schema)
+        target_table.time_partitioning = bigquery.TimePartitioning(
+            type_=bigquery.TimePartitioningType.DAY,
+            field="validity_date",
+        )
+        client.create_table(target_table)
+        logger.info("created target=%s partitioned by validity_date", target_id)
+
+    # 5) Merge staging into target (insert new rows only).
     merge_sql = f"""
     MERGE `{target_id}` T
     USING `{staging_id}` S

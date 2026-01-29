@@ -66,5 +66,7 @@ sources:
             description: Date/heure de validité de la mesure (ISO 8601/UTC)
             tests:
               - not_null
+          - name: validity_date
+            description: Date de validité (UTC, partitionnement). Présent en BigQuery.
           - name: load_time
             description: Horodatage d’ingestion (ELT)

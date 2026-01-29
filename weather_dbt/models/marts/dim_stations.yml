@@ -2,6 +2,8 @@ version: 2
 models:
   - name: dim_stations
     description: "{{ doc('doc_dim_stations') }}"
+    config:
+      tags: ["dim"]
     meta:
       owner: "Coralie Martinez"
       domain: "weather_analytics"
@@ -13,12 +15,17 @@ models:
     columns:
       - name: station_id
         description: Identifiant station.
+        data_type: string
         tests: [not_null, unique]
       - name: station_name
         description: Libellé courant de la station.
+        data_type: string
       - name: latitude
         description: Latitude en degrés.
+        data_type: float
       - name: longitude
         description: Longitude en degrés.
+        data_type: float
       - name: altitude
         description: Altitude de la station en mètres.
+        data_type: float

@@ -44,11 +44,15 @@ models:
         description: Heure de validité de la mesure (UTC).
         tests: [not_null]
 
+      - name: validity_date
+        description: Date de validité (UTC).
+        tests: [not_null]
+
       - name: insert_time_utc
         description: Date et heure d’insertion des données dans la base source (UTC).
 
       - name: load_time_utc
-        description: Horodatage de chargement dans l'ELT (UTC).
+        description: Horodatage d'ingestion dans l'ELT (UTC).
 
       # ─────────────── Températures de l’air (K) ───────────────
       - name: temperature_k

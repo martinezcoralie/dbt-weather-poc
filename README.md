@@ -10,7 +10,7 @@ Orchestration locale **Prefect 3** disponible.
 - **Qualité** : tests (génériques + métier), **contrats** sur modèles critiques, seeds, exposures.
 - **Performance** : modèles **incrémentaux** (stratégie `merge`) et macros utilitaires.
 - **Traçabilité** : **dbt Docs** (modèles, colonnes, tests, lineage, exposure).
-- **Consommation BI** : mart BI stable (`marts.agg_station_latest_24h`) consommé par le dashboard Streamlit.
+- **Consommation BI** : mart BI stable (`marts.agg_station_latest`) consommé par le dashboard Streamlit.
 
 
 ## Compétences complémentaires démontrées (delivery)

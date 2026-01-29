@@ -25,7 +25,7 @@ with base as (
         end                                                  as altitude,
 
         -- Date d'ouverture (date civile, pas de TZ)
-        try_cast(nullif(trim(Date_ouverture), '') as date)   as opening_date
+        {{ to_date('Date_ouverture') }}                      as opening_date
 
     from {{ source('raw', 'stations') }}
 )

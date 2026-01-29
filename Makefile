@@ -40,7 +40,7 @@ DUCKDB := duckdb
 
 # Scripts et modules ingestion
 SCRIPT_FETCH  := scripts/ingestion/fetch_meteofrance_paquetobs.py
-MODULE_WRITE  := scripts.ingestion.write_duckdb_raw
+MODULE_WRITE  := scripts.ingestion.ingest_duckdb
 
 # Chemins
 DBPATH ?= data/warehouse.duckdb
