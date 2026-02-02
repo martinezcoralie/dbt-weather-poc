@@ -43,6 +43,8 @@ Datasets:
 - **Stations ingestion (one-off)**
   - Loads quasi-static station metadata
   - Executed manually (no scheduler)
+  - Reuses the same Cloud Run image as observations ingestion, with a command
+    override to run the stations script
 
 ---
 

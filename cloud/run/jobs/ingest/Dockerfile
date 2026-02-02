@@ -9,3 +9,5 @@ COPY scripts/ingestion /app/scripts/ingestion
 
 ENV PYTHONUNBUFFERED=1
 CMD ["python", "-m", "scripts.ingestion.ingest_bq_obs"]
+# Note: the stations one-off job reuses this same image with a CMD override
+# (runs scripts.ingestion.ingest_bq_stations from Cloud Run).
