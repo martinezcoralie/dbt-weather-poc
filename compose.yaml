@@ -45,6 +45,18 @@ services:
     ports:
       - "4200:4200"
     profiles: ["prefect"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:4200/api/health').read()",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 5s
 
   # Worker / serve du flow Prefect
   prefect:
@@ -53,7 +65,8 @@ services:
       context: .
       dockerfile: docker/Dockerfile.local
     depends_on:
-      - prefect-server
+      prefect-server:
+        condition: service_healthy
     environment:
       PREFECT_API_URL: http://prefect-server:4200/api
       METEOFRANCE_TOKEN: ${METEOFRANCE_TOKEN:-}
