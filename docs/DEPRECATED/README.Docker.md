@@ -29,7 +29,7 @@ docker compose up --build app
 ```
 
 Notes :
-- `--build` permet de forcer la reconstruction locale de l’image à partir du `Dockerfile` (utile par exemple après avoir modifié le code local).
+- `--build` permet de forcer la reconstruction locale de l’image à partir du `docker/Dockerfile.local` (utile par exemple après avoir modifié le code local).
 - Pour **forcer l’utilisation de l’image publiée** avec Compose (sans rebuild local) :
 
   ```bash
