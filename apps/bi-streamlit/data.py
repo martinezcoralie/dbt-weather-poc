@@ -1,18 +1,47 @@
-"""Read marts from DuckDB for the Streamlit dashboard."""
+"""Read marts from DuckDB or BigQuery for the Streamlit dashboard."""
 
 import os
 from datetime import datetime
 
-import duckdb
 import pandas as pd
 import streamlit as st
 
+DATA_BACKEND = os.getenv("DATA_BACKEND", "duckdb").lower()
 DB_PATH = os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
 
+# BigQuery configuration (used when DATA_BACKEND=bigquery).
+BQ_PROJECT = os.getenv("BQ_PROJECT") or os.getenv("GCP_PROJECT")
+BQ_DATASET = os.getenv("BQ_DATASET", "analytics")
+BQ_TABLE = os.getenv("BQ_TABLE", "agg_station_latest")
 
-@st.cache_data(ttl=60)
-def load_latest_station_metrics() -> pd.DataFrame:
-    """Dernière observation par station, enrichie des labels BI (vue agg_station_latest)."""
+
+def _load_bq_latest_station_metrics() -> pd.DataFrame:
+    """Load latest station metrics from BigQuery."""
+    if not BQ_PROJECT:
+        raise ValueError("Missing BQ_PROJECT or GCP_PROJECT for BigQuery backend.")
+    from google.cloud import bigquery
+
+    client = bigquery.Client(project=BQ_PROJECT)
+    query = f"SELECT * FROM `{BQ_PROJECT}.{BQ_DATASET}.{BQ_TABLE}`"
+    return client.query(query).to_dataframe()
+
+
+def _load_bq_latest_timestamp():
+    """Load latest timestamp from BigQuery."""
+    if not BQ_PROJECT:
+        raise ValueError("Missing BQ_PROJECT or GCP_PROJECT for BigQuery backend.")
+    from google.cloud import bigquery
+
+    client = bigquery.Client(project=BQ_PROJECT)
+    query = f"SELECT MAX(validity_time_utc) AS max_ts FROM `{BQ_PROJECT}.{BQ_DATASET}.{BQ_TABLE}`"
+    result = client.query(query).result()
+    row = next(iter(result), None)
+    return row.max_ts if row else None
+
+
+def _load_duckdb_latest_station_metrics() -> pd.DataFrame:
+    import duckdb
+
     with duckdb.connect(DB_PATH, read_only=True) as con:
         return con.execute(
             """
@@ -22,9 +51,9 @@ def load_latest_station_metrics() -> pd.DataFrame:
         ).df()
 
 
-@st.cache_data(ttl=60)
-def load_latest_timestamp() -> datetime | None:
-    """Horodatage le plus récent disponible dans le mart agg_station_latest."""
+def _load_duckdb_latest_timestamp():
+    import duckdb
+
     with duckdb.connect(DB_PATH, read_only=True) as con:
         result = con.execute(
             """
@@ -33,6 +62,26 @@ def load_latest_timestamp() -> datetime | None:
             """
         ).fetchone()
     return result[0] if result else None
+
+
+@st.cache_data(ttl=60)
+def load_latest_station_metrics() -> pd.DataFrame:
+    """Dernière observation par station (DuckDB ou BigQuery)."""
+    if DATA_BACKEND == "bigquery":
+        return _load_bq_latest_station_metrics()
+    if DATA_BACKEND != "duckdb":
+        raise ValueError(f"Unsupported DATA_BACKEND: {DATA_BACKEND}")
+    return _load_duckdb_latest_station_metrics()
+
+
+@st.cache_data(ttl=60)
+def load_latest_timestamp() -> datetime | None:
+    """Horodatage le plus récent disponible (DuckDB ou BigQuery)."""
+    if DATA_BACKEND == "bigquery":
+        return _load_bq_latest_timestamp()
+    if DATA_BACKEND != "duckdb":
+        raise ValueError(f"Unsupported DATA_BACKEND: {DATA_BACKEND}")
+    return _load_duckdb_latest_timestamp()
 
 
 def format_last_update(ts: datetime | None) -> str:
