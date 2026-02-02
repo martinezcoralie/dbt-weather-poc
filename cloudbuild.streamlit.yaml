@@ -1,0 +1,10 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-f', 'cloud/run/services/streamlit/Dockerfile',
+      '-t', 'europe-west1-docker.pkg.dev/dbt-weather-poc/weather/streamlit:latest',
+      '.'
+    ]
+images:
+  - 'europe-west1-docker.pkg.dev/dbt-weather-poc/weather/streamlit:latest'
