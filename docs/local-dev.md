@@ -86,7 +86,7 @@ The local DuckDB warehouse will be updated with the ingested data.
 
 ## Orchestration (Optional)
 
-If you want to run the pipeline with Prefect locally, use the Docker Compose
+If you want to run the full pipeline with Prefect locally, use the Docker Compose
 profile:
 
 ```bash

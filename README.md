@@ -72,6 +72,7 @@ Details: [docs/local-dev.md](docs/local-dev.md)
 ## Documentation ou Further resources
 
 - dbt documentation (models, tests, lineage): https://martinezcoralie.github.io/dbt-weather-poc/
+- CI/CD notes (secrets): docs/appendix/ci-cd.md
 
 
 ---

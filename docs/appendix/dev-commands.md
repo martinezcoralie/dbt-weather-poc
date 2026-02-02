@@ -21,7 +21,11 @@ export DBT_PROFILES_DIR=./configs/dbt
 
 ```bash
 make dwh-ingest DEPT=75
+make api-check
 ```
+
+`make api-check` validates the API token and fetcher (quick smoke test).
+API token setup: `docs/appendix/api-access.md`.
 
 ---
 
@@ -30,6 +34,16 @@ make dwh-ingest DEPT=75
 ```bash
 make dbt-build
 make dbt-test
+```
+
+Targeted selections:
+
+```bash
+dbt run --select stg_obs_hourly
+dbt run --select tag:stg
+dbt run --full-refresh -s tag:mart
+dbt run -s +exposure:weather_bi_streamlit
+dbt test -s +exposure:weather_bi_streamlit
 ```
 
 ---
@@ -71,6 +85,10 @@ make prefect-server
 make flow-run DEPT=9
 make flow-serve DEPT=9
 ```
+
+- `make prefect-server` starts the Prefect server (UI: http://localhost:4200).
+- `make flow-run DEPT=9` runs the pipeline once.
+- `make flow-serve DEPT=9` creates/keeps an hourly deployment schedule.
 
 ---
 
