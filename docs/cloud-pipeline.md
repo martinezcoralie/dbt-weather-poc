@@ -48,6 +48,18 @@ Datasets:
 
 ---
 
+## Architecture
+
+```text
+Météo‑France API → Cloud Run Job (ingest) → BigQuery raw
+                         ↓
+                   Cloud Run Job (dbt) → BigQuery staging/intermediate/marts
+                         ↓
+                  Cloud Run Service (Streamlit)
+```
+
+---
+
 ### Cloud Scheduler
 
 - Triggers:
@@ -74,6 +86,17 @@ On an hourly basis:
 3. The dashboard reflects the latest transformed data
 
 The dashboard does not trigger transformations; it is purely a consumer.
+
+---
+
+## Ingestion Guarantees
+
+- Idempotent loads (logical dedup key: `validity_time`, `geo_id_insee`,
+  `reference_time`).
+- Raw tables preserve source column names and types; semantic changes happen in
+  dbt staging.
+- API resilience: explicit timeouts, retries with exponential backoff, and
+  `Retry-After` support for rate limiting.
 
 ---
 
