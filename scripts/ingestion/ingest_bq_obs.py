@@ -1,3 +1,5 @@
+"""Ingest hourly observations into BigQuery (raw.obs_hourly)."""
+
 import time
 
 import pandas as pd
@@ -25,6 +27,7 @@ logger = setup_logging(__name__)
 
 
 def main():
+    """Fetch hourly observations and merge into a partitioned BigQuery table."""
     t0 = time.time()
 
     logger.info("start dept=%s project=%s dataset=%s", DEPT, PROJECT_ID, DATASET)

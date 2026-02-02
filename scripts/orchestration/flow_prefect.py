@@ -14,8 +14,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 def run_cmd(cmd: str) -> None:
     """
-    Helper pour exécuter une commande shell depuis la racine du projet,
-    avec affichage des logs en direct et erreur explicite en cas d'échec.
+    Helper to run a shell command from the project root,
+    with direct log output and a clear error on failure.
     """
     result = subprocess.run(
         cmd,
@@ -48,8 +48,8 @@ def wait_for_prefect_api(timeout_s: int = 60, interval_s: float = 2.0) -> None:
 @task
 def ingest_meteofrance(dept: int = 9) -> None:
     """
-    Tâche Prefect : ingestion des données brutes depuis l’API Météo-France
-    vers DuckDB, via le Makefile.
+    Prefect task: ingest raw data from the Météo-France API into DuckDB
+    via the Makefile.
     """
     cmd = f"make dwh-ingest DEPT={dept}"
     run_cmd(cmd)
@@ -58,7 +58,7 @@ def ingest_meteofrance(dept: int = 9) -> None:
 @task
 def run_dbt_build() -> None:
     """
-    Tâche Prefect : exécution de dbt (deps + build) sur le projet.
+    Prefect task: run dbt (deps + build) for the project.
     """
     cmd = "make dbt-build"
     run_cmd(cmd)
@@ -67,7 +67,7 @@ def run_dbt_build() -> None:
 @flow(name="weather-hourly-pipeline")
 def weather_hourly_pipeline(dept: int = 9) -> None:
     """
-    Flow Prefect : enchaîne ingestion + dbt build.
+    Prefect flow: chain ingestion + dbt build.
     """
     ingest_meteofrance(dept)
     run_dbt_build()

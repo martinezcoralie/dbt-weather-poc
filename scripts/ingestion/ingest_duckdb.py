@@ -74,7 +74,7 @@ def write_raw_dedup(
 # Main CLI
 # --------------------------------------------------------------------------- #
 def main() -> None:
-    """Fetch and load hourly observations for a département into DuckDB."""
+    """Fetch and load hourly observations for a department into DuckDB."""
     load_dotenv()
 
     ap = argparse.ArgumentParser(

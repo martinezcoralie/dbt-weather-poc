@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Client fetch-only pour l'API Météo-France DPPaquetObs (Paquet Observations).
+Fetch-only client for the Météo-France DPPaquetObs API (Observation Package).
 
-Fonctionnalités :
+Features:
 - /liste-stations (CSV)
 - /paquet/horaire (CSV)
-
-Dépendances : requests, pandas, python-dotenv
 """
 
 from __future__ import annotations
@@ -59,7 +57,7 @@ ENDPOINTS = {
 
 
 def open_session_paquetobs(apikey: Optional[str] = None) -> requests.Session:
-    """Crée une session HTTP authentifiée (header `apikey`)."""
+    """Create an authenticated HTTP session (apikey header)."""
     token = apikey or env("METEOFRANCE_TOKEN")
     s = requests.Session()
     s.headers.update(
@@ -91,7 +89,7 @@ def open_session_paquetobs(apikey: Optional[str] = None) -> requests.Session:
 
 
 def normalize_dept_code(dept: str) -> str:
-    """Normalise le code département."""
+    """Normalize a department code."""
     return str(dept).strip().upper().lstrip("0")
 
 
@@ -101,7 +99,7 @@ def normalize_dept_code(dept: str) -> str:
 
 
 def fetch_stations(session: requests.Session) -> pd.DataFrame:
-    """Récupère la liste des stations (CSV) — RAW inchangé."""
+    """Fetch the stations list (CSV) — raw, unchanged."""
     resp = session.get(ENDPOINTS["stations"], params={"format": "csv"}, timeout=TIMEOUT)
     resp.raise_for_status()
     # Lire depuis bytes pour éviter les surprises d'encodage
@@ -110,11 +108,11 @@ def fetch_stations(session: requests.Session) -> pd.DataFrame:
 
 
 def fetch_hourly_for_dept(session: requests.Session, dept: str) -> pd.DataFrame:
-    """Récupère les observations horaires (24h) d’un département (CSV).
+    """Fetch hourly observations (24h) for a department (CSV).
 
-    Retourne une DataFrame RAW :
-    - colonnes exactement telles que renvoyées par l'API
-    - ajoute `dept_code` uniquement si absent
+    Returns a raw DataFrame:
+    - columns exactly as returned by the API
+    - adds `dept_code` only if missing
     """
     dept_code = normalize_dept_code(dept)
     resp = session.get(

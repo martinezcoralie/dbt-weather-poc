@@ -1,3 +1,5 @@
+"""Ingest station reference data into BigQuery (raw.stations)."""
+
 import time
 
 from google.cloud import bigquery
@@ -19,6 +21,7 @@ logger = setup_logging(__name__)
 
 
 def main():
+    """Fetch stations and load them into a BigQuery table."""
     t0 = time.time()
 
     logger.info(
