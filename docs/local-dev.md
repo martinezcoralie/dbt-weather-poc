@@ -65,7 +65,8 @@ Notes:
 
 ## Run Ingestion Locally (Optional)
 
-To ingest real data locally, an API token is required.
+To ingest real data locally, an API token is required. See `docs/appendix/api-access.md`.
+
 
 1. Create a `.env` file (not committed) containing:
 
@@ -124,15 +125,3 @@ make help
 Useful Make commands are listed in:
 `docs/appendix/dev-commands.md`.
 
----
-
-## 🔑 API access (optional)
-Real data ingestion requires a Météo-France API token.
-
-To obtain a token:
-
-1) Create an account on the Météo-France API portal
-   - Open page “Données Publiques – Paquet Observation” : https://portail-api.meteofrance.fr/web/fr/api/DonneesPubliquesPaquetObservation  
-   - Click on **“Souscrire à l’API gratuitement”**
-
-2) Store the token locally as an environment variable in `.env` 

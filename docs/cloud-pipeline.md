@@ -111,6 +111,9 @@ The dashboard does not trigger transformations; it is purely a consumer.
 Secrets:
 - `METEOFRANCE_TOKEN` (stored in Secret Manager)
 
+Token setup guide:
+`docs/appendix/api-access.md`.
+
 ---
 
 ## IAM (High Level)
