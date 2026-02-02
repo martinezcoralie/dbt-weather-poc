@@ -2,3 +2,4 @@ pandas
 streamlit
 pydeck
 google-cloud-bigquery
+db-dtypes
