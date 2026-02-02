@@ -39,7 +39,7 @@ endif
 DUCKDB := duckdb
 
 # Scripts et modules ingestion
-SCRIPT_FETCH  := scripts/ingestion/fetch_meteofrance_paquetobs.py
+MODULE_FETCH  := scripts.ingestion.fetch_meteofrance_paquetobs
 MODULE_WRITE  := scripts.ingestion.ingest_duckdb
 
 # Chemins
@@ -91,7 +91,7 @@ env-activate: ## Affiche la commande à exécuter pour activer le virtualenv
 	@echo "  export DBT_PROFILES_DIR=./configs/dbt"
 
 # ========== BI app ==========
-app:
+app: ## Lance le dashboard streamlit sur le port 8501
 	streamlit run apps/bi-streamlit/app.py \
 		--server.address 0.0.0.0 \
 		--server.port 8501 \
@@ -99,8 +99,8 @@ app:
 
 # ========== API & Ingestion ==========
 api-check: ## Teste l’API Météo-France et les scripts de fetch (arguments : DEPT=<code>)
-	$(PY) $(SCRIPT_FETCH) --list-stations --head 5
-	$(PY) $(SCRIPT_FETCH) --dept $(DEPT) --head 5
+	$(PY) -m $(MODULE_FETCH) --list-stations --head 5
+	$(PY) -m $(MODULE_FETCH) --dept $(DEPT) --head 5
 
 dwh-ingest: ## Ingestion des données brutes dans DuckDB pour un département (arguments : DEPT=<code>)
 	$(PY) -m $(MODULE_WRITE) --dept $(DEPT)
