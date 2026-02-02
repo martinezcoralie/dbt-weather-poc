@@ -56,7 +56,7 @@ DEPT    ?= 9
 TABLE   ?= raw.obs_hourly
 
 .PHONY: help tree \
-	env-setup env-lock env-clean env-activate \
+	env-setup env-clean env-activate \
 	app \
 	api-check \
 	dwh-ingest dwh-reset dwh-tables \
@@ -81,9 +81,6 @@ tree: ## Affiche la structure du repo (hors dossiers techniques)
 env-setup: ## Crée le virtualenv (.venv) et installe les dépendances Python
 	@test -d $(VENV) || python -m venv $(VENV)
 	$(PIP) install -r requirements.txt
-
-env-lock: env-setup ## Gèle les versions des dépendances dans requirements.lock
-	$(PIP) freeze > requirements.lock
 
 env-clean: ## Supprime complètement le virtualenv (.venv)
 	rm -rf $(VENV)
