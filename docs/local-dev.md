@@ -121,6 +121,9 @@ export DBT_PROFILES_DIR=./configs/dbt
 make help
 ```
 
+Useful Make commands are listed in:
+`docs/appendix/dev-commands.md`.
+
 ---
 
 ## 🔑 API access (optional)
