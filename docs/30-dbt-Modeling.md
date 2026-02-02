@@ -54,6 +54,8 @@ Les sources dbt sont déclarées avec un champ de fraîcheur (`loaded_at_field`)
 - déclencher des alertes / checks avant calcul des marts,
 - rendre le pipeline plus orienté production.
 
+Note : côté BigQuery, la table brute `raw.obs_hourly` est créée **partitionnée par `validity_date`** lors de l’ingestion.
+
 Commandes utiles :
 
 ```bash
