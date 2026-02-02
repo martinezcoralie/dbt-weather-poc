@@ -2,30 +2,30 @@
 
 # Dimension `dim_stations`
 
-Cette dimension fournit une vue simplifiée et stable des stations météo :
+This dimension provides a simplified, stable view of weather stations:
 
-- identifiant technique de la station (`station_id`) ;
-- nom lisible (`station_name`) pour les usages BI ;
-- coordonnées géographiques (`latitude`, `longitude`) ;
+- technical station id (`station_id`);
+- readable name (`station_name`) for BI use;
+- geographic coordinates (`latitude`, `longitude`);
 - altitude.
 
-## Rôle dans le modèle de données
+## Role in the data model
 
-`dim_stations` sert principalement à :
+`dim_stations` is mainly used to:
 
-- afficher des libellés compréhensibles dans le dashboard (plutôt qu’un code brut) ;
-- positionner les stations sur une carte à partir des coordonnées ;
+- show readable labels in the dashboard (instead of raw codes);
+- place stations on a map using coordinates;
 
-Dans ce projet, la dimension est consommée par `agg_station_latest` pour
-exposer nom et coordonnées dans le dashboard.
+In this project, the dimension is consumed by `agg_station_latest` to expose
+name and coordinates in the dashboard.
 
-Les contrôles de qualité (plages de latitude/longitude/altitude, unicité de la station, etc.)
-sont appliqués en amont dans le modèle de staging `stg_stations`. La dimension projette ensuite
-les colonnes nécessaires pour la consommation analytique.
+Quality checks (latitude/longitude/altitude ranges, station uniqueness, etc.)
+are applied upstream in the staging model `stg_stations`. The dimension then
+projects only the columns needed for analytics.
 
-## Fréquence de changement
+## Change frequency
 
-Le référentiel de stations Météo-France évolue peu dans le temps : il s’agit d’une dimension
-à faible fréquence de changement, utilisée comme table de référence.
+The Météo-France station reference changes slowly over time. This is a
+low-change dimension used as a reference table.
 
 {% enddocs %}

@@ -1,8 +1,9 @@
 {% docs sources_doc %}
 
-# Schéma `raw` – Sources Météo-France
+# `raw` schema – Météo-France sources
 
-Le schéma **raw** contient les données exactement telles qu’elles proviennent de l’API Météo-France, *sans transformation* autre que l’enrichissement minimal d’ingestion (horodatage, département).
-Il constitue la base des étapes de staging dans dbt, où sont appliqués typage, nettoyage, normalisation et contrôles.
+The **raw** schema contains data exactly as received from the Météo-France API,
+*without transformation* beyond minimal ingestion enrichment (loading timestamp). It is the base for dbt staging, where typing, cleaning,
+normalization, and checks are applied.
 
 {% enddocs %}

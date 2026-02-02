@@ -2,12 +2,11 @@
 
 # dim_beaufort
 
-Dimension simplifiee de l'echelle de Beaufort (5 niveaux agreges) avec libelles
-metiers et bornes min/max de vitesse du vent en m/s. Utilisee pour enrichir
-`fct_obs_hourly` via une jointure sur la vitesse.
+Simplified Beaufort scale (5 grouped levels) with business labels and min/max
+wind speed in m/s. Joined to `fct_obs_hourly` on wind speed.
 
-**Grain** : 1 ligne = 1 niveau Beaufort simplifie (1 a 5)
-**Usage** : fournir un niveau Beaufort lisible pour les marts et le dashboard
-via `fct_obs_hourly`.
+**Grain**: 1 row = 1 simplified Beaufort level (1 to 5)
+**Use**: provide a readable Beaufort level for marts and the dashboard via
+`fct_obs_hourly`.
 
 {% enddocs %}

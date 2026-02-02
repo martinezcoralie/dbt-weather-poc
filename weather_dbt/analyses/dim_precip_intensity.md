@@ -2,11 +2,11 @@
 
 # dim_precip_intensity
 
-Dimension d'interpretation BI des cumuls de precipitations sur 24h, derivee du
-seed `precip_intensity` (plages en mm et libelles). Jointee sur
-`fct_obs_hourly.precip_24h_mm` pour produire les champs d'intensite 24h.
+BI interpretation of 24h precipitation totals, derived from the
+`precip_intensity` seed (mm ranges and labels). Joined on
+`fct_obs_hourly.precip_24h_mm` to produce 24h intensity fields.
 
-**Grain** : 1 ligne = 1 niveau d'intensite
-**Usage** : classer les cumuls 24h en categories metier pour la BI.
+**Grain**: 1 row = 1 intensity level
+**Use**: classify 24h totals into business categories for BI.
 
 {% enddocs %}
