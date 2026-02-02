@@ -34,3 +34,7 @@ models:
       +tags: ["mart"]
       +contract:
         enforced: "{{ target.type == 'bigquery' }}"
+
+seeds:
+  weather_dbt:
+    +schema: seeds

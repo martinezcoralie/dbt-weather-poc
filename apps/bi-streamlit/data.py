@@ -11,7 +11,7 @@ DB_PATH = os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
 
 # BigQuery configuration (used when DATA_BACKEND=bigquery).
 BQ_PROJECT = os.getenv("BQ_PROJECT") or os.getenv("GCP_PROJECT")
-BQ_DATASET = os.getenv("BQ_DATASET", "analytics")
+BQ_DATASET = os.getenv("BQ_DATASET", "marts")
 BQ_TABLE = os.getenv("BQ_TABLE", "agg_station_latest")
 
 
