@@ -34,6 +34,16 @@ make dbt-test
 
 ---
 
+## dbt Docs
+
+```bash
+make dbt-docs-generate
+make dbt-docs-serve
+# http://localhost:8080
+```
+
+---
+
 ## Launch Streamlit Dashboard
 
 ```bash

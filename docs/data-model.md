@@ -90,6 +90,18 @@ These dimensions encode domain rules and keep interpretations consistent.
 
 ---
 
+## dbt Design Notes
+
+- Incremental models use `merge` to avoid full refreshes.
+- BigQuery tables are partitioned (and clustered where relevant) to reduce scan
+  cost.
+- Tests and contracts enforce schema stability and domain constraints on marts.
+- The Streamlit dashboard is declared as a dbt exposure for targeted runs/tests.
+- The lineage graph helps visualize dependencies from raw → marts and scope
+  targeted builds.
+
+---
+
 ## Data Quality Guarantees
 
 - Stable schemas for analytical tables
