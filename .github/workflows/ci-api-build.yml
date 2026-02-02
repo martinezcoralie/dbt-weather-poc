@@ -11,6 +11,7 @@ on:
 
 jobs:
   lint-python:
+    # Fast lint/format gate on Python code.
     runs-on: ubuntu-latest
 
     steps:
@@ -33,6 +34,7 @@ jobs:
         run: make py-check VENV=system
 
   ingest-dbt-build:
+    # Validates ingestion + dbt build on real API data (DuckDB).
     runs-on: ubuntu-latest
 
     env:
@@ -67,6 +69,7 @@ jobs:
           dbt build
 
   compose-services-smoke:
+    # Starts app + Prefect server and checks health endpoints.
     runs-on: ubuntu-latest
 
     steps:

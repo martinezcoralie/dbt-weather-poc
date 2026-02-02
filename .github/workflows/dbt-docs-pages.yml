@@ -17,6 +17,7 @@ concurrency:
 
 jobs:
   build:
+    # Builds dbt docs from the repo and uploads as Pages artifact.
     runs-on: ubuntu-latest
 
     steps:
@@ -54,6 +55,7 @@ jobs:
           path: target
 
   deploy:
+    # Deploys the artifact to GitHub Pages.
     needs: build
     runs-on: ubuntu-latest
     environment:
