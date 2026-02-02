@@ -175,10 +175,10 @@ prefect-ui: ## Ouvre l'UI Prefect locale dans le navigateur
 	open http://localhost:4200
 
 flow-run: ## Exécute le flow Prefect une fois (ingestion + dbt) pour DEPT=<code>
-	$(PY) orchestration/flow_prefect.py --mode run --dept $(DEPT)
+	$(PY) scripts/orchestration/flow_prefect.py --mode run --dept $(DEPT)
 
 flow-serve: ## Lance le deployment Prefect horaire (cron) pour DEPT=<code>
-	$(PY) orchestration/flow_prefect.py --mode serve --dept $(DEPT)
+	$(PY) scripts/orchestration/flow_prefect.py --mode serve --dept $(DEPT)
 
 flow-status: ## Liste les deployments et les 5 derniers flow runs
 	$(PREFECT) deployment ls
