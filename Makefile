@@ -43,8 +43,8 @@ SCRIPT_FETCH  := scripts/ingestion/fetch_meteofrance_paquetobs.py
 MODULE_WRITE  := scripts.ingestion.ingest_duckdb
 
 # Chemins
-DBPATH ?= data/warehouse.duckdb
-export DBPATH
+DUCKDB_PATH ?= data/warehouse.duckdb
+export DUCKDB_PATH
 DBT_PROJECT := .
 
 # Prefect API
@@ -110,13 +110,13 @@ dwh-ingest: ## Ingestion des données brutes dans DuckDB pour un département (a
 
 # ========== DuckDB ==========
 dwh-tables: ## Liste les tables et schémas présents dans le warehouse DuckDB
-	$(DUCKDB) $(DBPATH) -c "SELECT table_schema, table_name FROM information_schema.tables ORDER BY table_schema, table_name;"
+	$(DUCKDB) $(DUCKDB_PATH) -c "SELECT table_schema, table_name FROM information_schema.tables ORDER BY table_schema, table_name;"
 
 dwh-table-info: ## Affiche la définition des colonnes pour une table (argument : TABLE=<schema.table>)
-	$(DUCKDB) $(DBPATH) -c "PRAGMA table_info('$(TABLE)');"
+	$(DUCKDB) $(DUCKDB_PATH) -c "PRAGMA table_info('$(TABLE)');"
 
 dwh-table-shape: ## Affiche le nombre de lignes et de colonnes pour une table (argument : TABLE=<schema.table>)
-	$(DUCKDB) $(DBPATH) -c "WITH s AS ( \
+	$(DUCKDB) $(DUCKDB_PATH) -c "WITH s AS ( \
 	  SELECT \
 	    (SELECT COUNT(*) FROM $(TABLE)) AS nrows, \
 	    (SELECT COUNT(*) FROM pragma_table_info('$(TABLE)')) AS ncols \
@@ -130,9 +130,9 @@ dwh-table: dwh-table-shape dwh-table-info dwh-table-sample ## Résumé complet d
 
 dwh-reset: ## Réinitialise les schémas calculés (staging, intermediate, marts) en conservant le raw
 	@echo "🧹 Cleaning warehouse (keeping raw)..."
-	@echo "DROP SCHEMA IF EXISTS staging CASCADE;" | $(DUCKDB) $(DBPATH)
-	@echo "DROP SCHEMA IF EXISTS intermediate CASCADE;" | $(DUCKDB) $(DBPATH)
-	@echo "DROP SCHEMA IF EXISTS marts CASCADE;" | $(DUCKDB) $(DBPATH)
+	@echo "DROP SCHEMA IF EXISTS staging CASCADE;" | $(DUCKDB) $(DUCKDB_PATH)
+	@echo "DROP SCHEMA IF EXISTS intermediate CASCADE;" | $(DUCKDB) $(DUCKDB_PATH)
+	@echo "DROP SCHEMA IF EXISTS marts CASCADE;" | $(DUCKDB) $(DUCKDB_PATH)
 	@echo "✅ Warehouse reset complete."
 
 # ========== DBT ==========
