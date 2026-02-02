@@ -65,7 +65,7 @@ Details: [docs/local-dev.md](docs/local-dev.md)
 
 ## Live Demo
 
-- Dashboard: <PUBLIC_URL>
+- Dashboard: https://streamlit-372280565516.europe-west1.run.app
 
 ---
 
