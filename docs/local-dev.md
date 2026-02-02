@@ -83,6 +83,22 @@ The local DuckDB warehouse will be updated with the ingested data.
 
 ---
 
+## Orchestration (Optional)
+
+If you want to run the pipeline with Prefect locally, use the Docker Compose
+profile:
+
+```bash
+docker compose --profile prefect up --build prefect-server
+docker compose --profile prefect up --build prefect
+# UI: http://localhost:4200
+```
+
+This spins up the Prefect server (UI/API) and a worker that serves the hourly
+deployment.
+
+---
+
 ## Reset Local State
 
 To remove containers and reset the local warehouse:

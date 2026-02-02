@@ -8,6 +8,8 @@ Cette partie est volontairement **optionnelle** : l’objectif est de démontrer
 - `make flow-run DEPT=9` — exécute le pipeline une fois
 - `make flow-serve DEPT=9` — crée/maintient un deployment + schedule horaire
 
+Le flow Prefect est défini dans `scripts/orchestration/flow_prefect.py`.
+
 ## Démarrage pas à pas (local)
 
 Terminal 1 — serveur Prefect :
