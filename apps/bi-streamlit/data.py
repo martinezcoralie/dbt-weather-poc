@@ -79,7 +79,11 @@ def _filter_recent_measurements(df: pd.DataFrame) -> pd.DataFrame:
 
 @st.cache_data(ttl=60)
 def load_latest_station_metrics() -> pd.DataFrame:
-    """Dernière observation par station (DuckDB ou BigQuery)."""
+    """Dernière observation par station (DuckDB ou BigQuery).
+
+    Note: un filtre de fraîcheur conserve uniquement les lignes dans les 2h
+    autour du max global de validity_time_utc (voir _filter_recent_measurements).
+    """
     if DATA_BACKEND == "bigquery":
         return _filter_recent_measurements(_load_bq_latest_station_metrics())
     if DATA_BACKEND != "duckdb":
