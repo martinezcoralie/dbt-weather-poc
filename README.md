@@ -25,31 +25,13 @@ provided for development and testing.
 
 ---
 
-## Data Pipeline
+## Key Guarantees
 
-Weather observations are fetched hourly and loaded **idempotently** into BigQuery.
-Transformations are implemented with dbt using a **layered structure**
-(staging, intermediate, marts), with **incremental models** and **partition pruning**.
-
-Analytical marts are consumed directly by a Streamlit dashboard.
-
----
-
-## Reliability & Data Quality
-
-- Idempotent ingestion (no duplicates observations)
+- Idempotent ingestion (no duplicate observations)
 - Partitioned tables to limit scanned data
-- Incremental dbt models
+- Incremental and layered dbt models
 - Column-level tests and enforced schema contracts on marts
 - Freshness logic applied in analytics and dashboard
-
----
-
-## Delivery
-
-- CI validates ingestion and dbt transformations on each push
-- Python code is linted
-- Docker services are smoke-tested
 
 ---
 
@@ -69,7 +51,7 @@ Details: [docs/local-dev.md](docs/local-dev.md)
 
 ---
 
-## Documentation ou Further resources
+## Documentation
 
 - dbt documentation (models, tests, lineage): https://martinezcoralie.github.io/dbt-weather-poc/
 - CI/CD notes (secrets): docs/appendix/ci-cd.md

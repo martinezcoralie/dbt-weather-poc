@@ -1,6 +1,6 @@
 # Cloud Analytics Pipeline (GCP)
 
-This document describes how the analytics pipeline runs on GCP.
+This document summarizes how the analytics pipeline runs on GCP.
 
 ---
 
@@ -16,38 +16,6 @@ Out of scope:
 
 ---
 
-## Components
-
-### BigQuery
-Analytical warehouse used as the reference data store.
-
-Datasets:
-- `raw`  
-  - `obs_hourly` (hourly observations, partitioned)
-  - `stations` (station metadata)
-- `staging`, `intermediate`, `marts`  
-  - managed by dbt
-
----
-
-### Cloud Run Jobs
-
-- **Weather observations ingestion**
-  - Fetches hourly observations from the Météo-France API
-  - Loads data idempotently into `raw.obs_hourly`
-
-- **dbt transformations**
-  - Executes `dbt build` targeting BigQuery
-  - Builds staging, intermediate, and marts models
-
-- **Stations ingestion (one-off)**
-  - Loads quasi-static station metadata
-  - Executed manually (no scheduler)
-  - Reuses the same Cloud Run image as observations ingestion, with a command
-    override to run the stations script
-
----
-
 ## Architecture
 
 ```text
@@ -60,32 +28,32 @@ Météo‑France API → Cloud Run Job (ingest) → BigQuery raw
 
 ---
 
-### Cloud Scheduler
+## Components (High Level)
 
-- Triggers:
-  - hourly ingestion job
-  - hourly dbt job
-- Scheduler configuration is currently managed outside this repository
+### BigQuery datasets
+- `raw` (ingestion)
+- `staging`, `intermediate`, `marts` (dbt models)
+- `seeds` (seeded dimensions)
 
----
+### Cloud Run Jobs
+- **Weather observations ingestion** → `raw.obs_hourly`
+- **dbt transformations** → `staging` / `intermediate` / `marts`
+- **Stations ingestion (one-off)** → `raw.stations`  
+  Reuses the ingestion Docker image with a command override.
 
 ### Cloud Run Service
+- Streamlit dashboard (reads `marts.agg_station_latest`)
 
-- Streamlit dashboard
-- Reads analytical marts directly from BigQuery
-- Public, read-only access (demo purpose)
+### Cloud Scheduler
+- Triggers hourly ingestion + dbt jobs
 
 ---
 
 ## Execution Flow
 
-On an hourly basis:
-
-1. Weather observations are ingested into BigQuery (`raw`)
-2. dbt transformations are executed on BigQuery
-3. The dashboard reflects the latest transformed data
-
-The dashboard does not trigger transformations; it is purely a consumer.
+1. Ingest observations into BigQuery (`raw`)
+2. Run dbt build on BigQuery
+3. Dashboard reads latest marts
 
 ---
 
@@ -102,25 +70,19 @@ The dashboard does not trigger transformations; it is purely a consumer.
 
 ## Configuration
 
-### Environment variables (examples)
-
+Environment variables (examples):
 - `GCP_PROJECT`
 - `BQ_DATASET`
 - `DATA_BACKEND=bigquery`
 
 Secrets:
-- `METEOFRANCE_TOKEN` (stored in Secret Manager)
-
-Token setup guide:
-`docs/appendix/api-access.md`.
+- `METEOFRANCE_TOKEN` stored in Secret Manager (token setup guide: see `docs/appendix/api-access.md`).
 
 ---
 
 ## IAM (High Level)
 
-Dedicated service accounts are used with least-privilege permissions:
+Dedicated service accounts with least-privilege permissions:
 - BigQuery read/write for ingestion and dbt jobs
 - BigQuery read-only for the dashboard service
 - Secret access for ingestion jobs
-
----

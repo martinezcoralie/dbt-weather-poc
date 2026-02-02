@@ -114,14 +114,6 @@ The demo dataset will be recreated on the next run.
 
 ## Alternative: run without Docker
 
-For those who prefer running locally without containers:
-
-```bash
-make env-setup && source .venv/bin/activate
-export DBT_PROFILES_DIR=./configs/dbt
-make help
-```
-
-Useful Make commands are listed in:
+For those who prefer running locally without containers, see:
 `docs/appendix/dev-commands.md`.
 

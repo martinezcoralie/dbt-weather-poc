@@ -17,76 +17,34 @@ Primary consumer:
 
 ---
 
-## Layered Structure
-
-The warehouse follows a standard layered approach:
+## Layers
 
 `raw → staging → intermediate → marts`
 
-- **raw**
-  - Raw observations and reference data  as ingested
-- **staging**
-  - Cleaning, typing, normalization
-- **intermediate**
-  - Feature engineering and rolling windows
-- **marts**
-  - Stable analytical tables for BI consumption
+- **raw**: raw observations and reference data as ingested
+- **staging**: cleaning, typing, normalization
+- **intermediate**: feature engineering and rolling windows
+- **marts**: stable analytical tables for BI consumption
 
 ---
 
-## Core Fact Table
+## Key Tables
 
-### `fct_obs_hourly`
-
-Hourly fact table at station level.
-
-Grain:
-- `station_id`
-- `validity_time_utc`
-
-Content:
-- rolling metrics (precipitation, snow, temperature over 1h / 3h / 24h)
-- atomic measurements (wind, temperature, humidity, visibility)
-- derived flags and categories (e.g. freezing, precipitation, wind strength)
-- joins to reference dimensions
-
-This table is the main analytical backbone.
-
----
-
-## Analytical Aggregates
-
-### `agg_station_latest`
-
-One row per station, representing the **latest available observation**.
-
-Used by:
-- dashboard rankings
-- map visualizations
-
-This model is optimized for fast BI access.
+- `fct_obs_hourly` (fact, grain: `station_id` × `validity_time_utc`)
+- `agg_station_latest` (latest metrics per station)
 
 ---
 
 ## Dimensions & Reference Data
 
-- `dim_stations`
-  - station metadata (name, location)
+- `dim_stations` (station metadata)
+
 - Reference dimensions (from seeds):
   - wind (Beaufort scale)
   - temperature intensity
   - precipitation intensity
   - snow intensity
 
-These dimensions encode domain rules and keep interpretations consistent.
-
----
-
-## Incremental Strategy (High-Level)
-
-- Data is processed incrementally based on the observation date.
-- On BigQuery, analytical tables are partitioned by date to reduce scan cost.
-- On DuckDB, incremental logic avoids full recomputation.
 
 ---
 

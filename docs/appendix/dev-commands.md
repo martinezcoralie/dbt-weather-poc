@@ -20,12 +20,9 @@ export DBT_PROFILES_DIR=./configs/dbt
 ## Ingestion
 
 ```bash
-make dwh-ingest DEPT=75
 make api-check
+make dwh-ingest DEPT=75
 ```
-
-`make api-check` validates the API token and fetcher (quick smoke test).
-API token setup: `docs/appendix/api-access.md`.
 
 ---
 
@@ -58,7 +55,7 @@ make dbt-docs-serve
 
 ---
 
-## Launch Streamlit Dashboard
+## Run the App
 
 ```bash
 make app
