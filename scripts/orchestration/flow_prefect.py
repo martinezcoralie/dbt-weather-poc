@@ -45,6 +45,7 @@ def wait_for_prefect_api(timeout_s: int = 60, interval_s: float = 2.0) -> None:
 
     raise RuntimeError(f"Prefect API not reachable: {health_url}") from last_err
 
+
 @task
 def ingest_meteofrance(dept: int = 9) -> None:
     """
