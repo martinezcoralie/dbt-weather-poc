@@ -39,12 +39,12 @@ endif
 DUCKDB := duckdb
 
 # Scripts et modules ingestion
-SCRIPT_FETCH  := scripts/ingestion/fetch_meteofrance_paquetobs.py
+MODULE_FETCH  := scripts.ingestion.fetch_meteofrance_paquetobs
 MODULE_WRITE  := scripts.ingestion.ingest_duckdb
 
 # Chemins
-DBPATH ?= data/warehouse.duckdb
-export DBPATH
+DUCKDB_PATH ?= data/warehouse.duckdb
+export DUCKDB_PATH
 DBT_PROJECT := .
 
 # Prefect API
@@ -56,7 +56,7 @@ DEPT    ?= 9
 TABLE   ?= raw.obs_hourly
 
 .PHONY: help tree \
-	env-setup env-lock env-clean env-activate \
+	env-setup env-clean env-activate \
 	app \
 	api-check \
 	dwh-ingest dwh-reset dwh-tables \
@@ -82,9 +82,6 @@ env-setup: ## Crée le virtualenv (.venv) et installe les dépendances Python
 	@test -d $(VENV) || python -m venv $(VENV)
 	$(PIP) install -r requirements.txt
 
-env-lock: env-setup ## Gèle les versions des dépendances dans requirements.lock
-	$(PIP) freeze > requirements.lock
-
 env-clean: ## Supprime complètement le virtualenv (.venv)
 	rm -rf $(VENV)
 
@@ -94,7 +91,7 @@ env-activate: ## Affiche la commande à exécuter pour activer le virtualenv
 	@echo "  export DBT_PROFILES_DIR=./configs/dbt"
 
 # ========== BI app ==========
-app:
+app: ## Lance le dashboard streamlit sur le port 8501
 	streamlit run apps/bi-streamlit/app.py \
 		--server.address 0.0.0.0 \
 		--server.port 8501 \
@@ -102,21 +99,21 @@ app:
 
 # ========== API & Ingestion ==========
 api-check: ## Teste l’API Météo-France et les scripts de fetch (arguments : DEPT=<code>)
-	$(PY) $(SCRIPT_FETCH) --list-stations --head 5
-	$(PY) $(SCRIPT_FETCH) --dept $(DEPT) --head 5
+	$(PY) -m $(MODULE_FETCH) --list-stations --head 5
+	$(PY) -m $(MODULE_FETCH) --dept $(DEPT) --head 5
 
 dwh-ingest: ## Ingestion des données brutes dans DuckDB pour un département (arguments : DEPT=<code>)
 	$(PY) -m $(MODULE_WRITE) --dept $(DEPT)
 
 # ========== DuckDB ==========
 dwh-tables: ## Liste les tables et schémas présents dans le warehouse DuckDB
-	$(DUCKDB) $(DBPATH) -c "SELECT table_schema, table_name FROM information_schema.tables ORDER BY table_schema, table_name;"
+	$(DUCKDB) $(DUCKDB_PATH) -c "SELECT table_schema, table_name FROM information_schema.tables ORDER BY table_schema, table_name;"
 
 dwh-table-info: ## Affiche la définition des colonnes pour une table (argument : TABLE=<schema.table>)
-	$(DUCKDB) $(DBPATH) -c "PRAGMA table_info('$(TABLE)');"
+	$(DUCKDB) $(DUCKDB_PATH) -c "PRAGMA table_info('$(TABLE)');"
 
 dwh-table-shape: ## Affiche le nombre de lignes et de colonnes pour une table (argument : TABLE=<schema.table>)
-	$(DUCKDB) $(DBPATH) -c "WITH s AS ( \
+	$(DUCKDB) $(DUCKDB_PATH) -c "WITH s AS ( \
 	  SELECT \
 	    (SELECT COUNT(*) FROM $(TABLE)) AS nrows, \
 	    (SELECT COUNT(*) FROM pragma_table_info('$(TABLE)')) AS ncols \
@@ -130,9 +127,9 @@ dwh-table: dwh-table-shape dwh-table-info dwh-table-sample ## Résumé complet d
 
 dwh-reset: ## Réinitialise les schémas calculés (staging, intermediate, marts) en conservant le raw
 	@echo "🧹 Cleaning warehouse (keeping raw)..."
-	@echo "DROP SCHEMA IF EXISTS staging CASCADE;" | $(DUCKDB) $(DBPATH)
-	@echo "DROP SCHEMA IF EXISTS intermediate CASCADE;" | $(DUCKDB) $(DBPATH)
-	@echo "DROP SCHEMA IF EXISTS marts CASCADE;" | $(DUCKDB) $(DBPATH)
+	@echo "DROP SCHEMA IF EXISTS staging CASCADE;" | $(DUCKDB) $(DUCKDB_PATH)
+	@echo "DROP SCHEMA IF EXISTS intermediate CASCADE;" | $(DUCKDB) $(DUCKDB_PATH)
+	@echo "DROP SCHEMA IF EXISTS marts CASCADE;" | $(DUCKDB) $(DUCKDB_PATH)
 	@echo "✅ Warehouse reset complete."
 
 # ========== DBT ==========
@@ -175,10 +172,10 @@ prefect-ui: ## Ouvre l'UI Prefect locale dans le navigateur
 	open http://localhost:4200
 
 flow-run: ## Exécute le flow Prefect une fois (ingestion + dbt) pour DEPT=<code>
-	$(PY) orchestration/flow_prefect.py --mode run --dept $(DEPT)
+	$(PY) scripts/orchestration/flow_prefect.py --mode run --dept $(DEPT)
 
 flow-serve: ## Lance le deployment Prefect horaire (cron) pour DEPT=<code>
-	$(PY) orchestration/flow_prefect.py --mode serve --dept $(DEPT)
+	$(PY) scripts/orchestration/flow_prefect.py --mode serve --dept $(DEPT)
 
 flow-status: ## Liste les deployments et les 5 derniers flow runs
 	$(PREFECT) deployment ls

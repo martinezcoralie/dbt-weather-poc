@@ -2,11 +2,11 @@
 
 # dim_snow_intensity
 
-Dimension d'interpretation BI des hauteurs de neige cumulees (m), issue du seed
-`snow_intensity` avec niveaux ordonnes et libelles. Jointee sur
-`fct_obs_hourly.snow_24h_m` pour produire les champs d'intensite 24h.
+BI interpretation of 24h snow depth totals (m), from the `snow_intensity` seed
+with ordered levels and labels. Joined on `fct_obs_hourly.snow_24h_m` to produce
+24h intensity fields.
 
-**Grain** : 1 ligne = 1 niveau d'intensite
-**Usage** : classifier les cumuls de neige 24h pour la BI.
+**Grain**: 1 row = 1 intensity level
+**Use**: classify 24h snow totals for BI.
 
 {% enddocs %}

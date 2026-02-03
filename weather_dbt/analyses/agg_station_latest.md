@@ -2,15 +2,15 @@
 
 # agg_station_latest
 
-Vue "dernier etat" par station : derniere observation horaire disponible issue de
-`fct_obs_hourly`, enrichie de metriques sur fenetres glissantes 24h (precipitations,
-neige, temperature) et des labels BI (intensites, Beaufort) et des coordonnees.
+"Latest state" view per station: the most recent hourly observation from
+`fct_obs_hourly`, enriched with 24h rolling metrics (precipitation, snow,
+temperature), BI labels (intensity, Beaufort), and coordinates.
 
-**Grain** : 1 ligne = 1 station_id (derniere validity_time_utc disponible)
-**Usage** : source directe du dashboard Streamlit (exposure `weather_bi_streamlit`).
-**Matérialisation** : incremental (merge) avec filtre sur `fct_obs_hourly.validity_date`.
+**Grain**: 1 row = 1 station_id (latest available validity_time_utc)
+**Use**: direct source for the Streamlit dashboard (exposure `weather_bi_streamlit`).
+**Materialization**: incremental (merge) filtered on `fct_obs_hourly.validity_date`.
 
-Les colonnes `is_*` sont des drapeaux booleens pre-calcules a partir des champs
-d'intensite 24h et de Beaufort, pour simplifier les filtres et cartes dans la BI.
+`is_*` columns are precomputed boolean flags derived from 24h intensity fields
+and Beaufort, to simplify BI filters and maps.
 
 {% enddocs %}

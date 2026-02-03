@@ -2,6 +2,8 @@
 /.env
 target/
 dbt_packages/
+configs/dbt/.user.yml
+configs/dbt/.user.yaml
 logs/
 __pycache__/.streamlit/
 __pycache__/

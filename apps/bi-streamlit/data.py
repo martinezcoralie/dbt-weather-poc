@@ -11,7 +11,7 @@ DB_PATH = os.getenv("DUCKDB_PATH", "data/warehouse.duckdb")
 
 # BigQuery configuration (used when DATA_BACKEND=bigquery).
 BQ_PROJECT = os.getenv("BQ_PROJECT") or os.getenv("GCP_PROJECT")
-BQ_DATASET = os.getenv("BQ_DATASET", "analytics")
+BQ_DATASET = os.getenv("BQ_DATASET", "marts")
 BQ_TABLE = os.getenv("BQ_TABLE", "agg_station_latest")
 
 
@@ -40,6 +40,7 @@ def _load_bq_latest_timestamp():
 
 
 def _load_duckdb_latest_station_metrics() -> pd.DataFrame:
+    """Load latest station metrics from DuckDB."""
     import duckdb
 
     with duckdb.connect(DB_PATH, read_only=True) as con:
@@ -52,6 +53,7 @@ def _load_duckdb_latest_station_metrics() -> pd.DataFrame:
 
 
 def _load_duckdb_latest_timestamp():
+    """Load latest timestamp from DuckDB."""
     import duckdb
 
     with duckdb.connect(DB_PATH, read_only=True) as con:
@@ -79,7 +81,11 @@ def _filter_recent_measurements(df: pd.DataFrame) -> pd.DataFrame:
 
 @st.cache_data(ttl=60)
 def load_latest_station_metrics() -> pd.DataFrame:
-    """Dernière observation par station (DuckDB ou BigQuery)."""
+    """Latest observation per station (DuckDB or BigQuery).
+
+    Note: a freshness filter keeps only rows within 2 hours of the global
+    max validity_time_utc (see _filter_recent_measurements).
+    """
     if DATA_BACKEND == "bigquery":
         return _filter_recent_measurements(_load_bq_latest_station_metrics())
     if DATA_BACKEND != "duckdb":
@@ -89,7 +95,7 @@ def load_latest_station_metrics() -> pd.DataFrame:
 
 @st.cache_data(ttl=60)
 def load_latest_timestamp() -> datetime | None:
-    """Horodatage le plus récent disponible (DuckDB ou BigQuery)."""
+    """Most recent timestamp available (DuckDB or BigQuery)."""
     if DATA_BACKEND == "bigquery":
         return _load_bq_latest_timestamp()
     if DATA_BACKEND != "duckdb":
@@ -98,7 +104,7 @@ def load_latest_timestamp() -> datetime | None:
 
 
 def format_last_update(ts: datetime | None) -> str:
-    """Retourne une phrase prête à afficher sur l'horodatage le plus récent."""
+    """Return a display-ready sentence for the latest timestamp."""
     if not isinstance(ts, datetime):
         return "Aucune donnée disponible dans marts.agg_station_latest"
     ts_formatted = ts if ts.tzinfo else ts.replace(tzinfo=None)
