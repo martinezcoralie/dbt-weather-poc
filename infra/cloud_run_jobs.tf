@@ -109,7 +109,7 @@ resource "google_cloud_run_v2_job" "dbt_build" {
 
   template {
     template {
-      service_account = google_service_account.cr_job_ingest.email
+      service_account = google_service_account.cr_job_dbt.email
       max_retries     = 1
 
       containers {
