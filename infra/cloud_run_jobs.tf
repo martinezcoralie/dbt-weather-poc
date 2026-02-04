@@ -5,10 +5,11 @@ resource "google_cloud_run_v2_job" "ingest" {
   template {
     template {
       service_account = google_service_account.cr_job_ingest.email
+      max_retries     = 1
 
       containers {
-        image = "europe-west1-docker.pkg.dev/dbt-weather-poc/weather/ingest:latest"
-
+        name  = "ingest-1"
+        image = "europe-west1-docker.pkg.dev/dbt-weather-poc/weather/ingest@sha256:fbe8989914f2df1042e5120b2752d71096f9fa6cbf00541296604ce7f3cad10e"
         env {
           name  = "GCP_PROJECT"
           value = var.project_id
@@ -44,6 +45,8 @@ resource "google_cloud_run_v2_job" "ingest" {
             }
           }
         }
+
+
       }
     }
   }
