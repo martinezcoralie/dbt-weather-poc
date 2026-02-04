@@ -1,6 +1,6 @@
 resource "google_cloud_scheduler_job" "ingest" {
-  name        = "ingest-obs-hourly-hourly"
-  description = "Trigger Cloud Run Job ingest-obs-hourly"
+  name        = "sched-ingest"
+  description = "Trigger Cloud Run Job ingest"
   project     = "dbt-weather-poc"
   region      = "europe-west1"
 
@@ -28,7 +28,7 @@ resource "google_cloud_scheduler_job" "ingest" {
 }
 
 resource "google_cloud_scheduler_job" "dbt_build" {
-  name        = "sched-dbt-build-hourly"
+  name        = "sched-dbt-build"
   description = "Trigger Cloud Run Job dbt-build"
   project     = "dbt-weather-poc"
   region      = "europe-west1"
