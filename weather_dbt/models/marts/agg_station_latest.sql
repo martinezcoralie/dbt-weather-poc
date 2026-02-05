@@ -10,7 +10,7 @@ with
 max_existing as (
     select
         coalesce(
-            date_sub(cast(max(validity_time_utc) as date), INTERVAL 1 day),
+            {{ date_add_days("cast(max(validity_time_utc) as date)", -1) }},
             DATE '1900-01-01'
         ) as buffer_start
     from {{ this }}
