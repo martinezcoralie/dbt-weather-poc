@@ -4,9 +4,9 @@
 - **Cloud Run Jobs**
   - weather data ingestion (Météo-France → BigQuery raw)
   - dbt transformations (staging → marts)
-- **Cloud Scheduler** to trigger jobs
+- **Cloud Scheduler** to trigger jobs (hourly)
 - **BigQuery** as the data warehouse
-- **Streamlit** dashboard on Cloud Run Service (public)
+- **Streamlit** dashboard on Cloud Run Service (public via IAM `allUsers`)
 
 
 ## Why this setup
