@@ -1,4 +1,5 @@
 # --- BigQuery permissions (minimal) ---
+# Keep scope tight: jobUser to run queries, dataEditor/dataViewer as needed.
 
 # Ingest job: writes to raw tables
 resource "google_project_iam_member" "ingest_bq_job_user" {

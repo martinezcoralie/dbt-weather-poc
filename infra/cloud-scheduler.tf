@@ -4,6 +4,7 @@ resource "google_cloud_scheduler_job" "ingest" {
   project     = "dbt-weather-poc"
   region      = "europe-west1"
 
+  # Ingest first, then dbt a few minutes later.
   schedule  = "5 * * * *"
   time_zone = "Europe/Paris"
 
@@ -33,6 +34,7 @@ resource "google_cloud_scheduler_job" "dbt_build" {
   project     = "dbt-weather-poc"
   region      = "europe-west1"
 
+  # Runs after ingest.
   schedule  = "10 * * * *"
   time_zone = "Europe/Paris"
 

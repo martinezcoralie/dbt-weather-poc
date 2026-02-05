@@ -4,5 +4,6 @@ variable "project_id" {
 
 variable "region" {
   type    = string
+  # Default region for all resources.
   default = "europe-west1"
 }

@@ -3,6 +3,7 @@ resource "google_cloud_run_v2_service" "streamlit" {
   location = "europe-west1"
   project  = "dbt-weather-poc"
 
+  # Public ingress; IAM in iam_run.tf grants allUsers for this service.
   ingress = "INGRESS_TRAFFIC_ALL"
 
   template {
@@ -13,6 +14,7 @@ resource "google_cloud_run_v2_service" "streamlit" {
       max_instance_count = 3
     }
 
+    # Keep costs down while staying responsive for a small dashboard.
     timeout                          = "300s"
     max_instance_request_concurrency = 80
 
