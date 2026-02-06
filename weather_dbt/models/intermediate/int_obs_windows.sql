@@ -16,7 +16,7 @@ with src as (
         where validity_date >= (
             select
                 coalesce(
-                    date_sub(max(validity_date), INTERVAL 1 day),
+                    {{ date_add_days("max(validity_date)", -1) }},
                     DATE '1900-01-01'
                 )
             from {{ this }}

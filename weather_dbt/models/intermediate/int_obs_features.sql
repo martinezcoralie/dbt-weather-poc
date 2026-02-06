@@ -15,9 +15,11 @@ with base as (
         {{ kelvin_to_c('obs_hourly.temperature_k') }} as temperature_c
     from {{ ref('stg_obs_hourly') }} as obs_hourly
     {% if is_incremental() %}
-    where obs_hourly.validity_date >= date_sub(
-        (select coalesce(max(validity_date), date('1900-01-01')) from {{ this }}),
-        interval 2 day
+    where obs_hourly.validity_date >= (
+        {{ date_add_days(
+            "(select coalesce(max(validity_date), date('1900-01-01')) from " ~ this ~ ")",
+            -2
+        ) }}
     )
     {% endif %}
 
