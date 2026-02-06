@@ -23,10 +23,11 @@ No cloud account is required for local execution.
   - the Streamlit dashboard
   - dbt transformations
   - ingestion jobs (optional)
-- A persistent DuckDB warehouse is stored in a Docker volume.
-- If no warehouse exists, a **demo dataset is automatically seeded**.
+- A persistent DuckDB warehouse is stored in a Docker volume. 
+- If no warehouse exists, a **demo dataset is automatically seeded**. This allows the dashboard to run **without calling the external API**.
 
-This allows the dashboard to run **without calling the external API**.
+- The public image is available on Docker Hub and can be pulled directly:
+  `docker pull martinezcoralie/weather-app:latest`
 
 ---
 
@@ -116,4 +117,3 @@ The demo dataset will be recreated on the next run.
 
 For those who prefer running locally without containers, see:
 `docs/appendix/dev-commands.md`.
-
