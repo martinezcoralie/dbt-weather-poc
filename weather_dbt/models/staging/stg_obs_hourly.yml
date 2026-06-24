@@ -8,7 +8,7 @@ models:
     tests:
       - dbt_utils.unique_combination_of_columns:
           arguments:
-            combination_of_columns: [validity_time_utc, station_id, production_time_utc]
+            combination_of_columns: [validity_time_utc, station_id]
     columns:
 
       # ─────────────── Identification & localisation ───────────────

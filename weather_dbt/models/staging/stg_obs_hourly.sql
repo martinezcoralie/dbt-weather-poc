@@ -94,6 +94,51 @@ with base as (
         {{ safe_double('pmer') }}                            as pressure_sea_pa
 
     from {{ source('raw', 'obs_hourly') }}
+),
+
+ranked as (
+    select
+        base.*,
+        row_number() over (
+            partition by station_id, validity_time_utc
+            order by production_time_utc desc, insert_time_utc desc
+        ) as observation_rank
+    from base
 )
 
-select * from base
+select
+    station_id,
+    latitude,
+    longitude,
+    production_time_utc,
+    insert_time_utc,
+    validity_time_utc,
+    load_time_utc,
+    validity_date,
+    temperature_k,
+    dew_point_k,
+    t_max_k,
+    t_min_k,
+    humidity_pct,
+    humidity_max_pct,
+    humidity_min_pct,
+    wind_dir_deg,
+    wind_speed_ms,
+    wind_dir_gust_avg_max_deg,
+    wind_gust_avg_max_ms,
+    wind_dir_gust_abs_max_deg,
+    wind_gust_abs_max_ms,
+    precip_mm_h,
+    soil_t_10cm_k,
+    soil_t_20cm_k,
+    soil_t_50cm_k,
+    soil_t_100cm_k,
+    visibility_m,
+    soil_state_code,
+    snow_depth_m,
+    sunshine_duration_min,
+    global_radiation_j_m2,
+    pressure_station_pa,
+    pressure_sea_pa
+from ranked
+where observation_rank = 1
