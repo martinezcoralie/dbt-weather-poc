@@ -114,7 +114,7 @@ resource "google_cloud_run_v2_job" "dbt_build" {
 
       containers {
         name  = "ingest-1"
-        image = "europe-west1-docker.pkg.dev/dbt-weather-poc/weather/dbt@sha256:fbfbeacb7901a341574f47e533df12324f4e659b5b6055a55005f7777d361c21"
+        image = "europe-west1-docker.pkg.dev/dbt-weather-poc/weather/dbt@sha256:4b082e577a925444302c9ce84ace5929b513c4e96858fc3e7337c19a606791fc"
 
 
 
