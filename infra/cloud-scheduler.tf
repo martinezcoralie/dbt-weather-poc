@@ -5,7 +5,7 @@ resource "google_cloud_scheduler_job" "ingest" {
   region      = "europe-west1"
 
   # Ingest first, then dbt a few minutes later.
-  schedule  = "5 * * * *"
+  schedule  = "5 */2 * * *"
   time_zone = "Europe/Paris"
 
   attempt_deadline = "180s"
@@ -35,7 +35,7 @@ resource "google_cloud_scheduler_job" "dbt_build" {
   region      = "europe-west1"
 
   # Runs after ingest.
-  schedule  = "10 * * * *"
+  schedule  = "10 */2 * * *"
   time_zone = "Europe/Paris"
 
   attempt_deadline = "180s"

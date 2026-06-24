@@ -3,7 +3,7 @@
 ## Overview
 
 This project implements an **end-to-end analytics pipeline on GCP**:
-hourly ingestion of public weather observations, transformation with dbt on
+scheduled ingestion of public weather observations, transformation with dbt on
 BigQuery, and exposure through a live dashboard.
 
 The cloud deployment is the reference execution environment; a local setup is
@@ -16,7 +16,7 @@ provided for development and testing.
 **Cloud (reference execution)**
 - BigQuery as analytical warehouse
 - Cloud Run Jobs for ingestion and dbt transformations
-- Cloud Scheduler triggering hourly runs
+- Cloud Scheduler triggering runs every 2 hours
 - Cloud Run Service serving the Streamlit dashboard
 
 **Local (for development and testing)**
