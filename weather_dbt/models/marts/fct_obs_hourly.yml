@@ -10,7 +10,7 @@ models:
       domain: "weather_analytics"
       criticality: "high"
       pii: false
-      refresh_expectation: "hourly"
+      refresh_expectation: "every 2 hours"
       usage: "Base factuelle pour contrôles qualité et agrégations; alimente agg_station_latest."
       grain: "1 ligne = 1 station_id x 1 validity_time_utc"
     columns:

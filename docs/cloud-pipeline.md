@@ -45,7 +45,7 @@ Météo‑France API → Cloud Run Job (ingest) → BigQuery raw
 - Streamlit dashboard (reads `marts.agg_station_latest`)
 
 ### Cloud Scheduler
-- Triggers hourly ingestion + dbt jobs
+- Triggers ingestion + dbt jobs every 2 hours
 
 ---
 
